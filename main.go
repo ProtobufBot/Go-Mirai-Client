@@ -53,6 +53,8 @@ func main() {
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
 	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
 	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
+	plugin.AddJoinGroupPlugin(plugins.ReportJoinGroup)
+	plugin.AddLeaveGroupPlugin(plugins.ReportLeaveGroup)
 
 	plugin.Serve(cli)
 	log.Infof("插件加载完成")
