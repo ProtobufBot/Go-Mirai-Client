@@ -57,3 +57,49 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 	bot.HandleEventFrame(cli, eventProto)
 	return plugin.MessageIgnore
 }
+
+func ReportMemberJoin(cli *client.QQClient, event *client.MemberJoinGroupEvent) int32 {
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TGroupIncreaseNoticeEvent,
+	}
+	eventProto.Data = &onebot.Frame_GroupIncreaseNoticeEvent{
+		GroupIncreaseNoticeEvent: &onebot.GroupIncreaseNoticeEvent{
+			Time:       time.Now().Unix(),
+			SelfId:     cli.Uin,
+			PostType:   "message",
+			NoticeType: "group_increase",
+			SubType:    "approve",
+			GroupId:    event.Group.Code,
+			UserId:     event.Member.Uin,
+		},
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
+
+func ReportMemberLeave(cli *client.QQClient, event *client.MemberLeaveGroupEvent) int32 {
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TGroupDecreaseNoticeEvent,
+	}
+	subType := "leave"
+	var operatorId int64 = 0
+	if event.Operator != nil {
+		subType = "kick"
+		operatorId = event.Operator.Uin
+	}
+
+	eventProto.Data = &onebot.Frame_GroupDecreaseNoticeEvent{
+		GroupDecreaseNoticeEvent: &onebot.GroupDecreaseNoticeEvent{
+			Time:       time.Now().Unix(),
+			SelfId:     cli.Uin,
+			PostType:   "message",
+			NoticeType: "group_decrease",
+			SubType:    subType,
+			GroupId:    event.Group.Code,
+			UserId:     event.Member.Uin,
+			OperatorId: operatorId,
+		},
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}

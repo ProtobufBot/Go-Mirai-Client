@@ -51,6 +51,8 @@ func main() {
 	log.Infof("加载上报插件 Report")
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
+	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
+	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
 
 	plugin.Serve(cli)
 	log.Infof("插件加载完成")
