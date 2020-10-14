@@ -1,0 +1,70 @@
+syntax = "proto3";
+package dto;
+
+
+message Bot{
+    int64 bot_id = 1;
+    bool is_online = 2;
+}
+
+// 创建机器人 /bot/create/v1/
+message CreateBotReq{
+    int64 bot_id = 1;
+    string password = 2;
+}
+message CreateBotResp{
+}
+
+// 查询机器人 /bot/list/v1/
+message ListBotReq{
+}
+message ListBotResp{
+    repeated Bot bot_list = 1;
+}
+
+// 机器人登陆 /bot/login/v1/
+message BotLoginAsyncReq{
+    int64 bot_id = 1;
+}
+message BotLoginAsyncResp{
+}
+
+message Captcha{
+    int64 bot_id = 1;
+    CaptchaType captcha_type = 2;
+    oneof data{
+        string url = 3;
+        bytes image = 4;
+    }
+    enum CaptchaType{
+        PIC_CAPTCHA = 0;
+        SLIDER_CAPTCHA = 1;
+        UNSAFE_DEVICE_LOGIN_VERIFY = 2;
+        SMS = 4;
+    }
+}
+
+
+// 获取验证码 /captcha/list/v1/
+message GetCaptchaListReq{
+}
+message GetCaptchaListResp{
+    repeated Captcha captcha_list = 1;
+}
+
+// 处理验证码 /captcha/solve/v1/
+message SolveCaptchaReq{
+    int64 bot_id = 1;
+    string result = 2;
+}
+message SolveCaptchaResp{
+}
+
+
+service HttpService{
+    rpc CreateBot(CreateBotReq)returns (CreateBotResp);
+    rpc ListBot(ListBotReq)returns (ListBotResp);
+    rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
+    rpc GetCaptchaList(GetCaptchaListReq)returns (GetCaptchaListResp);
+    rpc SolveCaptcha(SolveCaptchaReq)returns (SolveCaptchaResp);
+}
