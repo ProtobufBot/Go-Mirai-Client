@@ -35,3 +35,6 @@ _testmain.go
 *.local.yml
 device.json
 Go-Mirai-Client
+device-*.json
+static/
+gmc-*.zip

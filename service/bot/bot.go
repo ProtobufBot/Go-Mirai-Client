@@ -1,24 +1,32 @@
 package bot
 
 import (
+	"io/ioutil"
+	"os"
+	"time"
+
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"os"
-	"time"
 )
 
-func InitDevice() {
-	if !util.PathExists("device.json") {
+var Cli *client.QQClient
+
+func InitDevice(path string) {
+	if !util.PathExists(path) {
 		log.Warn("虚拟设备信息不存在, 将自动生成随机设备.")
 		client.GenRandomDevice()
-		_ = ioutil.WriteFile("device.json", client.SystemDeviceInfo.ToJson(), 0644)
-		log.Info("已生成设备信息并保存到 device.json 文件.")
+		client.SystemDeviceInfo.Device = []byte("gmc")
+		client.SystemDeviceInfo.Board = []byte("gmc")
+		client.SystemDeviceInfo.Model = []byte("gmc")
+		client.SystemDeviceInfo.Brand = []byte("protobufbot")
+		client.SystemDeviceInfo.Product = []byte("gmc")
+		_ = ioutil.WriteFile(path, client.SystemDeviceInfo.ToJson(), 0644)
+		log.Infof("已生成设备信息并保存到 %s 文件.", path)
 	} else {
-		log.Info("将使用 device.json 内的设备信息运行Bot.")
-		if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText("device.json"))); err != nil {
+		log.Infof("将使用 %s 内的设备信息运行", path)
+		if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText(path))); err != nil {
 			log.Fatalf("加载设备信息失败: %v", err)
 		}
 	}
@@ -92,5 +100,4 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 		log.Fatal("重连失败: 重连次数达到设置的上限值")
 		log.Fatalf("Bot已离线：%v", e.Message)
 	})
-
 }

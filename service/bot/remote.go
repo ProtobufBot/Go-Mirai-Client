@@ -1,15 +1,16 @@
 package bot
 
 import (
+	"net/http"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
-	"sync"
-	"time"
 )
 
 var Conn *websocket.Conn
@@ -22,6 +23,7 @@ var connectLock sync.Mutex
 func ConnectUniversal(cli *client.QQClient) {
 	connectLock.Lock()
 	if connecting {
+		connectLock.Unlock()
 		return
 	}
 	connecting = true
@@ -42,6 +44,7 @@ func ConnectUniversal(cli *client.QQClient) {
 			log.Infof("已连接Websocket %v", WsUrl)
 			go listenApi(cli, conn)
 			Conn = conn
+			time.Sleep(1 * time.Second)
 			connectLock.Lock()
 			connecting = false
 			connectLock.Unlock()
@@ -98,15 +101,95 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
 		resp.Data = &onebot.Frame_SendGroupMsgResp{
 			SendGroupMsgResp: HandleSendGroupMsg(cli, data.SendGroupMsgReq),
 		}
+	case *onebot.Frame_SendMsgReq:
+		resp.FrameType = onebot.Frame_TSendMsgResp
+		resp.Data = &onebot.Frame_SendMsgResp{
+			SendMsgResp: HandleSendMsg(cli, data.SendMsgReq),
+		}
 	case *onebot.Frame_DeleteMsgReq:
-		resp.FrameType = onebot.Frame_TDeleteMsgReq
+		resp.FrameType = onebot.Frame_TDeleteMsgResp
 		resp.Data = &onebot.Frame_DeleteMsgResp{
 			DeleteMsgResp: HandleDeleteMsg(cli, data.DeleteMsgReq),
 		}
 	case *onebot.Frame_GetMsgReq:
-		resp.FrameType = onebot.Frame_TGetMsgReq
+		resp.FrameType = onebot.Frame_TGetMsgResp
 		resp.Data = &onebot.Frame_GetMsgResp{
 			GetMsgResp: HandleGetMsg(cli, data.GetMsgReq),
+		}
+	case *onebot.Frame_SetGroupKickReq:
+		resp.FrameType = onebot.Frame_TSetGroupKickResp
+		resp.Data = &onebot.Frame_SetGroupKickResp{
+			SetGroupKickResp: HandleSetGroupKick(cli, data.SetGroupKickReq),
+		}
+	case *onebot.Frame_SetGroupBanReq:
+		resp.FrameType = onebot.Frame_TSetGroupBanResp
+		resp.Data = &onebot.Frame_SetGroupBanResp{
+			SetGroupBanResp: HandleSetGroupBan(cli, data.SetGroupBanReq),
+		}
+	case *onebot.Frame_SetGroupWholeBanReq:
+		resp.FrameType = onebot.Frame_TSetGroupWholeBanResp
+		resp.Data = &onebot.Frame_SetGroupWholeBanResp{
+			SetGroupWholeBanResp: HandleSetGroupWholeBan(cli, data.SetGroupWholeBanReq),
+		}
+	case *onebot.Frame_SetGroupCardReq:
+		resp.FrameType = onebot.Frame_TSetGroupCardResp
+		resp.Data = &onebot.Frame_SetGroupCardResp{
+			SetGroupCardResp: HandleSetGroupCard(cli, data.SetGroupCardReq),
+		}
+	case *onebot.Frame_SetGroupNameReq:
+		resp.FrameType = onebot.Frame_TSetGroupNameResp
+		resp.Data = &onebot.Frame_SetGroupNameResp{
+			SetGroupNameResp: HandleSetGroupName(cli, data.SetGroupNameReq),
+		}
+	case *onebot.Frame_SetGroupLeaveReq:
+		resp.FrameType = onebot.Frame_TSetGroupLeaveResp
+		resp.Data = &onebot.Frame_SetGroupLeaveResp{
+			SetGroupLeaveResp: HandleSetGroupLeave(cli, data.SetGroupLeaveReq),
+		}
+	case *onebot.Frame_SetGroupSpecialTitleReq:
+		resp.FrameType = onebot.Frame_TSetGroupSpecialTitleResp
+		resp.Data = &onebot.Frame_SetGroupSpecialTitleResp{
+			SetGroupSpecialTitleResp: HandleSetGroupSpecialTitle(cli, data.SetGroupSpecialTitleReq),
+		}
+	case *onebot.Frame_SetFriendAddRequestReq:
+		resp.FrameType = onebot.Frame_TSetFriendAddRequestResp
+		resp.Data = &onebot.Frame_SetFriendAddRequestResp{
+			SetFriendAddRequestResp: HandleSetFriendAddRequest(cli, data.SetFriendAddRequestReq),
+		}
+	case *onebot.Frame_SetGroupAddRequestReq:
+		resp.FrameType = onebot.Frame_TSetGroupAddRequestResp
+		resp.Data = &onebot.Frame_SetGroupAddRequestResp{
+			SetGroupAddRequestResp: HandleSetGroupAddRequest(cli, data.SetGroupAddRequestReq),
+		}
+	case *onebot.Frame_GetLoginInfoReq:
+		resp.FrameType = onebot.Frame_TGetLoginInfoResp
+		resp.Data = &onebot.Frame_GetLoginInfoResp{
+			GetLoginInfoResp: HandleGetLoginInfo(cli, data.GetLoginInfoReq),
+		}
+	case *onebot.Frame_GetFriendListReq:
+		resp.FrameType = onebot.Frame_TGetFriendListResp
+		resp.Data = &onebot.Frame_GetFriendListResp{
+			GetFriendListResp: HandleGetFriendList(cli, data.GetFriendListReq),
+		}
+	case *onebot.Frame_GetGroupInfoReq:
+		resp.FrameType = onebot.Frame_TGetGroupInfoResp
+		resp.Data = &onebot.Frame_GetGroupInfoResp{
+			GetGroupInfoResp: HandleGetGroupInfo(cli, data.GetGroupInfoReq),
+		}
+	case *onebot.Frame_GetGroupListReq:
+		resp.FrameType = onebot.Frame_TGetGroupListResp
+		resp.Data = &onebot.Frame_GetGroupListResp{
+			GetGroupListResp: HandleGetGroupList(cli, data.GetGroupListReq),
+		}
+	case *onebot.Frame_GetGroupMemberInfoReq:
+		resp.FrameType = onebot.Frame_TGetGroupMemberInfoResp
+		resp.Data = &onebot.Frame_GetGroupMemberInfoResp{
+			GetGroupMemberInfoResp: HandleGetGroupMemberInfo(cli, data.GetGroupMemberInfoReq),
+		}
+	case *onebot.Frame_GetGroupMemberListReq:
+		resp.FrameType = onebot.Frame_TGetGroupMemberListResp
+		resp.Data = &onebot.Frame_GetGroupMemberListResp{
+			GetGroupMemberListResp: HandleGetGroupMemberList(cli, data.GetGroupMemberListReq),
 		}
 	default:
 		return resp

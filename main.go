@@ -2,19 +2,58 @@ package main
 
 import (
 	"bufio"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
+	"github.com/gin-gonic/gin"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/plugins"
+	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
+	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	port := "9000"
+	conf, err := LoadConfig("application.yml")
+	if err == nil && conf != nil {
+		if conf.Bot.Client.WsUrl != "" {
+			bot.WsUrl = conf.Bot.Client.WsUrl
+		}
+		if conf.Server.Port != 0 {
+			port = strconv.Itoa(int(conf.Server.Port))
+		}
+	}
+	envPort := os.Getenv("port")
+	if envPort != "" {
+		port = envPort
+	}
+	envUin := os.Getenv("uin")
+	envPass := os.Getenv("password")
+	if envUin != "" || envPass != "" {
+		uin, err := strconv.ParseInt(envUin, 10, 64)
+		if err != nil {
+			log.Errorf("环境变量账号错误")
+		}
+		log.Infof("使用环境变量创建机器人 %d", uin)
+		handler.CreateBotImpl(uin, envPass)
+	}
+
+	log.Infof("端口号 %s", port)
+	port = ":" + port
+	router := gin.Default()
+	router.Use(handler.CORSMiddleware())
+	router.Static("/", "./static")
+	router.POST("/bot/create/v1", handler.CreateBot)
+	router.POST("/bot/list/v1", handler.ListBot)
+	router.POST("/captcha/list/v1", handler.ListCaptcha)
+	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
+	err = router.Run(port)
+	if err != nil {
+		log.Errorf("run server error %v", err)
+	}
+}
+
+func TestBot() {
 	Console := bufio.NewReader(os.Stdin)
 	uinStr := os.Getenv("uin")
 	pass := os.Getenv("pass")
@@ -31,49 +70,9 @@ func main() {
 		panic(err)
 	}
 
-	log.Infof("开始读取设备信息")
-	bot.InitDevice()
-	log.Infof("设备信息 %+v", client.SystemDeviceInfo)
-
-	log.Infof("创建机器人 %+v", uin)
-	cli := client.NewClient(uin, pass)
-
-	log.Infof("初始化日志")
-	bot.InitLog(cli)
-
-	log.Infof("加载日志插件 Log")
-	plugin.AddPrivateMessagePlugin(plugins.LogPrivateMessage)
-	plugin.AddGroupMessagePlugin(plugins.LogGroupMessage)
-
-	log.Infof("加载测试插件 Hello")
-	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
-
-	log.Infof("加载上报插件 Report")
-	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
-	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
-	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
-	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
-	plugin.AddJoinGroupPlugin(plugins.ReportJoinGroup)
-	plugin.AddLeaveGroupPlugin(plugins.ReportLeaveGroup)
-
-	plugin.Serve(cli)
-	log.Infof("插件加载完成")
-
-	log.Infof("登录中...")
-	ok, err := bot.Login(cli)
-	if err != nil {
-		log.Errorf("登录失败%v", err)
-		time.Sleep(5 * time.Second)
-		os.Exit(0)
-		return
-	}
-	if ok {
-		log.Infof("登录成功")
-	} else {
-		log.Infof("登录失败")
-	}
-
-	time.Sleep(5 * time.Second)
+	go func() {
+		handler.CreateBotImpl(uin, pass)
+	}()
 
 	// TODO 改成 gin 处理验证码
 	for {
@@ -90,17 +89,6 @@ func main() {
 		time.Sleep(5 * time.Second)
 	}
 
-	log.Infof("刷新好友列表")
-	util.Check(cli.ReloadFriendList())
-	log.Infof("共加载 %v 个好友.", len(cli.FriendList))
-
-	log.Infof("刷新群列表")
-	util.Check(cli.ReloadGroupList())
-	log.Infof("共加载 %v 个群.", len(cli.GroupList))
-
-	bot.ConnectUniversal(cli)
-
-	bot.SetRelogin(cli, 30, 30)
 	_, _ = Console.ReadString('\n')
 
 }

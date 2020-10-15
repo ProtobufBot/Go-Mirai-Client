@@ -2,15 +2,16 @@ package bot
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
 	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
-	"os"
-	"strings"
-	"time"
 )
 
 var Captcha *dto.Captcha
@@ -38,6 +39,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 	case client.NeedCaptcha:
 		_ = ioutil.WriteFile("captcha.jpg", rsp.CaptchaImage, 0644)
 		Captcha = &dto.Captcha{
+			BotId:       cli.Uin,
 			CaptchaType: dto.Captcha_PIC_CAPTCHA,
 			Data:        &dto.Captcha_Image{Image: rsp.CaptchaImage},
 		}
@@ -55,7 +57,9 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			return false, fmt.Errorf("请求短信验证码错误，可能是太频繁")
 		}
 		Captcha = &dto.Captcha{
+			BotId:       cli.Uin,
 			CaptchaType: dto.Captcha_SMS,
+			Data:        &dto.Captcha_Url{Url: rsp.SMSPhone},
 		}
 		CaptchaPromise = promise.NewPromise()
 		result, err := CaptchaPromise.Get()
@@ -68,6 +72,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		return ProcessLoginRsp(cli, rsp)
 	case client.UnsafeDeviceError:
 		Captcha = &dto.Captcha{
+			BotId:       cli.Uin,
 			CaptchaType: dto.Captcha_UNSAFE_DEVICE_LOGIN_VERIFY,
 			Data:        &dto.Captcha_Url{Url: rsp.VerifyUrl},
 		}

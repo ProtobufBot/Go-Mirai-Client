@@ -5,13 +5,19 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"hash/crc32"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"unsafe"
+
+	log "github.com/sirupsen/logrus"
+)
+
+var (
+	HEADER_AMR  = []byte("#!AMR")
+	HEADER_SILK = []byte("\x02#!SILK_V3")
 )
 
 func GetBytes(url string) ([]byte, error) {
@@ -38,7 +44,6 @@ func GetBytes(url string) ([]byte, error) {
 	}
 	return body, nil
 }
-
 
 func PathExists(path string) bool {
 	_, err := os.Stat(path)
@@ -86,4 +91,8 @@ func Check(err error) {
 
 func ToGlobalId(code int64, msgId int32) int32 {
 	return int32(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%d-%d", code, msgId))))
+}
+
+func IsAMRorSILK(b []byte) bool {
+	return bytes.HasPrefix(b, HEADER_AMR) || bytes.HasPrefix(b, HEADER_SILK)
 }
