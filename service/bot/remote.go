@@ -98,6 +98,11 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
 		resp.Data = &onebot.Frame_SendGroupMsgResp{
 			SendGroupMsgResp: HandleSendGroupMsg(cli, data.SendGroupMsgReq),
 		}
+	case *onebot.Frame_DeleteMsgReq:
+		resp.FrameType = onebot.Frame_TDeleteMsgReq
+		resp.Data = &onebot.Frame_DeleteMsgResp{
+			DeleteMsgResp: HandleDeleteMsg(cli, data.DeleteMsgReq),
+		}
 	default:
 		return resp
 	}
