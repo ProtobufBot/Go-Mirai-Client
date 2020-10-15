@@ -67,9 +67,57 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 func HandleDeleteMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.DeleteMsgResp {
 	eventInterface, ok := cache.GroupMessageLru.Get(req.MessageId)
 	if !ok {
-		return &onebot.DeleteMsgResp{}
+		return nil
 	}
-	event := eventInterface.(*message.GroupMessage)
+	event, ok := eventInterface.(*message.GroupMessage)
+	if !ok {
+		return nil
+	}
 	cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId)
 	return &onebot.DeleteMsgResp{}
+}
+
+func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgResp {
+	eventInterface, isGroup := cache.GroupMessageLru.Get(req.MessageId)
+	if isGroup {
+		event := eventInterface.(*message.GroupMessage)
+		messageType := "group"
+		if event.Sender.Uin == cli.Uin {
+			messageType = "self"
+		}
+		return &onebot.GetMsgResp{
+			Time:        event.Time,
+			MessageType: messageType,
+			MessageId:   req.MessageId,
+			RealId:      event.InternalId, // 不知道是什么？
+			Message:     MiraiMsgToProtoMsg(event.Elements),
+			RawMessage:  MiraiMsgToRawMsg(event.Elements),
+			Sender: &onebot.GetMsgResp_Sender{
+				UserId:   event.Sender.Uin,
+				Nickname: event.Sender.Nickname,
+			},
+		}
+
+	}
+	eventInterface, isPrivate := cache.PrivateMessageLru.Get(req.MessageId)
+	if isPrivate {
+		event := eventInterface.(*message.PrivateMessage)
+		messageType := "private"
+		if event.Sender.Uin == cli.Uin {
+			messageType = "self"
+		}
+		return &onebot.GetMsgResp{
+			Time:        event.Time,
+			MessageType: messageType,
+			MessageId:   req.MessageId,
+			RealId:      event.InternalId, // 不知道是什么？
+			Message:     MiraiMsgToProtoMsg(event.Elements),
+			RawMessage:  MiraiMsgToRawMsg(event.Elements),
+			Sender: &onebot.GetMsgResp_Sender{
+				UserId:   event.Sender.Uin,
+				Nickname: event.Sender.Nickname,
+			},
+		}
+	}
+	return nil
 }
