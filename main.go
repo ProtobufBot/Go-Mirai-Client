@@ -23,9 +23,13 @@ func main() {
 			port = strconv.Itoa(int(conf.Server.Port))
 		}
 	}
-	envPort := os.Getenv("port")
+	envPort := os.Getenv("PORT")
 	if envPort != "" {
 		port = envPort
+	}
+	envWsUrl := os.Getenv("WS_URL")
+	if envWsUrl != "" {
+		bot.WsUrl = envWsUrl
 	}
 	envUin := os.Getenv("uin")
 	envPass := os.Getenv("password")

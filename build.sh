@@ -21,7 +21,7 @@ for PLATFORM in $PLATFORMS; do
   GOARCH=${PLATFORM#*/}
   BIN_FILENAME="${OUTPUT_DIR}/${NAME}-${GOOS}-${GOARCH}"
   if [[ "${GOOS}" == "windows" ]]; then BIN_FILENAME="${BIN_FILENAME}.exe"; fi
-  CMD="GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w\" -o ${BIN_FILENAME} $@"
+  CMD="GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME} $@"
   echo $CMD
   eval $CMD || FAILURES="${FAILURES} ${PLATFORM}"
 done
@@ -33,7 +33,7 @@ for GOOS in $PLATFORMS_ARM; do
   # build for each ARM version
   for GOARM in 7 6 5; do
     BIN_FILENAME="${OUTPUT_DIR}/${NAME}-${GOOS}-${GOARCH}${GOARM}"
-    CMD="GOARM=${GOARM} GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w\" -o ${BIN_FILENAME} $@"
+    CMD="GOARM=${GOARM} GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME} $@"
     echo "${CMD}"
     eval "${CMD}" || FAILURES="${FAILURES} ${GOOS}/${GOARCH}${GOARM}"
   done
