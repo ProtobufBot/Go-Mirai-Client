@@ -31,8 +31,8 @@ func main() {
 	if envWsUrl != "" {
 		bot.WsUrl = envWsUrl
 	}
-	envUin := os.Getenv("uin")
-	envPass := os.Getenv("password")
+	envUin := os.Getenv("UIN")
+	envPass := os.Getenv("PASSWORD")
 	if envUin != "" || envPass != "" {
 		uin, err := strconv.ParseInt(envUin, 10, 64)
 		if err != nil {

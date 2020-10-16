@@ -1,0 +1,5 @@
+server:
+  port: 9000
+bot:
+  client:
+    ws-url: "ws://localhost:8081/ws/test/"

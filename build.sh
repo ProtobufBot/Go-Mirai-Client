@@ -38,3 +38,6 @@ for GOOS in $PLATFORMS_ARM; do
     eval "${CMD}" || FAILURES="${FAILURES} ${GOOS}/${GOARCH}${GOARM}"
   done
 done
+
+cp application.yml "${OUTPUT_DIR}/application.yml"
+cp -r static "${OUTPUT_DIR}/static" # https://github.com/ProtobufBot/Client-UI 前端编译产物dist
