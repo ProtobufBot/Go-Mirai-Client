@@ -39,7 +39,9 @@ func main() {
 			log.Errorf("环境变量账号错误")
 		}
 		log.Infof("使用环境变量创建机器人 %d", uin)
-		handler.CreateBotImpl(uin, envPass)
+		go func() {
+			handler.CreateBotImpl(uin, envPass)
+		}()
 	}
 
 	log.Infof("端口号 %s", port)
