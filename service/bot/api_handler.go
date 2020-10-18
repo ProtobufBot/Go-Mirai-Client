@@ -53,7 +53,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 }
 
 func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *onebot.SendPrivateMsgResp {
-	miraiMsg := ProtoMsgToMiraiMsg(req.Message)
+	miraiMsg := ProtoMsgToMiraiMsg(req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	preProcessPrivateSendingMessage(cli, req.UserId, sendingMessage)
 	ret := cli.SendPrivateMessage(req.UserId, sendingMessage)
@@ -64,7 +64,7 @@ func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *
 }
 
 func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *onebot.SendGroupMsgResp {
-	miraiMsg := ProtoMsgToMiraiMsg(req.Message)
+	miraiMsg := ProtoMsgToMiraiMsg(req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
 	ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
@@ -75,7 +75,7 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 }
 
 func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsgResp {
-	miraiMsg := ProtoMsgToMiraiMsg(req.Message)
+	miraiMsg := ProtoMsgToMiraiMsg(req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	if req.GroupId != 0 {
 		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)

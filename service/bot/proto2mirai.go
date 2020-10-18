@@ -1,25 +1,36 @@
 package bot
 
 import (
+	"strconv"
+
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 )
 
 func EmptyText() *message.TextElement {
 	return message.NewText("")
 }
 
-func ProtoMsgToMiraiMsg(msgList []*onebot.Message) []message.IMessageElement {
+// 消息列表，不自动把code变成msg
+func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []message.IMessageElement {
 	messageChain := make([]message.IMessageElement, 0)
 	for _, protoMsg := range msgList {
 		switch protoMsg.Type {
+		case "text":
+			if notConvertText {
+				messageChain = append(messageChain, ProtoTextToMiraiText(protoMsg.Data))
+			} else {
+				text, ok := protoMsg.Data["text"]
+				if !ok {
+					log.Warnf("text不存在")
+					continue
+				}
+				messageChain = append(messageChain, RawMsgToMiraiMsg(text)...) // 转换xml码
+			}
 		case "at":
 			messageChain = append(messageChain, ProtoAtToMiraiAt(protoMsg.Data))
-		case "text":
-			messageChain = append(messageChain, ProtoTextToMiraiText(protoMsg.Data))
 		case "image":
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
 		case "record":
