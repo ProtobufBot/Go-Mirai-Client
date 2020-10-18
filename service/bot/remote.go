@@ -191,6 +191,11 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
 		resp.Data = &onebot.Frame_GetGroupMemberListResp{
 			GetGroupMemberListResp: HandleGetGroupMemberList(cli, data.GetGroupMemberListReq),
 		}
+	case *onebot.Frame_GetStrangerInfoReq:
+		resp.FrameType = onebot.Frame_TGetStrangerInfoResp
+		resp.Data = &onebot.Frame_GetStrangerInfoResp{
+			GetStrangerInfoResp: HandleGetStrangerInfo(cli, data.GetStrangerInfoReq),
+		}
 	default:
 		return resp
 	}

@@ -380,3 +380,24 @@ func HandleGetGroupMemberList(cli *client.QQClient, req *onebot.GetGroupMemberLi
 	}
 	return nil
 }
+
+func HandleGetStrangerInfo(cli *client.QQClient, req *onebot.GetStrangerInfoReq) *onebot.GetStrangerInfoResp {
+	info, err := cli.GetSummaryInfo(req.UserId)
+	if err != nil {
+		log.Warnf("获取陌生人信息错误 %+v", err)
+		return nil
+	}
+	return &onebot.GetStrangerInfoResp{
+		UserId:   req.UserId,
+		Nickname: info.Nickname,
+		Sex: func() string {
+			if info.Sex == 1 {
+				return "female"
+			}
+			return "male"
+		}(),
+		Age:       int32(info.Age),
+		Level:     info.Level,
+		LoginDays: info.LoginDays,
+	}
+}
