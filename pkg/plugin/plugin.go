@@ -18,6 +18,7 @@ type (
 	GroupInvitedRequestPlugin   = func(*client.QQClient, *client.GroupInvitedRequest) int32
 	GroupMessageRecalledPlugin  = func(*client.QQClient, *client.GroupMessageRecalledEvent) int32
 	FriendMessageRecalledPlugin = func(*client.QQClient, *client.FriendMessageRecalledEvent) int32
+	NewFriendAddedPlugin        = func(*client.QQClient, *client.NewFriendEvent) int32
 )
 
 const (
@@ -36,6 +37,7 @@ var UserJoinGroupRequestPluginList = make([]UserJoinGroupRequestPlugin, 0)
 var GroupInvitedRequestPluginList = make([]GroupInvitedRequestPlugin, 0)
 var GroupMessageRecalledPluginList = make([]GroupMessageRecalledPlugin, 0)
 var FriendMessageRecalledPluginList = make([]FriendMessageRecalledPlugin, 0)
+var NewFriendAddedPluginList = make([]NewFriendAddedPlugin, 0)
 
 func Serve(cli *client.QQClient) {
 	cli.OnPrivateMessage(handlePrivateMessage)
@@ -49,6 +51,7 @@ func Serve(cli *client.QQClient) {
 	cli.OnGroupInvited(handleGroupInvitedRequest)
 	cli.OnGroupMessageRecalled(handleGroupMessageRecalled)
 	cli.OnFriendMessageRecalled(handleFriendMessageRecalled)
+	cli.OnNewFriendAdded(handleNewFriendAdded)
 }
 
 // 添加私聊消息插件
@@ -104,6 +107,11 @@ func AddGroupMessageRecalledPlugin(plugin GroupMessageRecalledPlugin) {
 // 添加好友消息撤回处理插件
 func AddFriendMessageRecalledPlugin(plugin FriendMessageRecalledPlugin) {
 	FriendMessageRecalledPluginList = append(FriendMessageRecalledPluginList, plugin)
+}
+
+// 添加好友添加处理插件
+func AddNewFriendAddedPlugin(plugin NewFriendAddedPlugin) {
+	NewFriendAddedPluginList = append(NewFriendAddedPluginList, plugin)
 }
 
 func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
@@ -209,6 +217,16 @@ func handleGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessage
 func handleFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessageRecalledEvent) {
 	SafeGo(func() {
 		for _, plugin := range FriendMessageRecalledPluginList {
+			if result := plugin(cli, event); result == MessageBlock {
+				break
+			}
+		}
+	})
+}
+
+func handleNewFriendAdded(cli *client.QQClient, event *client.NewFriendEvent) {
+	SafeGo(func() {
+		for _, plugin := range NewFriendAddedPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}

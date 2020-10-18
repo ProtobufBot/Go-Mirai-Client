@@ -41,3 +41,5 @@ done
 
 cp application.yml "${OUTPUT_DIR}/application.yml"
 cp -r static "${OUTPUT_DIR}/static" # https://github.com/ProtobufBot/Client-UI 前端编译产物dist
+
+echo "可以把不要的系统删掉">"${OUTPUT_DIR}/可以把不要的系统删掉"

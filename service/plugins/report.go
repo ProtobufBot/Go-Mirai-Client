@@ -295,3 +295,20 @@ func ReportFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessa
 	bot.HandleEventFrame(cli, eventProto)
 	return plugin.MessageIgnore
 }
+
+func ReportNewFriendAdded(cli *client.QQClient, event *client.NewFriendEvent) int32 {
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TFriendAddNoticeEvent,
+	}
+	eventProto.Data = &onebot.Frame_FriendAddNoticeEvent{
+		FriendAddNoticeEvent: &onebot.FriendAddNoticeEvent{
+			Time:       time.Now().Unix(),
+			SelfId:     cli.Uin,
+			PostType:   "notice",
+			NoticeType: "friend_add",
+			UserId:     event.Friend.Uin,
+		},
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
