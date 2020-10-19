@@ -16,11 +16,11 @@ func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
 		case *message.AtElement:
 			result += fmt.Sprintf(`<at qq="%d"/>`, elem.Target)
 		case *message.ImageElement:
-			result += fmt.Sprintf(`<image file="%s" url="%s"/>`, html.EscapeString(elem.Url), html.EscapeString(elem.Url))
+			result += fmt.Sprintf(`<image url="%s"/>`, html.EscapeString(elem.Url))
 		case *message.FaceElement:
 			result += fmt.Sprintf(`<face id="%d" name="%s"/>`, elem.Index, html.EscapeString(elem.Name))
 		case *message.VoiceElement:
-			result += fmt.Sprintf(`<voice file="%s" url="%s"/>`, html.EscapeString(elem.Url), html.EscapeString(elem.Url))
+			result += fmt.Sprintf(`<voice url="%s"/>`, html.EscapeString(elem.Url))
 		}
 	}
 	return result

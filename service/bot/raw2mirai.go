@@ -51,6 +51,8 @@ func RawMsgToMiraiMsg(str string) []message.IMessageElement {
 				elemList = append(elemList, ProtoFaceToMiraiFace(attrMap))
 			case "share":
 				elemList = append(elemList, ProtoShareToMiraiShare(attrMap))
+			case "voice":
+				elemList = append(elemList, ProtoVoiceToMiraiVoice(attrMap))
 			case "record":
 				elemList = append(elemList, ProtoVoiceToMiraiVoice(attrMap))
 			case "text":
