@@ -133,6 +133,7 @@ func CreateBotImpl(uin int64, password string) {
 	log.Infof("加载上报插件 Report")
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
+	plugin.AddTempMessagePlugin(plugins.ReportTempMessage)
 	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
 	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
 	plugin.AddJoinGroupPlugin(plugins.ReportJoinGroup)

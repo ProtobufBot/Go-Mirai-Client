@@ -9,6 +9,7 @@ import (
 type (
 	PrivateMessagePlugin        = func(*client.QQClient, *message.PrivateMessage) int32
 	GroupMessagePlugin          = func(*client.QQClient, *message.GroupMessage) int32
+	TempMessagePlugin           = func(*client.QQClient, *message.TempMessage) int32
 	MemberJoinGroupPlugin       = func(*client.QQClient, *client.MemberJoinGroupEvent) int32
 	MemberLeaveGroupPlugin      = func(*client.QQClient, *client.MemberLeaveGroupEvent) int32
 	JoinGroupPlugin             = func(*client.QQClient, *client.GroupInfo) int32
@@ -28,6 +29,7 @@ const (
 
 var PrivateMessagePluginList = make([]PrivateMessagePlugin, 0)
 var GroupMessagePluginList = make([]GroupMessagePlugin, 0)
+var TempMessagePluginList = make([]TempMessagePlugin, 0)
 var MemberJoinGroupPluginList = make([]MemberJoinGroupPlugin, 0)
 var MemberLeaveGroupPluginList = make([]MemberLeaveGroupPlugin, 0)
 var JoinGroupPluginList = make([]JoinGroupPlugin, 0)
@@ -42,6 +44,7 @@ var NewFriendAddedPluginList = make([]NewFriendAddedPlugin, 0)
 func Serve(cli *client.QQClient) {
 	cli.OnPrivateMessage(handlePrivateMessage)
 	cli.OnGroupMessage(handleGroupMessage)
+	cli.OnTempMessage(handleTempMessage)
 	cli.OnGroupMemberJoined(handleMemberJoinGroup)
 	cli.OnGroupMemberLeaved(handleMemberLeaveGroup)
 	cli.OnJoinGroup(handleJoinGroup)
@@ -62,6 +65,11 @@ func AddPrivateMessagePlugin(plugin PrivateMessagePlugin) {
 // 添加群聊消息插件
 func AddGroupMessagePlugin(plugin GroupMessagePlugin) {
 	GroupMessagePluginList = append(GroupMessagePluginList, plugin)
+}
+
+// 添加临时消息插件
+func AddTempMessagePlugin(plugin TempMessagePlugin) {
+	TempMessagePluginList = append(TempMessagePluginList, plugin)
 }
 
 // 添加群成员加入插件
@@ -127,6 +135,16 @@ func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
 func handleGroupMessage(cli *client.QQClient, event *message.GroupMessage) {
 	SafeGo(func() {
 		for _, plugin := range GroupMessagePluginList {
+			if result := plugin(cli, event); result == MessageBlock {
+				break
+			}
+		}
+	})
+}
+
+func handleTempMessage(cli *client.QQClient, event *message.TempMessage) {
+	SafeGo(func() {
+		for _, plugin := range TempMessagePluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}

@@ -97,6 +97,32 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 	return plugin.MessageIgnore
 }
 
+func ReportTempMessage(cli *client.QQClient, event *message.TempMessage) int32 {
+	// TODO 撤回？
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TPrivateMessageEvent,
+	}
+	eventProto.Data = &onebot.Frame_PrivateMessageEvent{
+		PrivateMessageEvent: &onebot.PrivateMessageEvent{
+			Time:        time.Now().Unix(),
+			SelfId:      cli.Uin,
+			PostType:    "message",
+			MessageType: "private",
+			SubType:     "group",
+			MessageId:   event.Id,
+			UserId:      event.Sender.Uin,
+			Message:     bot.MiraiMsgToProtoMsg(event.Elements),
+			RawMessage:  bot.MiraiMsgToRawMsg(event.Elements),
+			Sender: &onebot.PrivateMessageEvent_Sender{
+				UserId:   event.Sender.Uin,
+				Nickname: event.Sender.Nickname,
+			},
+		},
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
+
 func ReportMemberJoin(cli *client.QQClient, event *client.MemberJoinGroupEvent) int32 {
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupIncreaseNoticeEvent,
