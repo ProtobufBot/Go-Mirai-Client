@@ -180,5 +180,5 @@ func CreateBotImpl(uin int64, password string) {
 
 	bot.ConnectUniversal(bot.Cli)
 
-	bot.SetRelogin(bot.Cli, 30, 30)
+	bot.SetRelogin(bot.Cli, 10, 30)
 }

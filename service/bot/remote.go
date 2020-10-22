@@ -42,6 +42,7 @@ func ConnectUniversal(cli *client.QQClient) {
 			continue
 		} else {
 			log.Infof("已连接Websocket %v", WsUrl)
+			go ping(cli, conn)
 			go listenApi(cli, conn)
 			Conn = conn
 			time.Sleep(1 * time.Second)
@@ -53,14 +54,33 @@ func ConnectUniversal(cli *client.QQClient) {
 	}
 }
 
+func ping(cli *client.QQClient, conn *websocket.Conn) {
+	errCount := 0
+	for errCount < 5 {
+		if err := conn.WriteMessage(websocket.PingMessage, []byte("ping")); err != nil {
+			log.Warnf("websocket ping失败")
+			errCount++
+		} else {
+			errCount = 0
+		}
+		time.Sleep(10 * time.Second)
+	}
+	log.Warnf("websocket 连续ping失败5次，断开连接")
+	_ = conn.Close()
+	ConnectUniversal(cli)
+}
+
 func listenApi(cli *client.QQClient, conn *websocket.Conn) {
 	defer conn.Close()
 
 	for {
-		_, buf, err := conn.ReadMessage()
+		messageType, buf, err := conn.ReadMessage()
 		if err != nil {
 			log.Warnf("监听反向WS API时出现错误: %v", err)
 			break
+		}
+		if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
+			continue
 		}
 
 		var req onebot.Frame
