@@ -45,6 +45,8 @@ func RawMsgToMiraiMsg(str string) []message.IMessageElement {
 			switch node.XMLName.Local {
 			case "at":
 				elemList = append(elemList, ProtoAtToMiraiAt(attrMap))
+			case "img":
+				elemList = append(elemList, ProtoImageToMiraiImage(attrMap)) // TODO 为了兼容我的旧代码偷偷加的
 			case "image":
 				elemList = append(elemList, ProtoImageToMiraiImage(attrMap))
 			case "face":

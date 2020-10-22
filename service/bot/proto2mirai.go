@@ -33,6 +33,8 @@ func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []messag
 			messageChain = append(messageChain, ProtoAtToMiraiAt(protoMsg.Data))
 		case "image":
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
+		case "img":
+			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
 		case "record":
 			messageChain = append(messageChain, ProtoVoiceToMiraiVoice(protoMsg.Data))
 		case "face":
@@ -56,9 +58,12 @@ func ProtoTextToMiraiText(data map[string]string) message.IMessageElement {
 }
 
 func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
-	url, ok := data["file"]
+	url, ok := data["url"]
 	if !ok {
-		url, ok = data["url"]
+		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
+		if !ok {
+			url, ok = data["file"]
+		}
 	}
 	if !ok {
 		log.Warnf("imageUrl不存在")
@@ -73,9 +78,9 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 }
 
 func ProtoVoiceToMiraiVoice(data map[string]string) message.IMessageElement {
-	url, ok := data["file"]
+	url, ok := data["url"]
 	if !ok {
-		url, ok = data["url"]
+		url, ok = data["file"]
 	}
 	if !ok {
 		log.Warnf("recordUrl不存在")

@@ -65,7 +65,7 @@ func ping(cli *client.QQClient, conn *websocket.Conn) {
 		}
 		time.Sleep(10 * time.Second)
 	}
-	log.Warnf("websocket 连续ping失败5次，断开连接")
+	log.Errorf("websocket 连续ping失败5次，断开连接")
 	_ = conn.Close()
 	ConnectUniversal(cli)
 }
