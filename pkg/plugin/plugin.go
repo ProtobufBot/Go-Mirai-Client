@@ -20,6 +20,7 @@ type (
 	GroupMessageRecalledPlugin  = func(*client.QQClient, *client.GroupMessageRecalledEvent) int32
 	FriendMessageRecalledPlugin = func(*client.QQClient, *client.FriendMessageRecalledEvent) int32
 	NewFriendAddedPlugin        = func(*client.QQClient, *client.NewFriendEvent) int32
+	OfflineFilePlugin           = func(*client.QQClient, *client.OfflineFileEvent) int32
 )
 
 const (
@@ -40,6 +41,7 @@ var GroupInvitedRequestPluginList = make([]GroupInvitedRequestPlugin, 0)
 var GroupMessageRecalledPluginList = make([]GroupMessageRecalledPlugin, 0)
 var FriendMessageRecalledPluginList = make([]FriendMessageRecalledPlugin, 0)
 var NewFriendAddedPluginList = make([]NewFriendAddedPlugin, 0)
+var OfflineFilePluginList = make([]OfflineFilePlugin, 0)
 
 func Serve(cli *client.QQClient) {
 	cli.OnPrivateMessage(handlePrivateMessage)
@@ -55,6 +57,7 @@ func Serve(cli *client.QQClient) {
 	cli.OnGroupMessageRecalled(handleGroupMessageRecalled)
 	cli.OnFriendMessageRecalled(handleFriendMessageRecalled)
 	cli.OnNewFriendAdded(handleNewFriendAdded)
+	cli.OnReceivedOfflineFile(handleOfflineFile)
 }
 
 // 添加私聊消息插件
@@ -120,6 +123,11 @@ func AddFriendMessageRecalledPlugin(plugin FriendMessageRecalledPlugin) {
 // 添加好友添加处理插件
 func AddNewFriendAddedPlugin(plugin NewFriendAddedPlugin) {
 	NewFriendAddedPluginList = append(NewFriendAddedPluginList, plugin)
+}
+
+// 添加离线文件处理插件
+func AddOfflineFilePlugin(plugin OfflineFilePlugin) {
+	OfflineFilePluginList = append(OfflineFilePluginList, plugin)
 }
 
 func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
@@ -245,6 +253,16 @@ func handleFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessa
 func handleNewFriendAdded(cli *client.QQClient, event *client.NewFriendEvent) {
 	SafeGo(func() {
 		for _, plugin := range NewFriendAddedPluginList {
+			if result := plugin(cli, event); result == MessageBlock {
+				break
+			}
+		}
+	})
+}
+
+func handleOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) {
+	SafeGo(func() {
+		for _, plugin := range OfflineFilePluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}

@@ -1,6 +1,8 @@
 package plugins
 
 import (
+	"fmt"
+	"html"
 	"strconv"
 	"time"
 
@@ -333,6 +335,40 @@ func ReportNewFriendAdded(cli *client.QQClient, event *client.NewFriendEvent) in
 			PostType:   "notice",
 			NoticeType: "friend_add",
 			UserId:     event.Friend.Uin,
+		},
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
+
+// 暂时先放在私聊里面吧，onebot协议里面没这个
+func ReportOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) int32 {
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TPrivateMessageEvent,
+	}
+	eventProto.Data = &onebot.Frame_PrivateMessageEvent{
+		PrivateMessageEvent: &onebot.PrivateMessageEvent{
+			Time:        time.Now().Unix(),
+			SelfId:      cli.Uin,
+			PostType:    "message",
+			MessageType: "private",
+			SubType:     "normal",
+			MessageId:   0,
+			UserId:      event.Sender,
+			Message: []*onebot.Message{
+				{
+					Type: "file",
+					Data: map[string]string{
+						"url":  event.DownloadUrl,
+						"name": event.FileName,
+						"size": strconv.FormatInt(event.FileSize, 10),
+					},
+				},
+			},
+			RawMessage: fmt.Sprintf(`<file url="%s" name="%s" size="%d"/>`, html.EscapeString(event.DownloadUrl), html.EscapeString(event.FileName), event.FileSize),
+			Sender: &onebot.PrivateMessageEvent_Sender{
+				UserId: event.Sender,
+			},
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
