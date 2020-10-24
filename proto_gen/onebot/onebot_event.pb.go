@@ -34,6 +34,7 @@ type PrivateMessageEvent struct {
 	RawMessage           string                      `protobuf:"bytes,9,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message,omitempty"`
 	Font                 int32                       `protobuf:"varint,10,opt,name=font,proto3" json:"font,omitempty"`
 	Sender               *PrivateMessageEvent_Sender `protobuf:"bytes,11,opt,name=sender,proto3" json:"sender,omitempty"`
+	Extra                map[string]string           `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
 	XXX_unrecognized     []byte                      `json:"-"`
 	XXX_sizecache        int32                       `json:"-"`
@@ -149,6 +150,13 @@ func (m *PrivateMessageEvent) GetSender() *PrivateMessageEvent_Sender {
 	return nil
 }
 
+func (m *PrivateMessageEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type PrivateMessageEvent_Sender struct {
 	UserId               int64    `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Nickname             string   `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
@@ -234,6 +242,7 @@ type GroupMessageEvent struct {
 	RawMessage           string                       `protobuf:"bytes,11,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message,omitempty"`
 	Font                 int32                        `protobuf:"varint,12,opt,name=font,proto3" json:"font,omitempty"`
 	Sender               *GroupMessageEvent_Sender    `protobuf:"bytes,13,opt,name=sender,proto3" json:"sender,omitempty"`
+	Extra                map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
 	XXX_unrecognized     []byte                       `json:"-"`
 	XXX_sizecache        int32                        `json:"-"`
@@ -359,6 +368,13 @@ func (m *GroupMessageEvent) GetFont() int32 {
 func (m *GroupMessageEvent) GetSender() *GroupMessageEvent_Sender {
 	if m != nil {
 		return m.Sender
+	}
+	return nil
+}
+
+func (m *GroupMessageEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
 	}
 	return nil
 }
@@ -545,6 +561,7 @@ type GroupUploadNoticeEvent struct {
 	GroupId              int64                        `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	UserId               int64                        `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	File                 *GroupUploadNoticeEvent_File `protobuf:"bytes,7,opt,name=file,proto3" json:"file,omitempty"`
+	Extra                map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
 	XXX_unrecognized     []byte                       `json:"-"`
 	XXX_sizecache        int32                        `json:"-"`
@@ -632,6 +649,13 @@ func (m *GroupUploadNoticeEvent) GetFile() *GroupUploadNoticeEvent_File {
 	return nil
 }
 
+func (m *GroupUploadNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type GroupUploadNoticeEvent_File struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
@@ -704,16 +728,17 @@ func (m *GroupUploadNoticeEvent_File) GetBusid() int64 {
 }
 
 type GroupAdminNoticeEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType           string   `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType              string   `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId              int64    `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId               int64    `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	NoticeType           string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
+	SubType              string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
+	GroupId              int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	UserId               int64             `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *GroupAdminNoticeEvent) Reset()         { *m = GroupAdminNoticeEvent{} }
@@ -798,18 +823,26 @@ func (m *GroupAdminNoticeEvent) GetUserId() int64 {
 	return 0
 }
 
+func (m *GroupAdminNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type GroupDecreaseNoticeEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType           string   `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType              string   `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId              int64    `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	OperatorId           int64    `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	UserId               int64    `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	NoticeType           string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
+	SubType              string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
+	GroupId              int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	OperatorId           int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
+	UserId               int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *GroupDecreaseNoticeEvent) Reset()         { *m = GroupDecreaseNoticeEvent{} }
@@ -901,18 +934,26 @@ func (m *GroupDecreaseNoticeEvent) GetUserId() int64 {
 	return 0
 }
 
+func (m *GroupDecreaseNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type GroupIncreaseNoticeEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType           string   `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType              string   `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId              int64    `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	OperatorId           int64    `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	UserId               int64    `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	NoticeType           string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
+	SubType              string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
+	GroupId              int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	OperatorId           int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
+	UserId               int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *GroupIncreaseNoticeEvent) Reset()         { *m = GroupIncreaseNoticeEvent{} }
@@ -1004,19 +1045,27 @@ func (m *GroupIncreaseNoticeEvent) GetUserId() int64 {
 	return 0
 }
 
+func (m *GroupIncreaseNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type GroupBanNoticeEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType           string   `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType              string   `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId              int64    `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	OperatorId           int64    `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	UserId               int64    `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Duration             int64    `protobuf:"varint,9,opt,name=duration,proto3" json:"duration,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	NoticeType           string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
+	SubType              string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
+	GroupId              int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	OperatorId           int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
+	UserId               int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Duration             int64             `protobuf:"varint,9,opt,name=duration,proto3" json:"duration,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *GroupBanNoticeEvent) Reset()         { *m = GroupBanNoticeEvent{} }
@@ -1115,15 +1164,23 @@ func (m *GroupBanNoticeEvent) GetDuration() int64 {
 	return 0
 }
 
+func (m *GroupBanNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type FriendAddNoticeEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType           string   `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	UserId               int64    `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	NoticeType           string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
+	UserId               int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *FriendAddNoticeEvent) Reset()         { *m = FriendAddNoticeEvent{} }
@@ -1194,18 +1251,26 @@ func (m *FriendAddNoticeEvent) GetUserId() int64 {
 	return 0
 }
 
+func (m *FriendAddNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type GroupRecallNoticeEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType           string   `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	GroupId              int64    `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId               int64    `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	OperatorId           int64    `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	MessageId            int32    `protobuf:"varint,8,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	NoticeType           string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
+	GroupId              int64             `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	UserId               int64             `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	OperatorId           int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
+	MessageId            int32             `protobuf:"varint,8,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *GroupRecallNoticeEvent) Reset()         { *m = GroupRecallNoticeEvent{} }
@@ -1297,16 +1362,24 @@ func (m *GroupRecallNoticeEvent) GetMessageId() int32 {
 	return 0
 }
 
+func (m *GroupRecallNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type FriendRecallNoticeEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType           string   `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	UserId               int64    `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	MessageId            int32    `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	NoticeType           string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
+	UserId               int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	MessageId            int32             `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *FriendRecallNoticeEvent) Reset()         { *m = FriendRecallNoticeEvent{} }
@@ -1384,17 +1457,25 @@ func (m *FriendRecallNoticeEvent) GetMessageId() int32 {
 	return 0
 }
 
+func (m *FriendRecallNoticeEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type FriendRequestEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	RequestType          string   `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`
-	UserId               int64    `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Comment              string   `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
-	Flag                 string   `protobuf:"bytes,7,opt,name=flag,proto3" json:"flag,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	RequestType          string            `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`
+	UserId               int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Comment              string            `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
+	Flag                 string            `protobuf:"bytes,7,opt,name=flag,proto3" json:"flag,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *FriendRequestEvent) Reset()         { *m = FriendRequestEvent{} }
@@ -1479,19 +1560,27 @@ func (m *FriendRequestEvent) GetFlag() string {
 	return ""
 }
 
+func (m *FriendRequestEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 type GroupRequestEvent struct {
-	Time                 int64    `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId               int64    `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType             string   `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	RequestType          string   `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`
-	SubType              string   `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId              int64    `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId               int64    `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Comment              string   `protobuf:"bytes,8,opt,name=comment,proto3" json:"comment,omitempty"`
-	Flag                 string   `protobuf:"bytes,9,opt,name=flag,proto3" json:"flag,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Time                 int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	SelfId               int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
+	PostType             string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
+	RequestType          string            `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`
+	SubType              string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
+	GroupId              int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	UserId               int64             `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Comment              string            `protobuf:"bytes,8,opt,name=comment,proto3" json:"comment,omitempty"`
+	Flag                 string            `protobuf:"bytes,9,opt,name=flag,proto3" json:"flag,omitempty"`
+	Extra                map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *GroupRequestEvent) Reset()         { *m = GroupRequestEvent{} }
@@ -1590,81 +1679,110 @@ func (m *GroupRequestEvent) GetFlag() string {
 	return ""
 }
 
+func (m *GroupRequestEvent) GetExtra() map[string]string {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*PrivateMessageEvent)(nil), "onebot.PrivateMessageEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.PrivateMessageEvent.ExtraEntry")
 	proto.RegisterType((*PrivateMessageEvent_Sender)(nil), "onebot.PrivateMessageEvent.Sender")
 	proto.RegisterType((*GroupMessageEvent)(nil), "onebot.GroupMessageEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupMessageEvent.ExtraEntry")
 	proto.RegisterType((*GroupMessageEvent_Anonymous)(nil), "onebot.GroupMessageEvent.Anonymous")
 	proto.RegisterType((*GroupMessageEvent_Sender)(nil), "onebot.GroupMessageEvent.Sender")
 	proto.RegisterType((*GroupUploadNoticeEvent)(nil), "onebot.GroupUploadNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupUploadNoticeEvent.ExtraEntry")
 	proto.RegisterType((*GroupUploadNoticeEvent_File)(nil), "onebot.GroupUploadNoticeEvent.File")
 	proto.RegisterType((*GroupAdminNoticeEvent)(nil), "onebot.GroupAdminNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupAdminNoticeEvent.ExtraEntry")
 	proto.RegisterType((*GroupDecreaseNoticeEvent)(nil), "onebot.GroupDecreaseNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupDecreaseNoticeEvent.ExtraEntry")
 	proto.RegisterType((*GroupIncreaseNoticeEvent)(nil), "onebot.GroupIncreaseNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupIncreaseNoticeEvent.ExtraEntry")
 	proto.RegisterType((*GroupBanNoticeEvent)(nil), "onebot.GroupBanNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupBanNoticeEvent.ExtraEntry")
 	proto.RegisterType((*FriendAddNoticeEvent)(nil), "onebot.FriendAddNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.FriendAddNoticeEvent.ExtraEntry")
 	proto.RegisterType((*GroupRecallNoticeEvent)(nil), "onebot.GroupRecallNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupRecallNoticeEvent.ExtraEntry")
 	proto.RegisterType((*FriendRecallNoticeEvent)(nil), "onebot.FriendRecallNoticeEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.FriendRecallNoticeEvent.ExtraEntry")
 	proto.RegisterType((*FriendRequestEvent)(nil), "onebot.FriendRequestEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.FriendRequestEvent.ExtraEntry")
 	proto.RegisterType((*GroupRequestEvent)(nil), "onebot.GroupRequestEvent")
+	proto.RegisterMapType((map[string]string)(nil), "onebot.GroupRequestEvent.ExtraEntry")
 }
 
 func init() { proto.RegisterFile("onebot_event.proto", fileDescriptor_8b4afa4460e98c26) }
 
 var fileDescriptor_8b4afa4460e98c26 = []byte{
-	// 822 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x57, 0xcf, 0x6e, 0xd3, 0x4e,
-	0x10, 0xfe, 0x6d, 0x9c, 0x38, 0xf6, 0xb8, 0x3f, 0x68, 0xdd, 0x42, 0xdd, 0x20, 0xd2, 0x60, 0x2e,
-	0xe1, 0x92, 0x43, 0x39, 0x80, 0xb8, 0xa5, 0x40, 0x51, 0x0e, 0x20, 0x64, 0xca, 0x39, 0xda, 0xc4,
-	0xdb, 0xca, 0xc2, 0xf1, 0x06, 0xff, 0x69, 0x29, 0xcf, 0xc0, 0x03, 0x20, 0x9e, 0x85, 0x33, 0x2a,
-	0x37, 0x90, 0x38, 0x72, 0x40, 0xe5, 0x19, 0x10, 0x27, 0x24, 0xb4, 0xb3, 0xb6, 0x63, 0xb7, 0x4d,
-	0x2b, 0x44, 0x51, 0x54, 0xf5, 0x36, 0x7f, 0x76, 0xd7, 0xf3, 0xcd, 0xf7, 0x75, 0x3a, 0x01, 0x93,
-	0x07, 0x6c, 0xc0, 0xe3, 0x3e, 0xdb, 0x61, 0x41, 0xdc, 0x19, 0x87, 0x3c, 0xe6, 0xa6, 0x2a, 0x63,
-	0x8d, 0x85, 0x34, 0x37, 0xa0, 0x11, 0x93, 0x29, 0xfb, 0x8b, 0x02, 0x8b, 0x4f, 0x43, 0x6f, 0x87,
-	0xc6, 0xec, 0x31, 0x8b, 0x22, 0xba, 0xcd, 0x1e, 0x8a, 0x8b, 0xa6, 0x09, 0xd5, 0xd8, 0x1b, 0x31,
-	0x8b, 0xb4, 0x48, 0x5b, 0x71, 0xd0, 0x36, 0x97, 0xa1, 0x1e, 0x31, 0x7f, 0xab, 0xef, 0xb9, 0x56,
-	0x05, 0xc3, 0xaa, 0x70, 0x7b, 0xae, 0x79, 0x0d, 0xf4, 0x31, 0x8f, 0xe2, 0x7e, 0xbc, 0x37, 0x66,
-	0x96, 0xd2, 0x22, 0x6d, 0xdd, 0xd1, 0x44, 0x60, 0x73, 0x6f, 0xcc, 0xcc, 0x1b, 0x30, 0x37, 0x92,
-	0x2f, 0xcb, 0x7c, 0x15, 0xf3, 0x46, 0x1a, 0xc3, 0x23, 0x2b, 0xa0, 0x45, 0xc9, 0x40, 0xa6, 0x6b,
-	0x98, 0xae, 0x47, 0xc9, 0x00, 0x53, 0xd7, 0x01, 0xb2, 0xdb, 0x9e, 0x6b, 0xa9, 0x2d, 0xd2, 0xae,
-	0x39, 0x7a, 0x1a, 0xe9, 0xb9, 0xa2, 0xa4, 0x24, 0x62, 0xa1, 0xc8, 0xd5, 0x65, 0x49, 0xc2, 0xed,
-	0xb9, 0xe6, 0x2d, 0xa8, 0xa7, 0xa7, 0x2c, 0xad, 0xa5, 0xb4, 0x8d, 0xb5, 0xcb, 0x1d, 0x09, 0xbe,
-	0x93, 0xc2, 0x74, 0xb2, 0xbc, 0xb9, 0x0a, 0x46, 0x48, 0x77, 0xfb, 0xd9, 0x71, 0x1d, 0x0b, 0x80,
-	0x90, 0xee, 0xa6, 0x27, 0x45, 0x2f, 0xb6, 0x78, 0x10, 0x5b, 0x80, 0x5f, 0x47, 0xdb, 0xbc, 0x07,
-	0x6a, 0xc4, 0x02, 0x97, 0x85, 0x96, 0xd1, 0x22, 0x6d, 0x63, 0xcd, 0xce, 0x9e, 0x3f, 0xa6, 0x99,
-	0x9d, 0x67, 0x78, 0xd2, 0x49, 0x6f, 0x34, 0x28, 0xa8, 0x32, 0x52, 0x2c, 0x9f, 0x94, 0xca, 0x6f,
-	0x80, 0x16, 0x78, 0xc3, 0x17, 0x01, 0x1d, 0x31, 0xec, 0xb5, 0xee, 0xe4, 0xbe, 0x39, 0x0f, 0x4a,
-	0xc4, 0x5e, 0xa5, 0x7d, 0x16, 0xa6, 0x88, 0x88, 0xca, 0xab, 0x58, 0x9f, 0x30, 0xed, 0xaf, 0x35,
-	0x58, 0x78, 0x14, 0xf2, 0x64, 0x7c, 0x1e, 0x49, 0x5d, 0x01, 0x6d, 0x5b, 0xd4, 0x3e, 0x61, 0xb5,
-	0x8e, 0x7e, 0x99, 0x6f, 0xad, 0xd4, 0xb0, 0x2e, 0xe8, 0x34, 0xe0, 0xc1, 0xde, 0x88, 0x27, 0x11,
-	0x52, 0x68, 0xac, 0xdd, 0xcc, 0x28, 0x39, 0xd2, 0x88, 0x4e, 0x37, 0x3b, 0xea, 0x4c, 0x6e, 0x15,
-	0x25, 0x03, 0x7f, 0x26, 0x19, 0x63, 0xaa, 0x64, 0xe6, 0x0a, 0x92, 0xb9, 0x9b, 0x4b, 0xe6, 0x7f,
-	0xac, 0xaf, 0x35, 0xbd, 0xbe, 0x43, 0x82, 0xb9, 0x0f, 0x7a, 0x5e, 0xb1, 0x79, 0x09, 0x2a, 0xb9,
-	0x5c, 0x2a, 0x9e, 0x2b, 0x3e, 0x55, 0x90, 0x09, 0xda, 0xf8, 0x79, 0x9f, 0x6e, 0xa7, 0xb4, 0xa1,
-	0xdd, 0xf8, 0x48, 0xfe, 0x4e, 0x76, 0x26, 0x54, 0x87, 0x34, 0x74, 0xb3, 0x37, 0x85, 0x9d, 0x49,
-	0xb1, 0x7a, 0x44, 0x8a, 0xb5, 0x5c, 0x8a, 0xe2, 0x1e, 0x0d, 0x19, 0x45, 0x9a, 0x75, 0x07, 0x6d,
-	0x73, 0x09, 0x6a, 0x3e, 0xdb, 0x61, 0x3e, 0xd2, 0xab, 0x3b, 0xd2, 0x11, 0x27, 0x43, 0xee, 0x33,
-	0x64, 0x56, 0x77, 0xd0, 0x16, 0x27, 0x63, 0x2f, 0xf6, 0xb3, 0x3f, 0x4b, 0xe9, 0xd8, 0x1f, 0x2a,
-	0x70, 0x15, 0xbb, 0xf6, 0x7c, 0xec, 0x73, 0xea, 0x3e, 0xe1, 0xb1, 0x37, 0x3c, 0x73, 0x8d, 0xaf,
-	0x82, 0x11, 0xe0, 0xc3, 0x45, 0x89, 0x83, 0x0c, 0x65, 0x0a, 0xcf, 0x75, 0x5a, 0x9b, 0xaa, 0x53,
-	0xb5, 0xd4, 0xe1, 0x3b, 0x50, 0xdd, 0xf2, 0x7c, 0x86, 0xc0, 0x0f, 0x4b, 0xf4, 0x08, 0x98, 0xce,
-	0x86, 0xe7, 0x33, 0x07, 0x2f, 0x34, 0x36, 0xa1, 0x2a, 0xbc, 0x02, 0xfd, 0xfa, 0x49, 0xf4, 0x47,
-	0xde, 0x6b, 0x89, 0x48, 0x71, 0xd0, 0x16, 0x8d, 0x1c, 0x24, 0x91, 0xe7, 0x22, 0x0e, 0xc5, 0x91,
-	0x8e, 0xfd, 0x99, 0xc0, 0x15, 0xfc, 0x76, 0xd7, 0x1d, 0x79, 0xc1, 0xec, 0xfa, 0x38, 0x6d, 0x52,
-	0x14, 0x5b, 0xac, 0x4e, 0x6d, 0x71, 0x69, 0xf4, 0xdb, 0x3f, 0x08, 0x58, 0x88, 0xe9, 0x01, 0x1b,
-	0x86, 0x8c, 0x46, 0xec, 0x5c, 0xc1, 0x5a, 0x05, 0x83, 0x8f, 0x59, 0x48, 0x63, 0x5e, 0x80, 0x06,
-	0x59, 0xe8, 0x84, 0x11, 0x38, 0xc1, 0xdd, 0x0b, 0x2e, 0x14, 0xee, 0x37, 0x15, 0x58, 0x44, 0xdc,
-	0xeb, 0x34, 0xb8, 0x18, 0x90, 0xc5, 0x9c, 0x76, 0x93, 0x90, 0xc6, 0x1e, 0x0f, 0x70, 0x30, 0x2a,
-	0x4e, 0xee, 0xdb, 0xef, 0x08, 0x2c, 0x6d, 0x84, 0x1e, 0x0b, 0xdc, 0xae, 0x3b, 0xab, 0xc9, 0x58,
-	0x28, 0xbc, 0x56, 0xe2, 0xea, 0x27, 0x49, 0x07, 0xb7, 0xc3, 0x86, 0xd4, 0xf7, 0xcf, 0xd1, 0xe0,
-	0x3e, 0x95, 0xac, 0xf2, 0x52, 0xa3, 0x1d, 0x5a, 0x6a, 0xec, 0xf7, 0x04, 0x96, 0x25, 0x2d, 0x33,
-	0x85, 0x3e, 0x8d, 0x99, 0x53, 0x76, 0x32, 0x7b, 0x9f, 0x80, 0x99, 0x95, 0xff, 0x32, 0x61, 0x51,
-	0xfc, 0x0f, 0x36, 0xca, 0x50, 0xbe, 0x5c, 0xda, 0x28, 0xd3, 0xd8, 0xc9, 0xb5, 0x5b, 0x50, 0x1f,
-	0xf2, 0xd1, 0x88, 0x05, 0x71, 0xba, 0x65, 0x64, 0x6e, 0xbe, 0x08, 0xd5, 0x27, 0x8b, 0x90, 0xfd,
-	0x8b, 0xa4, 0xbb, 0xf1, 0xec, 0x90, 0x9c, 0xed, 0x7f, 0xbc, 0x22, 0x7e, 0xed, 0x78, 0xfc, 0xfa,
-	0x04, 0xff, 0xfa, 0xfc, 0xfe, 0x41, 0x93, 0x7c, 0x3a, 0x68, 0x92, 0x6f, 0x07, 0x4d, 0xf2, 0xf6,
-	0x7b, 0xf3, 0xbf, 0x81, 0x8a, 0xbf, 0x05, 0x6f, 0xff, 0x0e, 0x00, 0x00, 0xff, 0xff, 0xe1, 0x5c,
-	0xdd, 0x04, 0x3c, 0x0e, 0x00, 0x00,
+	// 990 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0xcd, 0x6e, 0xe4, 0x44,
+	0x10, 0xc6, 0xf6, 0x8c, 0xc7, 0x2e, 0x2f, 0xb0, 0xdb, 0xbb, 0xb0, 0xde, 0x41, 0x24, 0x43, 0xf8,
+	0x9b, 0x05, 0x69, 0x0e, 0xe1, 0x40, 0xb4, 0xfc, 0x26, 0x90, 0x45, 0x39, 0x80, 0x50, 0xb3, 0x9c,
+	0xa3, 0x9e, 0x71, 0x27, 0xb2, 0xd6, 0x63, 0x0f, 0xed, 0x76, 0x76, 0x87, 0x3b, 0x6f, 0xc0, 0x81,
+	0x57, 0xe1, 0x86, 0x38, 0x81, 0x04, 0x12, 0x12, 0x2f, 0x80, 0xc2, 0x23, 0xc0, 0x1d, 0xd4, 0xd5,
+	0xb6, 0xc7, 0xf6, 0xfc, 0x44, 0x90, 0x89, 0xa2, 0x08, 0x6e, 0x55, 0x5d, 0x5d, 0xdd, 0x55, 0x5f,
+	0x7d, 0x35, 0xee, 0x1a, 0x20, 0x49, 0xcc, 0x87, 0x89, 0x3c, 0xe4, 0x27, 0x3c, 0x96, 0x83, 0x89,
+	0x48, 0x64, 0x42, 0x6c, 0xbd, 0xd6, 0xbd, 0x91, 0xdb, 0x86, 0x2c, 0xe5, 0xda, 0xb4, 0xf5, 0x73,
+	0x0b, 0x6e, 0x7e, 0x2a, 0xc2, 0x13, 0x26, 0xf9, 0xc7, 0x3c, 0x4d, 0xd9, 0x31, 0xdf, 0x57, 0x8e,
+	0x84, 0x40, 0x4b, 0x86, 0x63, 0xee, 0x1b, 0x3d, 0xa3, 0x6f, 0x51, 0x94, 0xc9, 0x6d, 0xe8, 0xa4,
+	0x3c, 0x3a, 0x3a, 0x0c, 0x03, 0xdf, 0xc4, 0x65, 0x5b, 0xa9, 0x07, 0x01, 0x79, 0x0e, 0xdc, 0x49,
+	0x92, 0xca, 0x43, 0x39, 0x9d, 0x70, 0xdf, 0xea, 0x19, 0x7d, 0x97, 0x3a, 0x6a, 0xe1, 0xc1, 0x74,
+	0xc2, 0xc9, 0x0b, 0x70, 0x6d, 0xac, 0x4f, 0xd6, 0xf6, 0x16, 0xda, 0xbd, 0x7c, 0x0d, 0xb7, 0xdc,
+	0x01, 0x27, 0xcd, 0x86, 0xda, 0xdc, 0x46, 0x73, 0x27, 0xcd, 0x86, 0x68, 0x7a, 0x1e, 0xa0, 0xf0,
+	0x0e, 0x03, 0xdf, 0xee, 0x19, 0xfd, 0x36, 0x75, 0xf3, 0x95, 0x83, 0x40, 0x85, 0x94, 0xa5, 0x5c,
+	0x28, 0x5b, 0x47, 0x87, 0xa4, 0xd4, 0x83, 0x80, 0xdc, 0x85, 0x4e, 0xbe, 0xcb, 0x77, 0x7a, 0x56,
+	0xdf, 0xdb, 0x7e, 0x7a, 0xa0, 0x93, 0x1f, 0xe4, 0x69, 0xd2, 0xc2, 0x4e, 0x36, 0xc1, 0x13, 0xec,
+	0xd1, 0x61, 0xb1, 0xdd, 0xc5, 0x00, 0x40, 0xb0, 0x47, 0xf9, 0x4e, 0x85, 0xc5, 0x51, 0x12, 0x4b,
+	0x1f, 0xf0, 0x76, 0x94, 0xc9, 0x3d, 0xb0, 0x53, 0x1e, 0x07, 0x5c, 0xf8, 0x5e, 0xcf, 0xe8, 0x7b,
+	0xdb, 0x5b, 0xc5, 0xf1, 0x0b, 0xc0, 0x1c, 0x7c, 0x86, 0x3b, 0x69, 0xee, 0x41, 0xde, 0x81, 0x36,
+	0x7f, 0x2c, 0x05, 0xf3, 0xff, 0x32, 0x30, 0xb4, 0x57, 0x56, 0xf9, 0xee, 0xab, 0x9d, 0xfb, 0xb1,
+	0x14, 0x53, 0xaa, 0xbd, 0xba, 0x0c, 0x6c, 0x7d, 0x60, 0x35, 0x7b, 0xa3, 0x96, 0x7d, 0x17, 0x9c,
+	0x38, 0x1c, 0x3d, 0x8c, 0xd9, 0x98, 0x63, 0xa9, 0x5c, 0x5a, 0xea, 0xe4, 0x3a, 0x58, 0x29, 0x7f,
+	0x9c, 0x97, 0x49, 0x89, 0x6a, 0x45, 0x25, 0xde, 0xc2, 0xf4, 0x94, 0xd8, 0xdd, 0x01, 0x98, 0xdd,
+	0xab, 0xec, 0x0f, 0xf9, 0x14, 0xaf, 0x70, 0xa9, 0x12, 0xc9, 0x2d, 0x68, 0x9f, 0xb0, 0x28, 0x2b,
+	0x0e, 0xd7, 0xca, 0x3d, 0x73, 0xc7, 0xd8, 0xfa, 0xd5, 0x86, 0x1b, 0x1f, 0x89, 0x24, 0x9b, 0x5c,
+	0x45, 0x36, 0xdd, 0x01, 0xe7, 0x58, 0xc5, 0x3e, 0xa3, 0x53, 0x07, 0xf5, 0x3a, 0xd1, 0x9c, 0x1a,
+	0xd4, 0xbb, 0xe0, 0xb2, 0x38, 0x89, 0xa7, 0xe3, 0x24, 0x4b, 0x91, 0x3b, 0xde, 0xf6, 0x8b, 0x45,
+	0x3d, 0xe7, 0x80, 0x18, 0xec, 0x16, 0x5b, 0xe9, 0xcc, 0xab, 0xca, 0x55, 0xf8, 0x67, 0x5c, 0xf5,
+	0x96, 0x72, 0xf5, 0x5a, 0x85, 0xab, 0x3b, 0x25, 0x57, 0x9f, 0xc4, 0xf8, 0x7a, 0xcb, 0xe3, 0x6b,
+	0x30, 0xf5, 0xad, 0x06, 0x53, 0x5f, 0x5a, 0xee, 0x39, 0xcf, 0xd3, 0x0f, 0xc0, 0x2d, 0xd3, 0x25,
+	0x4f, 0x81, 0x59, 0xb2, 0xd4, 0x0c, 0x03, 0x15, 0x67, 0x85, 0x9d, 0x28, 0x63, 0xec, 0x11, 0x3b,
+	0xce, 0x6b, 0x8e, 0x72, 0xf7, 0x47, 0xe3, 0x7c, 0x6c, 0x27, 0xd0, 0x1a, 0x31, 0x11, 0x14, 0x67,
+	0x2a, 0xb9, 0xe8, 0x80, 0xd6, 0x5c, 0x07, 0xb4, 0xcb, 0x0e, 0x50, 0x7e, 0x4c, 0x70, 0x86, 0x1c,
+	0x71, 0x29, 0xca, 0x8a, 0xf5, 0x11, 0x3f, 0xe1, 0x11, 0x72, 0xc3, 0xa5, 0x5a, 0x51, 0x3b, 0x45,
+	0x12, 0x71, 0xa4, 0x85, 0x4b, 0x51, 0x56, 0x3b, 0x65, 0x28, 0xa3, 0xe2, 0xc7, 0x44, 0x2b, 0xe7,
+	0xe8, 0xaa, 0xef, 0x2d, 0x78, 0x16, 0x21, 0xff, 0x7c, 0x12, 0x25, 0x2c, 0xf8, 0x24, 0x91, 0xe1,
+	0x68, 0xed, 0xad, 0xb5, 0x09, 0x5e, 0x8c, 0x07, 0x57, 0x3b, 0x0b, 0xf4, 0x52, 0xd1, 0x58, 0x65,
+	0x7b, 0xb4, 0x97, 0xb6, 0x87, 0x5d, 0xab, 0xcd, 0x9b, 0xd0, 0x3a, 0x0a, 0x23, 0x8e, 0x90, 0x35,
+	0x3b, 0x63, 0x2e, 0x99, 0xc1, 0xfd, 0x30, 0xe2, 0x14, 0x1d, 0xc8, 0xfb, 0x0d, 0xea, 0xdd, 0x3d,
+	0xc3, 0x75, 0x9e, 0x7f, 0x0f, 0xa0, 0xa5, 0xce, 0xab, 0x50, 0xcf, 0x5d, 0x45, 0xbd, 0x34, 0xfc,
+	0x52, 0x63, 0x62, 0x51, 0x94, 0x55, 0x39, 0x86, 0x59, 0x1a, 0x06, 0x88, 0x84, 0x45, 0xb5, 0x72,
+	0x8e, 0x22, 0xfe, 0x64, 0xc2, 0x33, 0x18, 0xfc, 0x6e, 0x30, 0x0e, 0xe3, 0xcb, 0xab, 0xe1, 0xb2,
+	0x1f, 0xc7, 0x6a, 0x79, 0xed, 0xa5, 0xe5, 0xad, 0x7f, 0x66, 0xdf, 0x6b, 0x54, 0xa9, 0x5f, 0xab,
+	0x52, 0x33, 0xd1, 0x05, 0x45, 0xfa, 0xf7, 0x70, 0xfe, 0x61, 0x82, 0x8f, 0xb7, 0x7c, 0xc8, 0x47,
+	0x82, 0xb3, 0x94, 0x5f, 0x29, 0x44, 0x37, 0xc1, 0x4b, 0x26, 0x5c, 0x30, 0x99, 0x54, 0x50, 0x85,
+	0x62, 0x69, 0xd5, 0x07, 0x67, 0xaf, 0x01, 0xf9, 0xeb, 0x35, 0xc8, 0x17, 0x80, 0x71, 0x31, 0xa8,
+	0x1f, 0xc4, 0xff, 0xa3, 0x5e, 0xa2, 0xbe, 0x00, 0x8c, 0xb5, 0xa2, 0xfe, 0x95, 0x05, 0x37, 0xf1,
+	0xa2, 0x3d, 0x16, 0xff, 0x47, 0x00, 0xef, 0x82, 0x13, 0x64, 0x82, 0xc9, 0x30, 0x89, 0xf1, 0x2b,
+	0x6a, 0xd1, 0x52, 0x5f, 0xfe, 0x80, 0x5e, 0x80, 0xd1, 0x5a, 0xeb, 0xf0, 0xb5, 0x09, 0xb7, 0xee,
+	0x8b, 0x90, 0xc7, 0xc1, 0x6e, 0x70, 0x59, 0x5f, 0xe1, 0x0a, 0x62, 0xed, 0x1a, 0x62, 0xef, 0x36,
+	0x50, 0x79, 0xb5, 0x40, 0x65, 0x51, 0xc4, 0xeb, 0xfe, 0x51, 0xd0, 0xcf, 0x13, 0xca, 0x47, 0x2c,
+	0x8a, 0xae, 0xd0, 0xf3, 0xe4, 0x4c, 0x7e, 0xd6, 0x27, 0x06, 0xa7, 0x39, 0x31, 0xac, 0x7e, 0xa5,
+	0xcc, 0xc1, 0xb1, 0x56, 0xd4, 0xbf, 0x35, 0xe1, 0xb6, 0x2e, 0xed, 0xa5, 0xc2, 0xbe, 0x94, 0x8f,
+	0x67, 0x0c, 0x5b, 0xbb, 0x0d, 0xe8, 0x5e, 0xab, 0xd3, 0xf5, 0x62, 0xb1, 0xfb, 0xce, 0x04, 0x52,
+	0xdc, 0xf3, 0x45, 0xc6, 0x53, 0x79, 0x01, 0x73, 0xaa, 0xd0, 0x27, 0xd7, 0xe6, 0xd4, 0x7c, 0x6d,
+	0x35, 0x70, 0x3e, 0x74, 0x46, 0xc9, 0x78, 0xcc, 0x63, 0x99, 0x8f, 0x1f, 0x85, 0x5a, 0x4e, 0x48,
+	0x9d, 0xd9, 0x84, 0x44, 0xde, 0x6e, 0xe0, 0xf8, 0x72, 0x13, 0xc7, 0x59, 0x7e, 0x6b, 0x85, 0xf0,
+	0x4f, 0x33, 0x9f, 0xf4, 0x2f, 0x0f, 0xc1, 0x35, 0x3f, 0x66, 0x2b, 0xb8, 0x3b, 0x8b, 0x71, 0x77,
+	0x2b, 0xb8, 0xaf, 0x9e, 0x8d, 0x2f, 0x0a, 0xf6, 0xbd, 0xeb, 0x3f, 0x9c, 0x6e, 0x18, 0xbf, 0x9c,
+	0x6e, 0x18, 0xbf, 0x9d, 0x6e, 0x18, 0xdf, 0xfc, 0xbe, 0xf1, 0xc4, 0xd0, 0xc6, 0x7f, 0xf2, 0xde,
+	0xf8, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x39, 0xcd, 0x2f, 0x91, 0xfa, 0x13, 0x00, 0x00,
 }
 
 func (m *PrivateMessageEvent) Marshal() (dAtA []byte, err error) {
@@ -1690,6 +1808,27 @@ func (m *PrivateMessageEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
 	}
 	if m.Sender != nil {
 		{
@@ -1847,6 +1986,27 @@ func (m *GroupMessageEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
 	}
 	if m.Sender != nil {
 		{
@@ -2103,6 +2263,27 @@ func (m *GroupUploadNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
+	}
 	if m.File != nil {
 		{
 			size, err := m.File.MarshalToSizedBuffer(dAtA[:i])
@@ -2227,6 +2408,27 @@ func (m *GroupAdminNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
+	}
 	if m.UserId != 0 {
 		i = encodeVarintOnebotEvent(dAtA, i, uint64(m.UserId))
 		i--
@@ -2294,6 +2496,27 @@ func (m *GroupDecreaseNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
 	}
 	if m.UserId != 0 {
 		i = encodeVarintOnebotEvent(dAtA, i, uint64(m.UserId))
@@ -2368,6 +2591,27 @@ func (m *GroupIncreaseNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
+	}
 	if m.UserId != 0 {
 		i = encodeVarintOnebotEvent(dAtA, i, uint64(m.UserId))
 		i--
@@ -2440,6 +2684,27 @@ func (m *GroupBanNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
 	}
 	if m.Duration != 0 {
 		i = encodeVarintOnebotEvent(dAtA, i, uint64(m.Duration))
@@ -2519,6 +2784,27 @@ func (m *FriendAddNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
+	}
 	if m.UserId != 0 {
 		i = encodeVarintOnebotEvent(dAtA, i, uint64(m.UserId))
 		i--
@@ -2574,6 +2860,27 @@ func (m *GroupRecallNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
 	}
 	if m.MessageId != 0 {
 		i = encodeVarintOnebotEvent(dAtA, i, uint64(m.MessageId))
@@ -2646,6 +2953,27 @@ func (m *FriendRecallNoticeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
+	}
 	if m.MessageId != 0 {
 		i = encodeVarintOnebotEvent(dAtA, i, uint64(m.MessageId))
 		i--
@@ -2706,6 +3034,27 @@ func (m *FriendRequestEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
 	}
 	if len(m.Flag) > 0 {
 		i -= len(m.Flag)
@@ -2776,6 +3125,27 @@ func (m *GroupRequestEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		for k := range m.Extra {
+			v := m.Extra[k]
+			baseI := i
+			i -= len(v)
+			copy(dAtA[i:], v)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(v)))
+			i--
+			dAtA[i] = 0x12
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintOnebotEvent(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0xf
+			i--
+			dAtA[i] = 0xfa
+		}
 	}
 	if len(m.Flag) > 0 {
 		i -= len(m.Flag)
@@ -2893,6 +3263,14 @@ func (m *PrivateMessageEvent) Size() (n int) {
 		l = m.Sender.Size()
 		n += 1 + l + sovOnebotEvent(uint64(l))
 	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -2978,6 +3356,14 @@ func (m *GroupMessageEvent) Size() (n int) {
 	if m.Sender != nil {
 		l = m.Sender.Size()
 		n += 1 + l + sovOnebotEvent(uint64(l))
+	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3084,6 +3470,14 @@ func (m *GroupUploadNoticeEvent) Size() (n int) {
 		l = m.File.Size()
 		n += 1 + l + sovOnebotEvent(uint64(l))
 	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -3146,6 +3540,14 @@ func (m *GroupAdminNoticeEvent) Size() (n int) {
 	if m.UserId != 0 {
 		n += 1 + sovOnebotEvent(uint64(m.UserId))
 	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -3185,6 +3587,14 @@ func (m *GroupDecreaseNoticeEvent) Size() (n int) {
 	if m.UserId != 0 {
 		n += 1 + sovOnebotEvent(uint64(m.UserId))
 	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -3223,6 +3633,14 @@ func (m *GroupIncreaseNoticeEvent) Size() (n int) {
 	}
 	if m.UserId != 0 {
 		n += 1 + sovOnebotEvent(uint64(m.UserId))
+	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3266,6 +3684,14 @@ func (m *GroupBanNoticeEvent) Size() (n int) {
 	if m.Duration != 0 {
 		n += 1 + sovOnebotEvent(uint64(m.Duration))
 	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -3294,6 +3720,14 @@ func (m *FriendAddNoticeEvent) Size() (n int) {
 	}
 	if m.UserId != 0 {
 		n += 1 + sovOnebotEvent(uint64(m.UserId))
+	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3333,6 +3767,14 @@ func (m *GroupRecallNoticeEvent) Size() (n int) {
 	if m.MessageId != 0 {
 		n += 1 + sovOnebotEvent(uint64(m.MessageId))
 	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -3364,6 +3806,14 @@ func (m *FriendRecallNoticeEvent) Size() (n int) {
 	}
 	if m.MessageId != 0 {
 		n += 1 + sovOnebotEvent(uint64(m.MessageId))
+	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3401,6 +3851,14 @@ func (m *FriendRequestEvent) Size() (n int) {
 	l = len(m.Flag)
 	if l > 0 {
 		n += 1 + l + sovOnebotEvent(uint64(l))
+	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3445,6 +3903,14 @@ func (m *GroupRequestEvent) Size() (n int) {
 	l = len(m.Flag)
 	if l > 0 {
 		n += 1 + l + sovOnebotEvent(uint64(l))
+	}
+	if len(m.Extra) > 0 {
+		for k, v := range m.Extra {
+			_ = k
+			_ = v
+			mapEntrySize := 1 + len(k) + sovOnebotEvent(uint64(len(k))) + 1 + len(v) + sovOnebotEvent(uint64(len(v)))
+			n += mapEntrySize + 2 + sovOnebotEvent(uint64(mapEntrySize))
+		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -3779,6 +4245,133 @@ func (m *PrivateMessageEvent) Unmarshal(dAtA []byte) error {
 			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4337,6 +4930,133 @@ func (m *GroupMessageEvent) Unmarshal(dAtA []byte) error {
 			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -5021,6 +5741,133 @@ func (m *GroupUploadNoticeEvent) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -5403,6 +6250,133 @@ func (m *GroupAdminNoticeEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -5648,6 +6622,133 @@ func (m *GroupDecreaseNoticeEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -5893,6 +6994,133 @@ func (m *GroupIncreaseNoticeEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -6157,6 +7385,133 @@ func (m *GroupBanNoticeEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -6332,6 +7687,133 @@ func (m *FriendAddNoticeEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -6564,6 +8046,133 @@ func (m *GroupRecallNoticeEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -6758,6 +8367,133 @@ func (m *FriendRecallNoticeEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipOnebotEvent(dAtA[iNdEx:])
@@ -6996,6 +8732,133 @@ func (m *FriendRequestEvent) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Flag = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7286,6 +9149,133 @@ func (m *GroupRequestEvent) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Flag = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 255:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowOnebotEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthOnebotEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Extra == nil {
+				m.Extra = make(map[string]string)
+			}
+			var mapkey string
+			var mapvalue string
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowOnebotEvent
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var stringLenmapvalue uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowOnebotEvent
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapvalue |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapvalue := int(stringLenmapvalue)
+					if intStringLenmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
+					if postStringIndexmapvalue < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if postStringIndexmapvalue > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
+					iNdEx = postStringIndexmapvalue
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipOnebotEvent(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if skippy < 0 {
+						return ErrInvalidLengthOnebotEvent
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.Extra[mapkey] = mapvalue
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
