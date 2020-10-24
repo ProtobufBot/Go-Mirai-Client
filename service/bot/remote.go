@@ -42,8 +42,6 @@ func ConnectUniversal(cli *client.QQClient) {
 			continue
 		} else {
 			log.Infof("已连接Websocket %v", WsUrl)
-			go ping(cli, conn)
-			go listenApi(cli, conn)
 			Conn = conn
 			time.Sleep(1 * time.Second)
 			connectLock.Lock()
@@ -54,30 +52,42 @@ func ConnectUniversal(cli *client.QQClient) {
 	}
 }
 
-func ping(cli *client.QQClient, conn *websocket.Conn) {
-	errCount := 0
-	for errCount < 5 {
-		if err := conn.WriteMessage(websocket.PingMessage, []byte("ping")); err != nil {
-			log.Warnf("websocket ping失败")
-			errCount++
-		} else {
-			errCount = 0
+func Ping(cli *client.QQClient) {
+	for {
+		if Conn == nil {
+			time.Sleep(5 * time.Second)
+			continue
 		}
-		time.Sleep(10 * time.Second)
+		errCount := 0
+		for errCount < 5 {
+			_ = Conn.SetWriteDeadline(time.Now().Add(time.Second * 5))
+			if err := Conn.WriteMessage(websocket.PingMessage, []byte("ping")); err != nil {
+				log.Warnf("websocket ping失败 %+v", err)
+				errCount++
+			} else {
+				errCount = 0
+			}
+			time.Sleep(10 * time.Second)
+		}
+		log.Errorf("websocket 连续ping失败5次，开始重连，60秒后重新开始ping")
+		_ = Conn.Close()
+		ConnectUniversal(cli)
+		time.Sleep(60 * time.Second)
 	}
-	log.Errorf("websocket 连续ping失败5次，断开连接")
-	_ = conn.Close()
-	ConnectUniversal(cli)
 }
 
-func listenApi(cli *client.QQClient, conn *websocket.Conn) {
-	defer conn.Close()
-
+func ListenApi(cli *client.QQClient) {
 	for {
-		messageType, buf, err := conn.ReadMessage()
+		if Conn == nil {
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		messageType, buf, err := Conn.ReadMessage()
 		if err != nil {
-			log.Warnf("监听反向WS API时出现错误: %v", err)
-			break
+			log.Warnf("监听反向WS API时出现错误: %v 10秒后重试", err)
+			ConnectUniversal(cli)
+			time.Sleep(10 * time.Second)
+			continue
 		}
 		if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
 			continue
@@ -96,7 +106,7 @@ func listenApi(cli *client.QQClient, conn *websocket.Conn) {
 			if err != nil {
 				log.Errorf("序列化ApiResp错误 %v", err)
 			}
-			err = conn.WriteMessage(websocket.BinaryMessage, respBytes)
+			err = Conn.WriteMessage(websocket.BinaryMessage, respBytes)
 			if err != nil {
 				log.Errorf("发送ApiResp错误 %v", err)
 			}
