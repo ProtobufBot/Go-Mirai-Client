@@ -21,6 +21,12 @@ func MiraiMsgToProtoMsg(messageChain []message.IMessageElement) []*onebot.Messag
 			msgList = append(msgList, MiraiFaceToProtoFace(elem))
 		case *message.VoiceElement:
 			msgList = append(msgList, MiraiVoiceToProtoVoice(elem))
+		case *message.ServiceElement:
+			msgList = append(msgList, MiraiServiceToProtoService(elem))
+		case *message.LightAppElement:
+			msgList = append(msgList, MiraiLightAppToProtoLightApp(elem))
+		case *message.ShortVideoElement:
+			msgList = append(msgList, MiraiVideoToProtoVideo(elem))
 		}
 	}
 	return msgList
@@ -73,6 +79,37 @@ func MiraiVoiceToProtoVoice(elem *message.VoiceElement) *onebot.Message {
 		Type: "record",
 		Data: map[string]string{
 			"file": elem.Url,
+			"url":  elem.Url,
+		},
+	}
+}
+
+func MiraiServiceToProtoService(elem *message.ServiceElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "service",
+		Data: map[string]string{
+			"id":       strconv.Itoa(int(elem.Id)),
+			"content":  elem.Content,
+			"res_id":   elem.ResId,
+			"sub_type": elem.SubType,
+		},
+	}
+}
+
+func MiraiLightAppToProtoLightApp(elem *message.LightAppElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "light_app",
+		Data: map[string]string{
+			"content": elem.Content,
+		},
+	}
+}
+
+func MiraiVideoToProtoVideo(elem *message.ShortVideoElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "video",
+		Data: map[string]string{
+			"name": elem.Name,
 			"url":  elem.Url,
 		},
 	}

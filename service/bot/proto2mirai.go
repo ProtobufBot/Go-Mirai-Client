@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"html"
 	"strconv"
 
 	"github.com/Mrs4s/MiraiGo/message"
@@ -69,6 +70,7 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 		log.Warnf("imageUrl不存在")
 		return EmptyText()
 	}
+	url = html.UnescapeString(url)
 	b, err := util.GetBytes(url)
 	if err != nil {
 		log.Errorf("下载图片失败")
@@ -86,6 +88,7 @@ func ProtoVoiceToMiraiVoice(data map[string]string) message.IMessageElement {
 		log.Warnf("recordUrl不存在")
 		return EmptyText()
 	}
+	url = html.UnescapeString(url)
 	b, err := util.GetBytes(url)
 	if err != nil {
 		log.Errorf("下载语音失败")
