@@ -44,8 +44,9 @@ func InitLog(cli *client.QQClient) {
 		}
 	})
 
-	cli.OnServerUpdated(func(bot *client.QQClient, e *client.ServerUpdatedEvent) {
+	cli.OnServerUpdated(func(bot *client.QQClient, e *client.ServerUpdatedEvent) bool {
 		log.Infof("收到服务器地址更新通知, 将在下一次重连时应用. ")
+		return true // 如果是 false 表示不应用
 	})
 }
 
