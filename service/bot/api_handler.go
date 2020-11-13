@@ -17,6 +17,7 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 		if i, ok := element.(*message.ImageElement); ok {
 			gm, err := cli.UploadPrivateImage(target, i.Data)
 			if err != nil {
+				log.Errorf("failed to upload private image, %+v", err)
 				continue
 			}
 			newElements = append(newElements, gm)
@@ -34,6 +35,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 		if i, ok := element.(*message.ImageElement); ok {
 			gm, err := cli.UploadGroupImage(groupCode, i.Data)
 			if err != nil {
+				log.Errorf("failed to upload group image, %+v", err)
 				continue
 			}
 			newElements = append(newElements, gm)
@@ -42,6 +44,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 		if i, ok := element.(*message.VoiceElement); ok {
 			gm, err := cli.UploadGroupPtt(groupCode, i.Data)
 			if err != nil {
+				log.Errorf("failed to upload group ptt, %+v", err)
 				continue
 			}
 			newElements = append(newElements, gm)
