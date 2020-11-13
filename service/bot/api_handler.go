@@ -32,7 +32,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 	newElements := make([]message.IMessageElement, 0, len(m.Elements))
 	for _, element := range m.Elements {
 		if i, ok := element.(*message.ImageElement); ok {
-			gm, err := cli.UploadPrivateImage(groupCode, i.Data)
+			gm, err := cli.UploadGroupImage(groupCode, i.Data)
 			if err != nil {
 				continue
 			}
