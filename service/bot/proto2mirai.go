@@ -3,6 +3,7 @@ package bot
 import (
 	"html"
 	"strconv"
+	"strings"
 
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
@@ -60,17 +61,18 @@ func ProtoTextToMiraiText(data map[string]string) message.IMessageElement {
 
 func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 	url, ok := data["url"]
-	if !ok {
+	if !ok || !strings.Contains(url, "http") {
 		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
-		if !ok {
+		if !ok || !strings.Contains(url, "http") {
 			url, ok = data["file"]
 		}
 	}
-	if !ok {
+	if !ok || !strings.Contains(url, "http") {
 		log.Warnf("imageUrl不存在")
 		return EmptyText()
 	}
 	url = html.UnescapeString(url)
+	log.Infof("下载图片: %+v", url)
 	b, err := util.GetBytes(url)
 	if err != nil {
 		log.Errorf("下载图片失败")
