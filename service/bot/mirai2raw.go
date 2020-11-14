@@ -22,7 +22,7 @@ func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
 		case *message.VoiceElement:
 			result += fmt.Sprintf(`<voice url="%s"/>`, html.EscapeString(elem.Url))
 		case *message.ServiceElement:
-			result += fmt.Sprintf(`<service id="%d" content="%s" res_id="%d" sub_type="%s"/>`, elem.Id, html.EscapeString(elem.Content), elem.ResId, elem.SubType)
+			result += fmt.Sprintf(`<service id="%d" content="%s" res_id="%s" sub_type="%s"/>`, elem.Id, html.EscapeString(elem.Content), elem.ResId, elem.SubType)
 		case *message.LightAppElement:
 			result += fmt.Sprintf(`<light_app content="%s"/>`, html.EscapeString(elem.Content))
 		case *message.ShortVideoElement:

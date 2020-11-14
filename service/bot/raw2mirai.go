@@ -61,6 +61,8 @@ func RawMsgToMiraiMsg(str string) []message.IMessageElement {
 				elemList = append(elemList, ProtoTextToMiraiText(attrMap))
 			case "light_app":
 				elemList = append(elemList, ProtoLightAppToMiraiLightApp(attrMap))
+			case "service":
+				elemList = append(elemList, ProtoServiceToMiraiService(attrMap))
 			default:
 				log.Warnf("不支持的类型 %s", code)
 				elemList = append(elemList, message.NewText(code))

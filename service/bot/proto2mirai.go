@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"html"
 	"strconv"
 	"strings"
 
@@ -45,6 +44,8 @@ func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []messag
 			messageChain = append(messageChain, ProtoShareToMiraiShare(protoMsg.Data))
 		case "light_app":
 			messageChain = append(messageChain, ProtoLightAppToMiraiLightApp(protoMsg.Data))
+		case "service":
+			messageChain = append(messageChain, ProtoServiceToMiraiService(protoMsg.Data))
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -73,7 +74,6 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 		log.Warnf("imageUrl不存在")
 		return EmptyText()
 	}
-	url = html.UnescapeString(url)
 	log.Infof("下载图片: %+v", url)
 	b, err := util.GetBytes(url)
 	if err != nil {
@@ -92,7 +92,6 @@ func ProtoVoiceToMiraiVoice(data map[string]string) message.IMessageElement {
 		log.Warnf("recordUrl不存在")
 		return EmptyText()
 	}
-	url = html.UnescapeString(url)
 	b, err := util.GetBytes(url)
 	if err != nil {
 		log.Errorf("下载语音失败")
@@ -162,4 +161,37 @@ func ProtoLightAppToMiraiLightApp(data map[string]string) message.IMessageElemen
 		return EmptyText()
 	}
 	return message.NewLightApp(content)
+}
+
+func ProtoServiceToMiraiService(data map[string]string) message.IMessageElement {
+	subType, ok := data["sub_type"]
+	if !ok || subType == "" {
+		log.Warnf("service sub_type不存在")
+		return EmptyText()
+	}
+
+	content, ok := data["content"]
+	if !ok {
+		log.Warnf("service content不存在")
+		return EmptyText()
+	}
+
+	id, ok := data["id"]
+	if !ok {
+		id = ""
+	}
+	resId, err := strconv.ParseInt(id, 10, 64)
+	if err != nil || resId == 0 {
+		if subType == "xml" {
+			resId = 60 // xml默认60
+		} else {
+			resId = 1 // json默认1
+		}
+	}
+
+	return &message.ServiceElement{
+		Id:      int32(resId),
+		Content: content,
+		SubType: subType,
+	}
 }
