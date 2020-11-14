@@ -50,6 +50,17 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			newElements = append(newElements, gm)
 			continue
 		}
+		if i, ok := element.(*message.AtElement); ok && i.Target != 0 {
+			i.Display = "@" + func() string {
+				mem := cli.FindGroup(groupCode).FindMember(i.Target)
+				if mem != nil {
+					return mem.DisplayName()
+				}
+				return strconv.FormatInt(i.Target, 10)
+			}()
+			newElements = append(newElements, i)
+			continue
+		}
 		newElements = append(newElements, element)
 	}
 	m.Elements = newElements
