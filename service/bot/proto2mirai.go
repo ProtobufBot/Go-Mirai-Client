@@ -43,6 +43,8 @@ func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []messag
 			messageChain = append(messageChain, ProtoFaceToMiraiFace(protoMsg.Data))
 		case "share":
 			messageChain = append(messageChain, ProtoShareToMiraiShare(protoMsg.Data))
+		case "light_app":
+			messageChain = append(messageChain, ProtoLightAppToMiraiLightApp(protoMsg.Data))
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -152,4 +154,12 @@ func ProtoShareToMiraiShare(data map[string]string) message.IMessageElement {
 		image = ""
 	}
 	return message.NewUrlShare(url, title, content, image)
+}
+
+func ProtoLightAppToMiraiLightApp(data map[string]string) message.IMessageElement {
+	content, ok := data["content"]
+	if !ok || content == "" {
+		return EmptyText()
+	}
+	return message.NewLightApp(content)
 }
