@@ -3,6 +3,7 @@ package bot
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -17,10 +18,14 @@ func InitDevice(path string) {
 	if !util.PathExists(path) {
 		log.Warn("虚拟设备信息不存在, 将自动生成随机设备.")
 		client.GenRandomDevice()
+		client.SystemDeviceInfo.Display = []byte(strings.Replace(string(client.SystemDeviceInfo.Display), "MIRAI", "GMC", -1))
+		client.SystemDeviceInfo.FingerPrint = []byte(strings.Replace(string(client.SystemDeviceInfo.FingerPrint), "MIRAI", "GMC", -1))
+		client.SystemDeviceInfo.FingerPrint = []byte(strings.Replace(string(client.SystemDeviceInfo.FingerPrint), "mirai", "gmc", -1))
+		client.SystemDeviceInfo.FingerPrint = []byte(strings.Replace(string(client.SystemDeviceInfo.FingerPrint), "mamoe", "pbbot", -1))
 		client.SystemDeviceInfo.Device = []byte("gmc")
 		client.SystemDeviceInfo.Board = []byte("gmc")
 		client.SystemDeviceInfo.Model = []byte("gmc")
-		client.SystemDeviceInfo.Brand = []byte("protobufbot")
+		client.SystemDeviceInfo.Brand = []byte("pbbot")
 		client.SystemDeviceInfo.Product = []byte("gmc")
 		_ = ioutil.WriteFile(path, client.SystemDeviceInfo.ToJson(), 0644)
 		log.Infof("已生成设备信息并保存到 %s 文件.", path)
