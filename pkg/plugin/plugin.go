@@ -1,9 +1,9 @@
 package plugin
 
 import (
-	"fmt"
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 )
 
 type (
@@ -131,7 +131,7 @@ func AddOfflineFilePlugin(plugin OfflineFilePlugin) {
 }
 
 func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range PrivateMessagePluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -141,7 +141,7 @@ func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
 }
 
 func handleGroupMessage(cli *client.QQClient, event *message.GroupMessage) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range GroupMessagePluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -151,7 +151,7 @@ func handleGroupMessage(cli *client.QQClient, event *message.GroupMessage) {
 }
 
 func handleTempMessage(cli *client.QQClient, event *message.TempMessage) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range TempMessagePluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -161,7 +161,7 @@ func handleTempMessage(cli *client.QQClient, event *message.TempMessage) {
 }
 
 func handleMemberJoinGroup(cli *client.QQClient, event *client.MemberJoinGroupEvent) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range MemberJoinGroupPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -171,7 +171,7 @@ func handleMemberJoinGroup(cli *client.QQClient, event *client.MemberJoinGroupEv
 }
 
 func handleMemberLeaveGroup(cli *client.QQClient, event *client.MemberLeaveGroupEvent) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range MemberLeaveGroupPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -181,7 +181,7 @@ func handleMemberLeaveGroup(cli *client.QQClient, event *client.MemberLeaveGroup
 }
 
 func handleJoinGroup(cli *client.QQClient, event *client.GroupInfo) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range JoinGroupPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -191,7 +191,7 @@ func handleJoinGroup(cli *client.QQClient, event *client.GroupInfo) {
 }
 
 func handleLeaveGroup(cli *client.QQClient, event *client.GroupLeaveEvent) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range LeaveGroupPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -201,7 +201,7 @@ func handleLeaveGroup(cli *client.QQClient, event *client.GroupLeaveEvent) {
 }
 
 func handleNewFriendRequest(cli *client.QQClient, event *client.NewFriendRequest) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range NewFriendRequestPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -211,7 +211,7 @@ func handleNewFriendRequest(cli *client.QQClient, event *client.NewFriendRequest
 }
 
 func handleUserJoinGroupRequest(cli *client.QQClient, event *client.UserJoinGroupRequest) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range UserJoinGroupRequestPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -221,7 +221,7 @@ func handleUserJoinGroupRequest(cli *client.QQClient, event *client.UserJoinGrou
 }
 
 func handleGroupInvitedRequest(cli *client.QQClient, event *client.GroupInvitedRequest) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range GroupInvitedRequestPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -231,7 +231,7 @@ func handleGroupInvitedRequest(cli *client.QQClient, event *client.GroupInvitedR
 }
 
 func handleGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessageRecalledEvent) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range GroupMessageRecalledPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -241,7 +241,7 @@ func handleGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessage
 }
 
 func handleFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessageRecalledEvent) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range FriendMessageRecalledPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -251,7 +251,7 @@ func handleFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessa
 }
 
 func handleNewFriendAdded(cli *client.QQClient, event *client.NewFriendEvent) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range NewFriendAddedPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -261,7 +261,7 @@ func handleNewFriendAdded(cli *client.QQClient, event *client.NewFriendEvent) {
 }
 
 func handleOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) {
-	SafeGo(func() {
+	util.SafeGo(func() {
 		for _, plugin := range OfflineFilePluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
@@ -270,14 +270,3 @@ func handleOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) {
 	})
 }
 
-func SafeGo(fn func()) {
-	go func() {
-		defer func() {
-			e := recover()
-			if e != nil {
-				fmt.Println(e)
-			}
-		}()
-		fn()
-	}()
-}

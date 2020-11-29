@@ -96,3 +96,15 @@ func ToGlobalId(code int64, msgId int32) int32 {
 func IsAMRorSILK(b []byte) bool {
 	return bytes.HasPrefix(b, HEADER_AMR) || bytes.HasPrefix(b, HEADER_SILK)
 }
+
+func SafeGo(fn func()) {
+	go func() {
+		defer func() {
+			e := recover()
+			if e != nil {
+				log.Errorf("err recovered: %+v",e)
+			}
+		}()
+		fn()
+	}()
+}
