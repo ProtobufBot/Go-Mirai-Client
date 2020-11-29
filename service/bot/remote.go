@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -100,7 +101,7 @@ func ListenApi(cli *client.QQClient) {
 			continue
 		}
 
-		go func() {
+		util.SafeGo(func() {
 			resp := handleApiFrame(cli, &req)
 			respBytes, err := resp.Marshal()
 			if err != nil {
@@ -110,7 +111,7 @@ func ListenApi(cli *client.QQClient) {
 			if err != nil {
 				log.Errorf("发送ApiResp错误 %v", err)
 			}
-		}()
+		})
 	}
 }
 
