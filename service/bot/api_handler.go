@@ -171,7 +171,7 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 func HandleSetGroupKick(cli *client.QQClient, req *onebot.SetGroupKickReq) *onebot.SetGroupKickResp {
 	if group := cli.FindGroup(req.GroupId); group != nil {
 		if member := group.FindMember(req.UserId); member != nil {
-			member.Kick("")
+			member.Kick("", req.RejectAddRequest)
 			return &onebot.SetGroupKickResp{}
 		}
 	}
