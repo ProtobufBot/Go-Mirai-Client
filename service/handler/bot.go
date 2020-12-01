@@ -180,7 +180,7 @@ func CreateBotImpl(uin int64, password string) {
 	log.Infof("共加载 %v 个群.", len(bot.Cli.GroupList))
 
 	bot.ConnectUniversal(bot.Cli)
-	go bot.Ping(bot.Cli)
+	go bot.Ping()
 	go bot.ListenApi(bot.Cli)
 
 	bot.SetRelogin(bot.Cli, 10, 30)

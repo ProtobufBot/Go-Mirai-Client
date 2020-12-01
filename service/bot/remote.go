@@ -14,12 +14,53 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type WsSendingMessage struct {
+	MessageType int
+	Data        []byte
+}
+
 var Conn *websocket.Conn
+var WsSendChannel = make(chan *WsSendingMessage, 500)
 
 var WsUrl = "ws://localhost:8081/ws/cq/"
 
 var connecting = false
 var connectLock sync.Mutex
+
+func init() {
+	go func() {
+		for {
+			errCount := 0
+			for errCount < 5 {
+				for msg := range WsSendChannel {
+					if Conn == nil {
+						log.Warnf("websocket conn is nil")
+						continue
+					}
+
+					_ = Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
+					if err := Conn.WriteMessage(msg.MessageType, msg.Data); err != nil {
+						log.Errorf("failed to write message messageType: %+v, err: %+v", msg.MessageType, err.Error())
+						errCount++
+					} else {
+						errCount = 0
+					}
+				}
+			}
+			log.Errorf("websocket 连续发送失败5次，开始重连，5秒后继续")
+			ConnectUniversal(Cli)
+			time.Sleep(5 * time.Second)
+		}
+	}()
+}
+
+func SendWsMsg(messageType int, data []byte) {
+	msg := &WsSendingMessage{
+		MessageType: messageType,
+		Data:        data,
+	}
+	WsSendChannel <- msg
+}
 
 func ConnectUniversal(cli *client.QQClient) {
 	connectLock.Lock()
@@ -53,27 +94,14 @@ func ConnectUniversal(cli *client.QQClient) {
 	}
 }
 
-func Ping(cli *client.QQClient) {
+func Ping() {
 	for {
 		if Conn == nil {
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		errCount := 0
-		for errCount < 5 {
-			_ = Conn.SetWriteDeadline(time.Now().Add(time.Second * 5))
-			if err := Conn.WriteMessage(websocket.PingMessage, []byte("ping")); err != nil {
-				log.Warnf("websocket ping失败 %+v", err)
-				errCount++
-			} else {
-				errCount = 0
-			}
-			time.Sleep(10 * time.Second)
-		}
-		log.Errorf("websocket 连续ping失败5次，开始重连，60秒后重新开始ping")
-		_ = Conn.Close()
-		ConnectUniversal(cli)
-		time.Sleep(60 * time.Second)
+		SendWsMsg(websocket.PingMessage, []byte("ping"))
+		time.Sleep(5 * time.Second)
 	}
 }
 
@@ -107,10 +135,7 @@ func ListenApi(cli *client.QQClient) {
 			if err != nil {
 				log.Errorf("序列化ApiResp错误 %v", err)
 			}
-			err = Conn.WriteMessage(websocket.BinaryMessage, respBytes)
-			if err != nil {
-				log.Errorf("发送ApiResp错误 %v", err)
-			}
+			SendWsMsg(websocket.BinaryMessage, respBytes)
 		})
 	}
 }
@@ -247,12 +272,5 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		return
 	}
 
-	_ = Conn.SetWriteDeadline(time.Now().Add(time.Second * 15))
-	err = Conn.WriteMessage(websocket.BinaryMessage, eventBytes)
-	if err != nil {
-		log.Errorf("发送Event错误 %v", err)
-		_ = Conn.Close()
-		ConnectUniversal(cli)
-		return
-	}
+	SendWsMsg(websocket.BinaryMessage, eventBytes)
 }
