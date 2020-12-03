@@ -3,7 +3,7 @@ module github.com/ProtobufBot/Go-Mirai-Client
 go 1.14
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20201129131629-7a3c8fd7f4e2
+	github.com/Mrs4s/MiraiGo v0.0.0-20201203010528-a1ecf84cac2b
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
@@ -19,7 +19,7 @@ require (
 	github.com/tidwall/match v1.0.2 // indirect
 	github.com/ugorji/go v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20201124201722-c8d3bf9c5392 // indirect
-	golang.org/x/sys v0.0.0-20201126233918-771906719818 // indirect
+	golang.org/x/sys v0.0.0-20201202213521-69691e467435 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
 
