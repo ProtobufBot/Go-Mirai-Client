@@ -18,6 +18,7 @@ type Node struct {
 var re = regexp.MustCompile("<[\\s\\S]+?/>")
 
 func RawMsgToMiraiMsg(str string) []message.IMessageElement {
+	containReply := false
 	var node Node
 	textList := re.Split(str, -1)
 	codeList := re.FindAllString(str, -1)
@@ -63,6 +64,11 @@ func RawMsgToMiraiMsg(str string) []message.IMessageElement {
 				elemList = append(elemList, ProtoLightAppToMiraiLightApp(attrMap))
 			case "service":
 				elemList = append(elemList, ProtoServiceToMiraiService(attrMap))
+			case "reply":
+				if replyElement := ProtoReplyToMiraiReply(attrMap); replyElement != nil && !containReply {
+					containReply = true
+					elemList = append([]message.IMessageElement{replyElement}, elemList...)
+				}
 			default:
 				log.Warnf("不支持的类型 %s", code)
 				elemList = append(elemList, message.NewText(code))

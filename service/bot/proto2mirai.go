@@ -7,6 +7,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
+	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -16,6 +17,7 @@ func EmptyText() *message.TextElement {
 
 // 消息列表，不自动把code变成msg
 func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []message.IMessageElement {
+	containReply := false // 每条消息只能包含一个reply
 	messageChain := make([]message.IMessageElement, 0)
 	for _, protoMsg := range msgList {
 		switch protoMsg.Type {
@@ -46,6 +48,11 @@ func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []messag
 			messageChain = append(messageChain, ProtoLightAppToMiraiLightApp(protoMsg.Data))
 		case "service":
 			messageChain = append(messageChain, ProtoServiceToMiraiService(protoMsg.Data))
+		case "reply":
+			if replyElement := ProtoReplyToMiraiReply(protoMsg.Data); replyElement != nil && !containReply {
+				containReply = true
+				messageChain = append([]message.IMessageElement{replyElement}, messageChain...)
+			}
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -194,4 +201,41 @@ func ProtoServiceToMiraiService(data map[string]string) message.IMessageElement 
 		Content: content,
 		SubType: subType,
 	}
+}
+
+func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
+	messageIdStr, ok := data["message_id"]
+	if !ok {
+		return nil
+	}
+	messageIdInt, err := strconv.Atoi(messageIdStr)
+	if err != nil {
+		return nil
+	}
+	messageId := int32(messageIdInt)
+	eventInterface, ok := cache.GroupMessageLru.Get(messageId)
+	if ok {
+		groupMessage, ok := eventInterface.(*message.GroupMessage)
+		if ok {
+			return &message.ReplyElement{
+				ReplySeq: groupMessage.Id,
+				Sender:   groupMessage.Sender.Uin,
+				Time:     groupMessage.Time,
+				Elements: groupMessage.Elements,
+			}
+		}
+	}
+	eventInterface, ok = cache.PrivateMessageLru.Get(messageId)
+	if ok {
+		privateMessage, ok := eventInterface.(*message.PrivateMessage)
+		if ok {
+			return &message.ReplyElement{
+				ReplySeq: privateMessage.Id,
+				Sender:   privateMessage.Sender.Uin,
+				Time:     privateMessage.Time,
+				Elements: privateMessage.Elements,
+			}
+		}
+	}
+	return nil
 }
