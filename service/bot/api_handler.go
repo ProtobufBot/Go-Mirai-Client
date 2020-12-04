@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -9,6 +10,28 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
 	log "github.com/sirupsen/logrus"
 )
+
+const MAX_TEXT_LENGTH = 64
+
+// 风控临时解决方案
+func splitText(content string, limit int) []string {
+	text := []rune(content)
+
+	result := make([]string, 0)
+	num := int(math.Ceil(float64(len(text)) / float64(limit)))
+	for i := 0; i < num; i++ {
+		start := i * limit
+		end := func() int {
+			if (i+1)*limit > len(text) {
+				return len(text)
+			} else {
+				return (i + 1) * limit
+			}
+		}()
+		result = append(result, string(text[start:end]))
+	}
+	return result
+}
 
 // 预处理私聊消息，上传图片，MiraiGo更新后删除
 func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *message.SendingMessage) {
@@ -32,6 +55,14 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *message.SendingMessage) {
 	newElements := make([]message.IMessageElement, 0, len(m.Elements))
 	for _, element := range m.Elements {
+		if i, ok := element.(*message.TextElement); ok {
+			content := i.Content
+			textList := splitText(content, MAX_TEXT_LENGTH)
+			for _, text := range textList {
+				newElements = append(newElements, message.NewText(text))
+			}
+			continue
+		}
 		if i, ok := element.(*message.ImageElement); ok {
 			gm, err := cli.UploadGroupImage(groupCode, i.Data)
 			if err != nil {
@@ -83,7 +114,7 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(miraiMsg))
 	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
-	ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
+	ret := cli.SendGroupMessage(req.GroupId, sendingMessage, true)
 	if ret == nil || ret.Id == -1 {
 		log.Warnf("发送群消息失败，可能被风控")
 		return nil
