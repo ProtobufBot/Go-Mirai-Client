@@ -84,6 +84,10 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(miraiMsg))
 	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
 	ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
+	if ret == nil || ret.Id == -1 {
+		log.Warnf("发送群消息失败，可能被风控")
+		return nil
+	}
 	cache.GroupMessageLru.Add(ret.Id, ret)
 	return &onebot.SendGroupMsgResp{
 		MessageId: ret.Id,
@@ -96,6 +100,10 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 	if req.GroupId != 0 {
 		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
 		ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
+		if ret == nil || ret.Id == -1 {
+			log.Warnf("发送群消息失败，可能被风控")
+			return nil
+		}
 		cache.GroupMessageLru.Add(ret.Id, ret)
 		return &onebot.SendMsgResp{
 			MessageId: ret.Id,
