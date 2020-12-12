@@ -1,9 +1,9 @@
 module github.com/ProtobufBot/Go-Mirai-Client
 
-go 1.14
+go 1.15
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20201204063549-4d6459e1de6d
+	github.com/Mrs4s/MiraiGo v0.0.0-20201212141451-52096c28df90
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
@@ -15,11 +15,11 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/tidwall/gjson v1.6.3 // indirect
+	github.com/tidwall/gjson v1.6.4 // indirect
 	github.com/tidwall/match v1.0.2 // indirect
 	github.com/ugorji/go v1.2.1 // indirect
-	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c // indirect
-	golang.org/x/sys v0.0.0-20201202213521-69691e467435 // indirect
+	golang.org/x/crypto v0.0.0-20201208171446-5f87f3452ae9 // indirect
+	golang.org/x/sys v0.0.0-20201211090839-8ad439b19e0f // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
 
