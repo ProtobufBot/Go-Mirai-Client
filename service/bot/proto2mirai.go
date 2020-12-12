@@ -204,6 +204,8 @@ func ProtoServiceToMiraiService(data map[string]string) message.IMessageElement 
 }
 
 func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
+	rawMessage, hasRawMessage := data["raw_message"] // 如果存在 raw_message，按照raw_message显示
+
 	messageIdStr, ok := data["message_id"]
 	if !ok {
 		return nil
@@ -221,7 +223,13 @@ func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
 				ReplySeq: groupMessage.Id,
 				Sender:   groupMessage.Sender.Uin,
 				Time:     groupMessage.Time,
-				Elements: groupMessage.Elements,
+				Elements: func() []message.IMessageElement {
+					if hasRawMessage {
+						return []message.IMessageElement{message.NewText(rawMessage)}
+					} else {
+						return groupMessage.Elements
+					}
+				}(),
 			}
 		}
 	}
@@ -233,7 +241,13 @@ func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
 				ReplySeq: privateMessage.Id,
 				Sender:   privateMessage.Sender.Uin,
 				Time:     privateMessage.Time,
-				Elements: privateMessage.Elements,
+				Elements: func() []message.IMessageElement {
+					if hasRawMessage {
+						return []message.IMessageElement{message.NewText(rawMessage)}
+					} else {
+						return privateMessage.Elements
+					}
+				}(),
 			}
 		}
 	}
