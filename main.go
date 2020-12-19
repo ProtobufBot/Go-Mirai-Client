@@ -30,6 +30,9 @@ func main() {
 			port = strconv.Itoa(int(conf.Server.Port))
 		}
 	}
+	if os.Getenv("SMS") == "1" {
+		bot.SmsFirst = true
+	}
 	envPort := os.Getenv("PORT")
 	if envPort != "" {
 		port = envPort

@@ -16,11 +16,19 @@ import (
 
 var Captcha *dto.Captcha
 var CaptchaPromise *promise.Promise
+var SmsFirst = false
 
 func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, error) {
 	if rsp.Success {
 		Captcha = nil
 		return true, nil
+	}
+	if rsp.Error == client.SMSOrVerifyNeededError {
+		if SmsFirst {
+			rsp.Error = client.SMSNeededError
+		} else {
+			rsp.Error = client.UnsafeDeviceError
+		}
 	}
 	switch rsp.Error {
 	case client.SliderNeededError:
@@ -52,7 +60,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			return false, fmt.Errorf("提交图形验证码错误")
 		}
 		return ProcessLoginRsp(cli, rsp)
-	case client.SMSNeededError, client.SMSOrVerifyNeededError:
+	case client.SMSNeededError:
 		if !cli.RequestSMS() {
 			return false, fmt.Errorf("请求短信验证码错误，可能是太频繁")
 		}
@@ -84,7 +92,14 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		}
 		return ProcessLoginRsp(cli, rsp)
 	case client.OtherLoginError, client.UnknownLoginError:
-		log.Errorf(rsp.ErrorMessage)
+		//log.Errorf(rsp.ErrorMessage)
+		msg := rsp.ErrorMessage
+		if strings.Contains(msg, "版本") {
+			log.Errorf("密码错误或账号被冻结")
+		}
+		if strings.Contains(msg, "上网环境") {
+			log.Errorf("错误: 当前上网环境异常. 将更换服务器并重试. 如果频繁遇到此问题请打开设备锁.")
+		}
 		return false, fmt.Errorf("遇到不可处理的登录错误")
 	}
 	return false, fmt.Errorf("process login error")
