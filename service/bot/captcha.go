@@ -93,12 +93,13 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		return ProcessLoginRsp(cli, rsp)
 	case client.OtherLoginError, client.UnknownLoginError:
 		//log.Errorf(rsp.ErrorMessage)
+		log.Warnf("登陆失败，建议开启/关闭设备锁后重试，或删除device-<QQ>.json文件后再次尝试")
 		msg := rsp.ErrorMessage
 		if strings.Contains(msg, "版本") {
 			log.Errorf("密码错误或账号被冻结")
 		}
 		if strings.Contains(msg, "上网环境") {
-			log.Errorf("错误: 当前上网环境异常. 将更换服务器并重试. 如果频繁遇到此问题请打开设备锁.")
+			log.Errorf("当前上网环境异常. 更换服务器并重试")
 		}
 		return false, fmt.Errorf("遇到不可处理的登录错误")
 	}
