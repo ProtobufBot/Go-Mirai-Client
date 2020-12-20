@@ -56,19 +56,28 @@ func InitLog(cli *client.QQClient) {
 }
 
 func Login(cli *client.QQClient) (bool, error) {
-	rsp, err := cli.Login()
-	if err != nil {
-		return false, err
-	}
-
+	cli.AllowSlider = true
 	v, err := promise.Start(func() bool {
-		ok, err := ProcessLoginRsp(cli, rsp)
-		if err != nil {
-			log.Fatalf("登陆遇到错误2:%v", err)
-			time.Sleep(5 * time.Second)
-			os.Exit(0)
+		errCount := 0
+		for errCount < 3 {
+			cli.Disconnect()
+			rsp, err := cli.Login()
+			if err != nil {
+				return false
+			}
+			ok, err := ProcessLoginRsp(cli, rsp)
+			if err == nil {
+				return ok
+			} else {
+				log.Errorf("登陆遇到错误2:%v", err)
+				time.Sleep(5 * time.Second)
+				errCount++
+			}
 		}
-		return ok
+		log.Errorf("登陆失败，5秒后退出")
+		time.Sleep(5 * time.Second)
+		os.Exit(0)
+		return false
 	}()).Get()
 	if err != nil {
 		return false, err
