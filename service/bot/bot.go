@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -13,6 +14,7 @@ import (
 )
 
 var Cli *client.QQClient
+var LoginLock sync.Mutex
 
 func InitDevice(path string) {
 	if !util.PathExists(path) {
@@ -56,6 +58,8 @@ func InitLog(cli *client.QQClient) {
 }
 
 func Login(cli *client.QQClient) (bool, error) {
+	LoginLock.Lock()
+	defer LoginLock.Unlock()
 	cli.AllowSlider = true
 	v, err := promise.Start(func() bool {
 		errCount := 0
