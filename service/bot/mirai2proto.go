@@ -27,6 +27,8 @@ func MiraiMsgToProtoMsg(messageChain []message.IMessageElement) []*onebot.Messag
 			msgList = append(msgList, MiraiLightAppToProtoLightApp(elem))
 		case *message.ShortVideoElement:
 			msgList = append(msgList, MiraiVideoToProtoVideo(elem))
+		case *message.ReplyElement:
+			msgList = append(msgList, MiraiReplyToProtoReply(elem))
 		}
 	}
 	return msgList
@@ -111,6 +113,18 @@ func MiraiVideoToProtoVideo(elem *message.ShortVideoElement) *onebot.Message {
 		Data: map[string]string{
 			"name": elem.Name,
 			"url":  elem.Url,
+		},
+	}
+}
+
+func MiraiReplyToProtoReply(elem *message.ReplyElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "reply",
+		Data: map[string]string{
+			"reply_seq":   strconv.FormatInt(int64(elem.ReplySeq), 10),
+			"sender":      strconv.FormatInt(elem.Sender, 10),
+			"time":        strconv.FormatInt(int64(elem.Time), 10),
+			"raw_message": MiraiMsgToRawMsg(elem.Elements),
 		},
 	}
 }

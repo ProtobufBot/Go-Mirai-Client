@@ -3,11 +3,11 @@ package bot
 import (
 	"io/ioutil"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"
@@ -20,22 +20,23 @@ func InitDevice(path string) {
 	if !util.PathExists(path) {
 		log.Warn("虚拟设备信息不存在, 将自动生成随机设备.")
 		client.GenRandomDevice()
-		client.SystemDeviceInfo.Display = []byte(strings.Replace(string(client.SystemDeviceInfo.Display), "MIRAI", "GMC", -1))
-		client.SystemDeviceInfo.FingerPrint = []byte(strings.Replace(string(client.SystemDeviceInfo.FingerPrint), "MIRAI", "GMC", -1))
-		client.SystemDeviceInfo.FingerPrint = []byte(strings.Replace(string(client.SystemDeviceInfo.FingerPrint), "mirai", "gmc", -1))
-		client.SystemDeviceInfo.FingerPrint = []byte(strings.Replace(string(client.SystemDeviceInfo.FingerPrint), "mamoe", "pbbot", -1))
+		client.SystemDeviceInfo.Display = []byte("GMC." + utils.RandomStringRange(6, "0123456789") + ".001")
+		client.SystemDeviceInfo.FingerPrint = []byte("pbbot/gmc/gmc:10/PBBOT.200324.001/" + utils.RandomStringRange(7, "0123456789") + ":user/release-keys")
+		client.SystemDeviceInfo.ProcVersion = []byte("Linux version 4.0.8-" + utils.RandomString(8) + " (android-build@gmail.com)")
+		client.SystemDeviceInfo.AndroidId = client.SystemDeviceInfo.Display
 		client.SystemDeviceInfo.Device = []byte("gmc")
 		client.SystemDeviceInfo.Board = []byte("gmc")
 		client.SystemDeviceInfo.Model = []byte("gmc")
 		client.SystemDeviceInfo.Brand = []byte("pbbot")
 		client.SystemDeviceInfo.Product = []byte("gmc")
+		client.SystemDeviceInfo.Protocol = client.MacOS
 		_ = ioutil.WriteFile(path, client.SystemDeviceInfo.ToJson(), 0644)
 		log.Infof("已生成设备信息并保存到 %s 文件.", path)
-	} else {
-		log.Infof("将使用 %s 内的设备信息运行", path)
-		if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText(path))); err != nil {
-			log.Fatalf("加载设备信息失败: %v", err)
-		}
+	}
+	log.Infof("将使用 %s 内的设备信息运行", path)
+	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 31, 101}
+	if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText(path))); err != nil {
+		log.Fatalf("加载设备信息失败: %v", err)
 	}
 }
 

@@ -37,6 +37,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			time.Sleep(5 * time.Second)
 			os.Exit(0)
 		}
+		log.Warnf("遇到不支持的滑块验证码，重新登陆")
 		cli.AllowSlider = false
 		cli.Disconnect()
 		rsp, err := cli.Login()
