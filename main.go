@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
-	"github.com/gin-gonic/gin"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -56,7 +56,10 @@ func main() {
 
 	log.Infof("端口号 %s", port)
 	port = ":" + port
-	router := gin.Default()
+	//router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
+
 	router.Use(handler.CORSMiddleware())
 	router.Static("/", "./static")
 	router.POST("/bot/create/v1", handler.CreateBot)
