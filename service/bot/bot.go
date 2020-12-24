@@ -22,7 +22,7 @@ func InitDevice(path string) {
 		client.GenRandomDevice()
 		client.SystemDeviceInfo.Display = []byte("GMC." + utils.RandomStringRange(6, "0123456789") + ".001")
 		client.SystemDeviceInfo.FingerPrint = []byte("pbbot/gmc/gmc:10/PBBOT.200324.001/" + utils.RandomStringRange(7, "0123456789") + ":user/release-keys")
-		client.SystemDeviceInfo.ProcVersion = []byte("Linux version 4.0.8-" + utils.RandomString(8) + " (android-build@gmail.com)")
+		client.SystemDeviceInfo.ProcVersion = []byte("Linux 5.4.0-54-generic" + utils.RandomString(8) + " (android-build@gmail.com)")
 		client.SystemDeviceInfo.AndroidId = client.SystemDeviceInfo.Display
 		client.SystemDeviceInfo.Device = []byte("gmc")
 		client.SystemDeviceInfo.Board = []byte("gmc")
