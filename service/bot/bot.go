@@ -60,6 +60,10 @@ func InitLog(cli *client.QQClient) {
 func Login(cli *client.QQClient) (bool, error) {
 	LoginLock.Lock()
 	defer LoginLock.Unlock()
+	if cli.Online {
+		log.Infof("已登陆")
+		return true, nil
+	}
 	cli.AllowSlider = true
 	v, err := promise.Start(func() bool {
 		errCount := 0
