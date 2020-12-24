@@ -3,7 +3,6 @@ package bot
 import (
 	"io/ioutil"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -14,7 +13,6 @@ import (
 )
 
 var Cli *client.QQClient
-var LoginLock sync.Mutex
 
 func InitDevice(path string) {
 	if !util.PathExists(path) {
@@ -59,34 +57,20 @@ func InitLog(cli *client.QQClient) {
 }
 
 func Login(cli *client.QQClient) (bool, error) {
-	LoginLock.Lock()
-	defer LoginLock.Unlock()
-	if cli.Online {
-		log.Infof("已登陆")
-		return true, nil
-	}
 	cli.AllowSlider = true
+	rsp, err := cli.Login()
+	if err != nil {
+		return false, err
+	}
+
 	v, err := promise.Start(func() bool {
-		errCount := 0
-		for errCount < 3 {
-			cli.Disconnect()
-			rsp, err := cli.Login()
-			if err != nil {
-				return false
-			}
-			ok, err := ProcessLoginRsp(cli, rsp)
-			if err == nil {
-				return ok
-			} else {
-				log.Errorf("登陆遇到错误2:%v", err)
-				time.Sleep(5 * time.Second)
-				errCount++
-			}
+		ok, err := ProcessLoginRsp(cli, rsp)
+		if err != nil {
+			log.Fatalf("登陆遇到错误2:%v", err)
+			time.Sleep(5 * time.Second)
+			os.Exit(0)
 		}
-		log.Errorf("登陆失败，5秒后退出")
-		time.Sleep(5 * time.Second)
-		os.Exit(0)
-		return false
+		return ok
 	}()).Get()
 	if err != nil {
 		return false, err

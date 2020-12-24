@@ -3,9 +3,7 @@ package bot
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
@@ -32,15 +30,18 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 	}
 	switch rsp.Error {
 	case client.SliderNeededError:
-		if client.SystemDeviceInfo.Protocol == client.AndroidPhone {
-			log.Warnf("警告: Android Phone 强制要求暂不支持的滑条验证码, 请开启设备锁或切换到Watch协议验证通过后再使用.")
-			time.Sleep(5 * time.Second)
-			os.Exit(0)
+		Captcha = &dto.Captcha{
+			BotId:       cli.Uin,
+			CaptchaType: dto.Captcha_SLIDER_CAPTCHA,
+			Data:        &dto.Captcha_Url{Url: rsp.VerifyUrl},
 		}
-		log.Warnf("遇到不支持的滑块验证码，重新登陆")
-		cli.AllowSlider = false
-		cli.Disconnect()
-		rsp, err := cli.Login()
+		CaptchaPromise = promise.NewPromise()
+		result, err := CaptchaPromise.Get()
+		if err != nil {
+			return false, fmt.Errorf("提交ticket错误")
+		}
+		text := result.(string)
+		rsp, err := cli.SubmitTicket(text)
 		if err != nil {
 			return false, err
 		}
