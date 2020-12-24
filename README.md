@@ -39,6 +39,8 @@ Java/Kotlin用户推荐使用 [spring-boot-starter](https://github.com/protobufb
 
 如果需要登陆验证（图形/短信验证码等），必须使用浏览器访问`127.0.0.1:PORT`，PORT不能乱填
 
+如果已经挂了很久，非常确定不会遇到验证码的时候，可以把环境变量的`PORT`设为0，表示使用随机端口。
+
 ### Windows
 
 ```shell
