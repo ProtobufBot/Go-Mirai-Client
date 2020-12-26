@@ -8,6 +8,8 @@ Java/Kotlin用户推荐使用 [spring-boot-starter](https://github.com/protobufb
 
 支持发送的消息：文字、表情、图片、atQQ
 
+有问题发issue，或者进QQ群335783090
+
 ## 验证码类型及处理方法
 
 处理验证码时必须用到浏览器

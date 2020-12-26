@@ -3,6 +3,7 @@ package bot
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
@@ -53,6 +54,8 @@ func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []messag
 				containReply = true
 				messageChain = append([]message.IMessageElement{replyElement}, messageChain...)
 			}
+		case "sleep":
+			ProtoSleep(protoMsg.Data)
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -252,4 +255,22 @@ func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
 		}
 	}
 	return nil
+}
+
+func ProtoSleep(data map[string]string) {
+	t, ok := data["time"]
+	if !ok {
+		log.Warnf("failed to get sleep time1")
+		return
+	}
+	ms, err := strconv.Atoi(t)
+	if err != nil {
+		log.Warnf("failed to get sleep time2")
+		return
+	}
+	if ms > 24*3600*1000 {
+		log.Warnf("最多 sleep 24小时")
+		ms = 24 * 3600 * 1000
+	}
+	time.Sleep(time.Duration(ms) * time.Millisecond)
 }

@@ -69,6 +69,8 @@ func RawMsgToMiraiMsg(str string) []message.IMessageElement {
 					containReply = true
 					elemList = append([]message.IMessageElement{replyElement}, elemList...)
 				}
+			case "sleep":
+				ProtoSleep(attrMap)
 			default:
 				log.Warnf("不支持的类型 %s", code)
 				elemList = append(elemList, message.NewText(code))
