@@ -30,9 +30,47 @@ Java/Kotlin用户推荐使用 [spring-boot-starter](https://github.com/protobufb
 
 ### 滑块验证码
 
-打开链接，F12打开浏览器开发者工具，选择Network，滑动滑块，出现cap_union_new_verify后，在response找ticket，复制到右侧输入框，提交
+#### 方案A：自行抓包
 
-**重要：必须先打开 开发者工具-Network 之后滑动，否则可能看不到cap_union_new_verify**
+由于滑块验证码和QQ本体的协议独立, 我们无法直接处理并提交. 需要在浏览器通过后抓包并获取 `Ticket` 提交.
+
+该方案为具体的抓包教程, 如果您已经知道如何在浏览器中抓包. 可以略过接下来的文档并直接抓取 `cap_union_new_verify` 的返回值, 提取 `Ticket` 并在命令行提交.
+
+首先打开滑块链接. 这里以 *Microsoft Edge* 浏览器为例, *Chrome* 同理. 
+
+![image.png](https://i.loli.net/2020/12/27/otk9Hz7lBCaRFMV.png)
+
+此时不要滑动验证码, 首先按下 `F12` (键盘右上角退格键上方) 打开 *开发者工具*
+
+![image.png](https://i.loli.net/2020/12/27/JDioadLPwcKWpt1.png)
+
+点击 `Network` 选项卡 (在某些浏览器它可能叫做 `网络`)
+
+![image.png](https://i.loli.net/2020/12/27/qEzTB5jrDZUWSwp.png)
+
+点开 `Filter` (箭头) 按钮以确定您能看到下面的工具栏, 勾选 `Preserve log`(红框)
+
+此时可以滑动并通过验证码
+
+![image.png](https://i.loli.net/2020/12/27/Id4hxzyDprQuF2G.png)
+
+回到 *开发者工具*, 我们可以看到已经有了一个请求.
+
+![image.png](https://i.loli.net/2020/12/27/3C6Y2XVKBRv1z9E.png)
+
+此时如果有多个请求, 请不要慌张. 看到上面的 `Filter` 没? 此时在 `Filter` 输入框中输入 `cap_union_new`, 就应该只剩一个请求了.
+
+然后点击该请求. 点开 `Preview` 选项卡 (箭头):  
+
+![image.png](https://i.loli.net/2020/12/27/P1VtxRWpjY8524Z.png)
+
+此时就能看到一个标准的 `JSON`, 复制 `ticket` 字段并回到 验证码处理 粘贴. 即可通过滑块验证.
+
+#### 方案B
+
+下载专用软件进行验证
+
+TODO
 
 
 ## 自动登陆脚本
