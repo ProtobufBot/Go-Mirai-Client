@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 	"unsafe"
 
 	log "github.com/sirupsen/logrus"
@@ -20,13 +21,17 @@ var (
 	HEADER_SILK = []byte("\x02#!SILK_V3")
 )
 
+var httpClient = http.Client{
+	Timeout: 15 * time.Second,
+}
+
 func GetBytes(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header["User-Agent"] = []string{"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36 Edg/83.0.478.61"}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +107,7 @@ func SafeGo(fn func()) {
 		defer func() {
 			e := recover()
 			if e != nil {
-				log.Errorf("err recovered: %+v",e)
+				log.Errorf("err recovered: %+v", e)
 			}
 		}()
 		fn()
