@@ -1,5 +1,7 @@
 # Go-Mirai-Client
 
+[![QQ群](https://img.shields.io/static/v1?label=QQ%E7%BE%A4&message=335783090&color=blue)](https://jq.qq.com/?_wv=1027&k=B7Of3GMZ)
+
 用于收发QQ消息，并通过 websocket + protobuf 上报给 server 进行处理。
 
 server端可以使用任意语言编写，通信协议：https://github.com/lz1998/onebot_idl
