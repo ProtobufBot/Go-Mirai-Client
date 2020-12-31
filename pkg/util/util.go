@@ -88,13 +88,6 @@ func ByteSliceToString(bs []byte) string {
 	return *(*string)(unsafe.Pointer(&bs))
 }
 
-func Check(err error) {
-	if err != nil {
-		log.Errorf("遇到错误: %v", err)
-		time.Sleep()
-	}
-}
-
 func ToGlobalId(code int64, msgId int32) int32 {
 	return int32(crc32.ChecksumIEEE([]byte(fmt.Sprintf("%d-%d", code, msgId))))
 }

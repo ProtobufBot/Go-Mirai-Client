@@ -27,7 +27,7 @@ func InitDevice(path string) {
 		client.SystemDeviceInfo.Model = []byte("gmc")
 		client.SystemDeviceInfo.Brand = []byte("pbbot")
 		client.SystemDeviceInfo.Product = []byte("gmc")
-		client.SystemDeviceInfo.Protocol = client.MacOS
+		client.SystemDeviceInfo.Protocol = client.IPad
 		_ = ioutil.WriteFile(path, client.SystemDeviceInfo.ToJson(), 0644)
 		log.Infof("已生成设备信息并保存到 %s 文件.", path)
 	}
