@@ -8,7 +8,6 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/plugins"
@@ -172,11 +171,19 @@ func CreateBotImpl(uin int64, password string) {
 	}
 
 	log.Infof("刷新好友列表")
-	util.Check(bot.Cli.ReloadFriendList())
+	if err := bot.Cli.ReloadFriendList(); err != nil {
+		log.Errorf("加载好友列表失败")
+		time.Sleep(5 * time.Second)
+		os.Exit(0)
+	}
 	log.Infof("共加载 %v 个好友.", len(bot.Cli.FriendList))
 
 	log.Infof("刷新群列表")
-	util.Check(bot.Cli.ReloadGroupList())
+	if err := bot.Cli.ReloadGroupList(); err != nil {
+		log.Errorf("加载群列表失败")
+		time.Sleep(5 * time.Second)
+		os.Exit(0)
+	}
 	log.Infof("共加载 %v 个群.", len(bot.Cli.GroupList))
 
 	bot.ConnectUniversal(bot.Cli)

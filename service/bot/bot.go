@@ -34,7 +34,9 @@ func InitDevice(path string) {
 	log.Infof("将使用 %s 内的设备信息运行", path)
 	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 31, 101}
 	if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText(path))); err != nil {
-		log.Fatalf("加载设备信息失败: %v", err)
+		log.Errorf("加载设备信息失败: %v", err)
+		time.Sleep(5 * time.Second)
+		os.Exit(0)
 	}
 }
 
@@ -66,7 +68,7 @@ func Login(cli *client.QQClient) (bool, error) {
 	v, err := promise.Start(func() bool {
 		ok, err := ProcessLoginRsp(cli, rsp)
 		if err != nil {
-			log.Fatalf("登陆遇到错误2:%v", err)
+			log.Errorf("登陆遇到错误2:%v", err)
 			time.Sleep(5 * time.Second)
 			os.Exit(0)
 		}
@@ -105,7 +107,8 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 				return
 			}
 		}
-		log.Fatal("重连失败: 重连次数达到设置的上限值")
-		log.Fatalf("Bot已离线：%v", e.Message)
+		log.Errorf("重连失败: 重连次数达到设置的上限值")
+		time.Sleep(5 * time.Second)
+		os.Exit(0)
 	})
 }
