@@ -1,11 +1,12 @@
 package bot
 
 import (
+	"encoding/xml"
 	"html"
 	"regexp"
 	"strings"
 
-	"encoding/xml"
+	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 	log "github.com/sirupsen/logrus"
 )
@@ -17,7 +18,7 @@ type Node struct {
 
 var re = regexp.MustCompile("<[\\s\\S]+?/>")
 
-func RawMsgToMiraiMsg(str string) []message.IMessageElement {
+func RawMsgToMiraiMsg(cli *client.QQClient, str string) []message.IMessageElement {
 	containReply := false
 	var node Node
 	textList := re.Split(str, -1)
@@ -71,6 +72,8 @@ func RawMsgToMiraiMsg(str string) []message.IMessageElement {
 				}
 			case "sleep":
 				ProtoSleep(attrMap)
+			case "tts":
+				elemList = append(elemList, ProtoTtsToMiraiTts(cli, attrMap))
 			default:
 				log.Warnf("不支持的类型 %s", code)
 				elemList = append(elemList, message.NewText(code))

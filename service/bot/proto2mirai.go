@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
@@ -17,7 +18,7 @@ func EmptyText() *message.TextElement {
 }
 
 // 消息列表，不自动把code变成msg
-func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []message.IMessageElement {
+func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConvertText bool) []message.IMessageElement {
 	containReply := false // 每条消息只能包含一个reply
 	messageChain := make([]message.IMessageElement, 0)
 	for _, protoMsg := range msgList {
@@ -31,7 +32,7 @@ func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []messag
 					log.Warnf("text不存在")
 					continue
 				}
-				messageChain = append(messageChain, RawMsgToMiraiMsg(text)...) // 转换xml码
+				messageChain = append(messageChain, RawMsgToMiraiMsg(cli, text)...) // 转换xml码
 			}
 		case "at":
 			messageChain = append(messageChain, ProtoAtToMiraiAt(protoMsg.Data))
@@ -56,6 +57,8 @@ func ProtoMsgToMiraiMsg(msgList []*onebot.Message, notConvertText bool) []messag
 			}
 		case "sleep":
 			ProtoSleep(protoMsg.Data)
+		case "tts":
+			messageChain = append(messageChain, ProtoTtsToMiraiTts(cli, protoMsg.Data))
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -273,4 +276,24 @@ func ProtoSleep(data map[string]string) {
 		ms = 24 * 3600 * 1000
 	}
 	time.Sleep(time.Duration(ms) * time.Millisecond)
+}
+
+func ProtoTtsToMiraiTts(cli *client.QQClient, data map[string]string) (m message.IMessageElement) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warnf("tts 转换失败")
+			m = EmptyText()
+		}
+	}()
+	text, ok := data["text"]
+	if !ok {
+		log.Warnf("text不存在")
+		return EmptyText()
+	}
+	b, err := cli.GetTts(text)
+	if err != nil {
+		log.Warnf("failed to get tts")
+		return EmptyText()
+	}
+	return &message.VoiceElement{Data: b}
 }
