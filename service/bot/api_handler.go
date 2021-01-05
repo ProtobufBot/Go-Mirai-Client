@@ -138,7 +138,21 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsgResp {
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
-	if req.GroupId != 0 {
+	if req.UserId != 0 { // 私聊+临时
+		preProcessPrivateSendingMessage(cli, req.UserId, sendingMessage)
+	} else { // 群
+		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
+	}
+
+	if req.GroupId != 0 && req.UserId != 0 { // 临时
+		ret := cli.SendTempMessage(req.GroupId, req.UserId, sendingMessage)
+		cache.PrivateMessageLru.Add(ret.Id, ret)
+		return &onebot.SendMsgResp{
+			MessageId: ret.Id,
+		}
+	}
+
+	if req.GroupId != 0 { // 群
 		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
 		ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
 		if ret == nil || ret.Id == -1 {
@@ -149,14 +163,18 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		return &onebot.SendMsgResp{
 			MessageId: ret.Id,
 		}
-	} else {
+	}
+
+	if req.UserId != 0 { // 私聊
 		preProcessPrivateSendingMessage(cli, req.UserId, sendingMessage)
 		ret := cli.SendPrivateMessage(req.UserId, sendingMessage)
-		cache.GroupMessageLru.Add(ret.Id, ret)
+		cache.PrivateMessageLru.Add(ret.Id, ret)
 		return &onebot.SendMsgResp{
 			MessageId: ret.Id,
 		}
 	}
+	log.Warnf("failed to send msg")
+	return nil
 }
 
 func HandleDeleteMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.DeleteMsgResp {
