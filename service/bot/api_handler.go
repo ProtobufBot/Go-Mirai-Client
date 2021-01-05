@@ -168,7 +168,9 @@ func HandleDeleteMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.Del
 	if !ok {
 		return nil
 	}
-	cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId)
+	if err := cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId); err != nil {
+		return nil
+	}
 	return &onebot.DeleteMsgResp{}
 }
 
@@ -290,11 +292,7 @@ func HandleSetFriendAddRequest(cli *client.QQClient, req *onebot.SetFriendAddReq
 	if !ok {
 		return nil
 	}
-	if req.Approve {
-		event.Accept()
-	} else {
-		event.Reject()
-	}
+	cli.SolveFriendRequest(event, req.Approve)
 	return &onebot.SetFriendAddRequestResp{}
 }
 
@@ -320,12 +318,7 @@ func HandleSetGroupAddRequest(cli *client.QQClient, req *onebot.SetGroupAddReque
 		if !ok {
 			return nil
 		}
-		if req.Approve {
-			event.Accept()
-		} else {
-			event.Reject(false, req.Reason)
-		}
-
+		cli.SolveGroupJoinRequest(event, req.Approve, false, req.Reason)
 		return &onebot.SetGroupAddRequestResp{}
 	}
 	return nil
