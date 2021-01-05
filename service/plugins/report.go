@@ -12,6 +12,7 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
+	log "github.com/sirupsen/logrus"
 )
 
 func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) int32 {
@@ -41,6 +42,9 @@ func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) i
 }
 
 func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32 {
+	if CheckGroupFile(cli, event) { // 检查是否有群文件element，如果有，执行GroupUploadNotice
+		return plugin.MessageIgnore
+	}
 	cache.GroupMessageLru.Add(event.Id, event)
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupMessageEvent,
@@ -69,8 +73,9 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		group := cli.FindGroup(event.GroupCode)
 		if group == nil {
 			err := cli.ReloadGroupList()
-			group := cli.FindGroup(event.GroupCode)
+			group = cli.FindGroup(event.GroupCode)
 			if err != nil || group == nil {
+				log.Warnf("failed to find group: %+v, err: %+v", event.GroupCode, err)
 				return plugin.MessageIgnore
 			}
 		}
@@ -97,6 +102,37 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 	}
 	bot.HandleEventFrame(cli, eventProto)
 	return plugin.MessageIgnore
+}
+
+func CheckGroupFile(cli *client.QQClient, event *message.GroupMessage) bool {
+	for _, elem := range event.Elements {
+		if file, ok := elem.(*message.GroupFileElement); ok {
+			eventProto := &onebot.Frame{
+				FrameType: onebot.Frame_TGroupUploadNoticeEvent,
+			}
+			groupUploadNoticeEvent := &onebot.GroupUploadNoticeEvent{
+				Time:       time.Now().Unix(),
+				SelfId:     cli.Uin,
+				PostType:   "notice",
+				NoticeType: "group_upload",
+				GroupId:    event.GroupCode,
+				UserId:     event.Sender.Uin,
+				File: &onebot.GroupUploadNoticeEvent_File{
+					Id:    file.Path,
+					Name:  file.Name,
+					Busid: int64(file.Busid),
+					Size_: file.Size,
+					Url:   cli.GetGroupFileUrl(event.GroupCode, file.Path, file.Busid),
+				},
+			}
+			eventProto.Data = &onebot.Frame_GroupUploadNoticeEvent{
+				GroupUploadNoticeEvent: groupUploadNoticeEvent,
+			}
+			bot.HandleEventFrame(cli, eventProto)
+			return true
+		}
+	}
+	return false
 }
 
 func ReportTempMessage(cli *client.QQClient, event *message.TempMessage) int32 {
