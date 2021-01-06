@@ -8,6 +8,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
 	log "github.com/sirupsen/logrus"
@@ -123,9 +124,10 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(miraiMsg))
 	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
-	ret := cli.SendGroupMessage(req.GroupId, sendingMessage, true)
+	ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.FRAGMENT)
 	if ret == nil || ret.Id == -1 {
-		log.Warnf("发送群消息失败，可能被风控")
+		config.FRAGMENT = !config.FRAGMENT
+		log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，FRAGMENT: %+v", config.FRAGMENT)
 		return nil
 	}
 	cache.GroupMessageLru.Add(ret.Id, ret)
