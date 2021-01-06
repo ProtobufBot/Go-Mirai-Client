@@ -74,6 +74,7 @@ func main() {
 		util.FatalError(fmt.Errorf("failed to run gin, err: %+v", err))
 	}
 	log.Infof("端口号 %s", realPort)
+	log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
 	select {}
 }
 
