@@ -3,7 +3,7 @@ module github.com/ProtobufBot/Go-Mirai-Client
 go 1.15
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20210104171920-510924ba979c
+	github.com/Mrs4s/MiraiGo v0.0.0-20210105173234-72521dec9b56
 	github.com/a8m/syncmap v0.0.0-20200818084611-4bbbd178de97 // indirect
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.6.3
@@ -20,7 +20,7 @@ require (
 	github.com/tidwall/gjson v1.6.7 // indirect
 	github.com/ugorji/go v1.2.2 // indirect
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	golang.org/x/sys v0.0.0-20210104204734-6f8348627aad // indirect
+	golang.org/x/sys v0.0.0-20210105210732-16f7687f5001 // indirect
 	golang.org/x/tools v0.0.0-20201218024724-ae774e9781d2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
