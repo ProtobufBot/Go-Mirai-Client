@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 	"unsafe"
@@ -106,4 +107,14 @@ func SafeGo(fn func()) {
 		}()
 		fn()
 	}()
+}
+
+func FatalError(err error) {
+	log.Errorf(err.Error())
+	buf := make([]byte, 64<<10)
+	buf = buf[:runtime.Stack(buf, false)]
+	sBuf := string(buf)
+	log.Errorf(sBuf)
+	time.Sleep(5 * time.Second)
+	os.Exit(0)
 }

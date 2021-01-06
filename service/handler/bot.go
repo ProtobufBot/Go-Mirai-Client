@@ -3,11 +3,11 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/plugins"
@@ -151,10 +151,7 @@ func CreateBotImpl(uin int64, password string) {
 	log.Infof("登录中...")
 	ok, err := bot.Login(bot.Cli)
 	if err != nil {
-		log.Errorf("登录失败%v", err)
-		time.Sleep(5 * time.Second)
-		os.Exit(0)
-		return
+		util.FatalError(fmt.Errorf("failed to login, err: %+v", err))
 	}
 	if ok {
 		log.Infof("登录成功")
@@ -172,17 +169,13 @@ func CreateBotImpl(uin int64, password string) {
 
 	log.Infof("刷新好友列表")
 	if err := bot.Cli.ReloadFriendList(); err != nil {
-		log.Errorf("加载好友列表失败")
-		time.Sleep(5 * time.Second)
-		os.Exit(0)
+		util.FatalError(fmt.Errorf("failed to load friend list, err: %+v", err))
 	}
 	log.Infof("共加载 %v 个好友.", len(bot.Cli.FriendList))
 
 	log.Infof("刷新群列表")
 	if err := bot.Cli.ReloadGroupList(); err != nil {
-		log.Errorf("加载群列表失败")
-		time.Sleep(5 * time.Second)
-		os.Exit(0)
+		util.FatalError(fmt.Errorf("failed to load group list, err: %+v", err))
 	}
 	log.Infof("共加载 %v 个群.", len(bot.Cli.GroupList))
 

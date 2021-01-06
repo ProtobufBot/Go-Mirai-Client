@@ -2,10 +2,14 @@ package main
 
 import (
 	"bufio"
+	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
 	"github.com/gin-gonic/gin"
@@ -54,9 +58,8 @@ func main() {
 		}()
 	}
 
-	log.Infof("端口号 %s", port)
 	port = ":" + port
-	//router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
 
@@ -66,10 +69,26 @@ func main() {
 	router.POST("/bot/list/v1", handler.ListBot)
 	router.POST("/captcha/list/v1", handler.ListCaptcha)
 	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
-	err = router.Run(port)
+	realPort, err := RunGin(router, port)
 	if err != nil {
-		log.Errorf("run server error %v", err)
+		util.FatalError(fmt.Errorf("failed to run gin, err: %+v", err))
 	}
+	log.Infof("端口号 %s", realPort)
+	select {}
+}
+
+func RunGin(engine *gin.Engine, port string) (string, error) {
+	ln, err := net.Listen("tcp", port)
+	if err != nil {
+		return "", err
+	}
+	_, randPort, _ := net.SplitHostPort(ln.Addr().String())
+	go func() {
+		if err := http.Serve(ln, engine); err != nil {
+			util.FatalError(fmt.Errorf("failed to serve http, err: %+v", err))
+		}
+	}()
+	return randPort, nil
 }
 
 func TestBot() {
