@@ -7,12 +7,13 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
 	log "github.com/sirupsen/logrus"
 )
 
-const MAX_TEXT_LENGTH = 64
+const MAX_TEXT_LENGTH = 80
 
 // 风控临时解决方案
 func splitText(content string, limit int) []string {
@@ -66,9 +67,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 	newElements := make([]message.IMessageElement, 0, len(m.Elements))
 	for _, element := range m.Elements {
 		if i, ok := element.(*message.TextElement); ok {
-			content := i.Content
-			textList := splitText(content, MAX_TEXT_LENGTH)
-			for _, text := range textList {
+			for _, text := range utils.ChunkString(i.Content, MAX_TEXT_LENGTH) {
 				newElements = append(newElements, message.NewText(text))
 			}
 			continue
