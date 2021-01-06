@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
@@ -25,7 +26,7 @@ func init() {
 
 func main() {
 	port := "9000"
-	conf, err := LoadConfig("application.yml")
+	conf, err := config.LoadConfig("application.yml")
 	if err == nil && conf != nil {
 		if conf.Bot.Client.WsUrl != "" {
 			bot.WsUrl = conf.Bot.Client.WsUrl

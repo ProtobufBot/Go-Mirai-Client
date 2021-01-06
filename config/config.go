@@ -1,9 +1,11 @@
-package main
+package config
 
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
+
+var FRAGMENT = false
 
 type GmcConfig struct {
 	Server Server `yaml:"server"`
