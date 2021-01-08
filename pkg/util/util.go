@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"time"
 	"unsafe"
@@ -103,6 +104,7 @@ func SafeGo(fn func()) {
 			e := recover()
 			if e != nil {
 				log.Errorf("err recovered: %+v", e)
+				log.Errorf("%s", debug.Stack())
 			}
 		}()
 		fn()
