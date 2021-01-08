@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
 	"github.com/fanliao/go-promise"
@@ -29,6 +30,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			rsp.Error = client.UnsafeDeviceError
 		}
 	}
+	log.Infof("验证码处理页面: http://localhost:%s/", config.RealPort)
 	switch rsp.Error {
 	case client.SliderNeededError:
 		log.Infof("遇到滑块验证码，请阅读README(顺便star)，根据提示操作 https://github.com/protobufbot/Go-Mirai-Client")

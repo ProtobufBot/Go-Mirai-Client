@@ -3,7 +3,7 @@ module github.com/ProtobufBot/Go-Mirai-Client
 go 1.15
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20210107103640-1dfc6a6eaa9b
+	github.com/Mrs4s/MiraiGo v0.0.0-20210107160254-d55ab63e19a3
 	github.com/a8m/syncmap v0.0.0-20200818084611-4bbbd178de97 // indirect
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.6.3

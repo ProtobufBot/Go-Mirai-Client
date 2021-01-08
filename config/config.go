@@ -5,7 +5,10 @@ import (
 	"io/ioutil"
 )
 
-var FRAGMENT = false
+var (
+	Fragment = false  // 是否分片
+	RealPort = "9000" // 最终的端口，0随机端口也会获取到真实端口
+)
 
 type GmcConfig struct {
 	Server Server `yaml:"server"`

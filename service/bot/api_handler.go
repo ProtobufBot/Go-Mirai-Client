@@ -124,10 +124,10 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(miraiMsg))
 	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
-	ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.FRAGMENT)
+	ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.Fragment)
 	if ret == nil || ret.Id == -1 {
-		config.FRAGMENT = !config.FRAGMENT
-		log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，FRAGMENT: %+v", config.FRAGMENT)
+		config.Fragment = !config.Fragment
+		log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，Fragment: %+v", config.Fragment)
 		return nil
 	}
 	cache.GroupMessageLru.Add(ret.Id, ret)
@@ -155,10 +155,10 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 
 	if req.GroupId != 0 { // 群
 		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
-		ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.FRAGMENT)
+		ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.Fragment)
 		if ret == nil || ret.Id == -1 {
-			config.FRAGMENT = !config.FRAGMENT
-			log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，FRAGMENT: %+v", config.FRAGMENT)
+			config.Fragment = !config.Fragment
+			log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，Fragment: %+v", config.Fragment)
 			return nil
 		}
 		cache.GroupMessageLru.Add(ret.Id, ret)
