@@ -70,7 +70,9 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 	for _, element := range m.Elements {
 		if i, ok := element.(*message.TextElement); ok {
 			for _, text := range utils.ChunkString(i.Content, MAX_TEXT_LENGTH) {
-				newElements = append(newElements, message.NewText(text))
+				if text != "" {
+					newElements = append(newElements, message.NewText(text))
+				}
 			}
 			continue
 		}
@@ -134,6 +136,10 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(miraiMsg))
 	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
+	if len(sendingMessage.Elements) == 0 {
+		log.Warnf("发送消息内容为空")
+		return nil
+	}
 	ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.Fragment)
 	if ret == nil || ret.Id == -1 {
 		config.Fragment = !config.Fragment
