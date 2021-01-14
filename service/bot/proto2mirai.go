@@ -7,6 +7,7 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
@@ -59,6 +60,8 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			ProtoSleep(protoMsg.Data)
 		case "tts":
 			messageChain = append(messageChain, ProtoTtsToMiraiTts(cli, protoMsg.Data))
+		case "video":
+			messageChain = append(messageChain, ProtoVideoToMiraiVideo(cli, protoMsg.Data))
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -296,4 +299,34 @@ func ProtoTtsToMiraiTts(cli *client.QQClient, data map[string]string) (m message
 		return EmptyText()
 	}
 	return &message.VoiceElement{Data: b}
+}
+
+func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m message.IMessageElement) {
+	coverUrl, ok := data["cover"]
+	if !ok {
+		log.Warnf("video cover不存在")
+		return EmptyText()
+	}
+	url, ok := data["url"]
+	if !ok || !strings.Contains(url, "http") {
+		url, ok = data["file"]
+		if !ok || !strings.Contains(url, "http") {
+			log.Warnf("video url不存在")
+			return EmptyText()
+		}
+	}
+	coverBytes, err := util.GetBytes(coverUrl)
+	if err != nil {
+		log.Errorf("failed to download cover, err: %+v", err)
+		return EmptyText()
+	}
+	videoBytes, err := util.GetBytes(url)
+	if err != nil {
+		log.Errorf("failed to download video, err: %+v", err)
+		return EmptyText()
+	}
+	return &clz.VideoElement{
+		UploadingCoverBytes: coverBytes,
+		UploadingVideoBytes: videoBytes,
+	}
 }

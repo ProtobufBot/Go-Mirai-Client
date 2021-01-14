@@ -2,6 +2,7 @@ package bot
 
 import (
 	"bytes"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"math"
 	"strconv"
 
@@ -100,6 +101,15 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 				return strconv.FormatInt(i.Target, 10)
 			}()
 			newElements = append(newElements, i)
+			continue
+		}
+		if i, ok := element.(*clz.VideoElement); ok {
+			gm, err := cli.UploadGroupShortVideo(groupCode, bytes.NewReader(i.UploadingVideoBytes), bytes.NewReader(i.UploadingCoverBytes))
+			if err != nil {
+				log.Errorf("failed to upload group video, %+v", err)
+				continue
+			}
+			newElements = append(newElements, gm)
 			continue
 		}
 		newElements = append(newElements, element)
