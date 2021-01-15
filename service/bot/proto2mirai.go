@@ -348,8 +348,11 @@ func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m mes
 		log.Errorf("failed to open video file")
 		return EmptyText()
 	}
-	return &clz.VideoElement{
-		UploadingCover: bytes.NewReader(coverBytes),
-		UploadingVideo: videoFile,
+	elem := &clz.MyVideoElement{
+		UploadingCover: bytes.NewReader(coverBytes), // 实际发送使用
+		UploadingVideo: videoFile,                   // 实际发送使用
 	}
+	elem.Url = url           // 仅用于发送日志展示
+	elem.CoverUrl = coverUrl // 仅用于发送日志展示
+	return elem
 }

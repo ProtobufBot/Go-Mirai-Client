@@ -105,7 +105,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			newElements = append(newElements, i)
 			continue
 		}
-		if i, ok := element.(*clz.VideoElement); ok {
+		if i, ok := element.(*clz.MyVideoElement); ok {
 			gm, err := cli.UploadGroupShortVideo(groupCode, i.UploadingVideo, i.UploadingCover)
 			if err != nil {
 				log.Errorf("failed to upload group video, %+v", err)

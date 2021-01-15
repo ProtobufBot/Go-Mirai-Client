@@ -5,6 +5,7 @@ import (
 	"html"
 
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 )
 
 func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
@@ -29,7 +30,10 @@ func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
 			result += fmt.Sprintf(`<video name="%s" url="%s"/>`, html.EscapeString(elem.Name), html.EscapeString(elem.Url))
 		case *message.ReplyElement:
 			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.Sender, MiraiMsgToRawMsg(elem.Elements), elem.ReplySeq)
+		case *clz.MyVideoElement:
+			result += fmt.Sprintf(`<video url="%s" cover="%s"/>`, html.EscapeString(elem.Url), html.EscapeString(elem.CoverUrl))
 		}
 	}
+
 	return result
 }
