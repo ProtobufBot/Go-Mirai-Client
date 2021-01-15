@@ -14,3 +14,8 @@ type MyVideoElement struct {
 	UploadingCover io.ReadSeeker // 待上传的封面 发送时需要
 	UploadingVideo io.ReadSeeker // 待上传的视频 发送时需要
 }
+
+type LocalImageElement struct {
+	message.ImageElement
+	Stream io.ReadSeeker
+}

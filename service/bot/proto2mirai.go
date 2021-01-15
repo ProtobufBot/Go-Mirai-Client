@@ -83,23 +83,31 @@ func ProtoTextToMiraiText(data map[string]string) message.IMessageElement {
 
 func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 	url, ok := data["url"]
-	if !ok || !strings.Contains(url, "http") {
+	if !ok {
 		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
-		if !ok || !strings.Contains(url, "http") {
+		if !ok {
 			url, ok = data["file"]
 		}
 	}
-	if !ok || !strings.Contains(url, "http") {
+	if !ok {
 		log.Warnf("imageUrl不存在")
 		return EmptyText()
 	}
-	log.Infof("下载图片: %+v", url)
-	b, err := util.GetBytes(url)
-	if err != nil {
-		log.Errorf("下载图片失败")
-		return EmptyText()
+	if strings.Contains(url, "http://") || strings.Contains(url, "https://") {
+		b, err := util.GetBytes(url)
+		if err != nil {
+			log.Errorf("failed to download image")
+			return EmptyText()
+		}
+		return &clz.LocalImageElement{Stream: bytes.NewReader(b)}
+	} else {
+		imageFile, err := os.Open(url)
+		if err != nil {
+			log.Errorf("failed to open local image")
+			return EmptyText()
+		}
+		return &clz.LocalImageElement{Stream: imageFile}
 	}
-	return message.NewImage(b)
 }
 
 func ProtoVoiceToMiraiVoice(data map[string]string) message.IMessageElement {
@@ -305,53 +313,70 @@ func ProtoTtsToMiraiTts(cli *client.QQClient, data map[string]string) (m message
 }
 
 func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m message.IMessageElement) {
+	elem := &clz.MyVideoElement{}
 	coverUrl, ok := data["cover"]
 	if !ok {
 		log.Warnf("video cover不存在")
 		return EmptyText()
 	}
 	url, ok := data["url"]
-	if !ok || !strings.Contains(url, "http") {
+	if !ok {
 		url, ok = data["file"]
-		if !ok || !strings.Contains(url, "http") {
+		if !ok {
 			log.Warnf("video url不存在")
 			return EmptyText()
 		}
 	}
-	coverBytes, err := util.GetBytes(coverUrl)
-	if err != nil {
-		log.Errorf("failed to download cover, err: %+v", err)
-		return EmptyText()
+	if strings.Contains(coverUrl, "http://") || strings.Contains(coverUrl, "https://") {
+		coverBytes, err := util.GetBytes(coverUrl)
+		if err != nil {
+			log.Errorf("failed to download cover, err: %+v", err)
+			return EmptyText()
+		}
+		elem.UploadingCover = bytes.NewReader(coverBytes)
+	} else {
+		coverFile, err := os.Open(coverUrl)
+		if err != nil {
+			log.Errorf("failed to open file, err: %+v", err)
+			return EmptyText()
+		}
+		elem.UploadingCover = coverFile
 	}
 
-	if !util.PathExists("video") {
-		err := os.MkdirAll("video", 0777)
-		if err != nil {
-			log.Errorf("failed to mkdir, err: %+v", err)
-			return EmptyText()
+	videoFilePath := path.Join("video", util.MustMd5(url)+".mp4")
+	if strings.Contains(url, "http://") || strings.Contains(url, "https://") {
+		if !util.PathExists("video") {
+			err := os.MkdirAll("video", 0777)
+			if err != nil {
+				log.Errorf("failed to mkdir, err: %+v", err)
+				return EmptyText()
+			}
 		}
-	}
-	filepath := path.Join("video", util.MustMd5(url)+".mp4")
-	if util.PathExists(filepath) {
-		if err := os.Remove(filepath); err != nil {
-			log.Errorf("删除缓存文件 %v 时出现错误: %v", filepath, err)
-			return EmptyText()
+		if !util.PathExists(videoFilePath) {
+			if err := util.DownloadFileMultiThreading(url, videoFilePath, 100*1024*1024, 8, nil); err != nil {
+				log.Errorf("failed to download video file, err: %+v", err)
+				return EmptyText()
+			}
+		} else if data["cache"] == "0" {
+			if err := os.Remove(videoFilePath); err != nil {
+				log.Errorf("删除缓存文件 %v 时出现错误: %v", videoFilePath, err)
+				return EmptyText()
+			}
+			if err := util.DownloadFileMultiThreading(url, videoFilePath, 100*1024*1024, 8, nil); err != nil {
+				log.Errorf("failed to download video file, err: %+v", err)
+				return EmptyText()
+			}
 		}
+	} else {
+		videoFilePath = url
 	}
-	//videoBytes, err := util.GetBytes(url)
-	if err := util.DownloadFileMultiThreading(url, filepath, 100*1024*1024, 8, nil); err != nil {
-		log.Errorf("failed to download video file, err: %+v", err)
-		return EmptyText()
-	}
-	videoFile, err := os.Open(filepath)
+
+	videoFile, err := os.Open(videoFilePath)
 	if err != nil {
 		log.Errorf("failed to open video file")
 		return EmptyText()
 	}
-	elem := &clz.MyVideoElement{
-		UploadingCover: bytes.NewReader(coverBytes), // 实际发送使用
-		UploadingVideo: videoFile,                   // 实际发送使用
-	}
+	elem.UploadingVideo = videoFile
 	elem.Url = url           // 仅用于发送日志展示
 	elem.CoverUrl = coverUrl // 仅用于发送日志展示
 	return elem
