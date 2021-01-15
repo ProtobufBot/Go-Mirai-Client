@@ -39,3 +39,4 @@ device-*.json
 static/
 gmc-*.zip
 captcha.jpg
+/video

@@ -3,9 +3,11 @@ package util
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -119,4 +121,13 @@ func FatalError(err error) {
 	log.Errorf(sBuf)
 	time.Sleep(5 * time.Second)
 	os.Exit(0)
+}
+
+func MustMd5(text string) string {
+	w := md5.New()
+	_, err := io.WriteString(w, text)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%x", w.Sum(nil))
 }

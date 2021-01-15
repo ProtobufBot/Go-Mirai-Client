@@ -2,7 +2,6 @@ package bot
 
 import (
 	"bytes"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"math"
 	"strconv"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/ProtobufBot/Go-Mirai-Client/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
 	log "github.com/sirupsen/logrus"
@@ -106,7 +106,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			continue
 		}
 		if i, ok := element.(*clz.VideoElement); ok {
-			gm, err := cli.UploadGroupShortVideo(groupCode, bytes.NewReader(i.UploadingVideoBytes), bytes.NewReader(i.UploadingCoverBytes))
+			gm, err := cli.UploadGroupShortVideo(groupCode, i.UploadingVideo, i.UploadingCover)
 			if err != nil {
 				log.Errorf("failed to upload group video, %+v", err)
 				continue
