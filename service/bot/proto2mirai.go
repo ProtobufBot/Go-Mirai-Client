@@ -10,7 +10,6 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/global"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
@@ -333,14 +332,14 @@ func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m mes
 		}
 	}
 	filepath := path.Join("video", util.MustMd5(url)+".mp4")
-	if global.PathExists(filepath) {
+	if util.PathExists(filepath) {
 		if err := os.Remove(filepath); err != nil {
 			log.Errorf("删除缓存文件 %v 时出现错误: %v", filepath, err)
 			return EmptyText()
 		}
 	}
 	//videoBytes, err := util.GetBytes(url)
-	if err := global.DownloadFileMultiThreading(url, filepath, 100*1024*1024, 8, nil); err != nil {
+	if err := util.DownloadFileMultiThreading(url, filepath, 100*1024*1024, 8, nil); err != nil {
 		log.Errorf("failed to download video file, err: %+v", err)
 		return EmptyText()
 	}
