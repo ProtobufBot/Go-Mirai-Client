@@ -41,8 +41,8 @@ func splitText(content string, limit int) []string {
 func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *message.SendingMessage) {
 	newElements := make([]message.IMessageElement, 0, len(m.Elements))
 	for _, element := range m.Elements {
-		if i, ok := element.(*message.ImageElement); ok {
-			gm, err := cli.UploadPrivateImage(target, bytes.NewReader(i.Data))
+		if i, ok := element.(*clz.LocalImageElement); ok {
+			gm, err := cli.UploadPrivateImage(target, i.Stream)
 			if err != nil {
 				log.Errorf("failed to upload private image, %+v", err)
 				continue
@@ -76,8 +76,8 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			}
 			continue
 		}
-		if i, ok := element.(*message.ImageElement); ok {
-			gm, err := cli.UploadGroupImage(groupCode, bytes.NewReader(i.Data))
+		if i, ok := element.(*clz.LocalImageElement); ok {
+			gm, err := cli.UploadGroupImage(groupCode, i.Stream)
 			if err != nil {
 				log.Errorf("failed to upload group image, %+v", err)
 				continue

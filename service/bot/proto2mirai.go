@@ -82,6 +82,7 @@ func ProtoTextToMiraiText(data map[string]string) message.IMessageElement {
 }
 
 func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
+	elem := &clz.LocalImageElement{}
 	url, ok := data["url"]
 	if !ok {
 		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
@@ -93,20 +94,23 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 		log.Warnf("imageUrl不存在")
 		return EmptyText()
 	}
+	elem.Url = url
 	if strings.Contains(url, "http://") || strings.Contains(url, "https://") {
 		b, err := util.GetBytes(url)
 		if err != nil {
 			log.Errorf("failed to download image")
 			return EmptyText()
 		}
-		return &clz.LocalImageElement{Stream: bytes.NewReader(b)}
+		elem.Stream = bytes.NewReader(b)
+		return elem
 	} else {
 		imageFile, err := os.Open(url)
 		if err != nil {
 			log.Errorf("failed to open local image")
 			return EmptyText()
 		}
-		return &clz.LocalImageElement{Stream: imageFile}
+		elem.Stream = imageFile
+		return elem
 	}
 }
 
