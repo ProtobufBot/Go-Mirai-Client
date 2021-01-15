@@ -356,16 +356,13 @@ func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m mes
 				return EmptyText()
 			}
 		}
-		if !util.PathExists(videoFilePath) {
-			if err := util.DownloadFileMultiThreading(url, videoFilePath, 100*1024*1024, 8, nil); err != nil {
-				log.Errorf("failed to download video file, err: %+v", err)
-				return EmptyText()
-			}
-		} else if data["cache"] == "0" {
+		if data["cache"] == "0" && util.PathExists(videoFilePath) {
 			if err := os.Remove(videoFilePath); err != nil {
 				log.Errorf("删除缓存文件 %v 时出现错误: %v", videoFilePath, err)
 				return EmptyText()
 			}
+		}
+		if !util.PathExists(videoFilePath) {
 			if err := util.DownloadFileMultiThreading(url, videoFilePath, 100*1024*1024, 8, nil); err != nil {
 				log.Errorf("failed to download video file, err: %+v", err)
 				return EmptyText()
