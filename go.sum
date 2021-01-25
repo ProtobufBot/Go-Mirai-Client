@@ -2,6 +2,12 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/LXY1226/fastrand v0.0.0-20210121160840-7a3db3e79031 h1:DnoCySrXUFvtngW2kSkuBeZoPfvOgctJXjTulCn7eV0=
 github.com/LXY1226/fastrand v0.0.0-20210121160840-7a3db3e79031/go.mod h1:mEFi4jHUsE2sqQGSJ7eQfXnO8esMzEYcftiCGG+L/OE=
+github.com/Mrs4s/MiraiGo v0.0.0-20210124094521-8c7c0d08aaf8 h1:QfLvxRQFtMEzXiQhbCx6NuNlUCYv0WPQoA4Zmmn2c9A=
+github.com/Mrs4s/MiraiGo v0.0.0-20210124094521-8c7c0d08aaf8/go.mod h1:9V7DdSwpEfCKQNvLZhRnFJFkelTU0tPLfwR5l6UFF1Y=
+github.com/Mrs4s/MiraiGo v0.0.0-20210124195858-505e4092e046 h1:0A5PCmIXCZ3iL0kjNILwPjfEfOWIJ+7pumYu+3rADbM=
+github.com/Mrs4s/MiraiGo v0.0.0-20210124195858-505e4092e046/go.mod h1:9V7DdSwpEfCKQNvLZhRnFJFkelTU0tPLfwR5l6UFF1Y=
+github.com/Mrs4s/MiraiGo v0.0.0-20210124201041-7151317ecd15 h1:+6gj+MpekrQ5S1IVCFwrOIRmLPkSFtWZqcOi4Sh0NXg=
+github.com/Mrs4s/MiraiGo v0.0.0-20210124201041-7151317ecd15/go.mod h1:JBm2meosyXAASbl8mZ+mFZEkE/2cC7zNZdIOBe7+QhY=
 github.com/Mrs4s/MiraiGo v0.0.0-20210125093830-340977eb201f h1:v86jOk27ypxD3gT48KJDy/Y5w7PIaTvabZYdDszr3w0=
 github.com/Mrs4s/MiraiGo v0.0.0-20210125093830-340977eb201f/go.mod h1:JBm2meosyXAASbl8mZ+mFZEkE/2cC7zNZdIOBe7+QhY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
