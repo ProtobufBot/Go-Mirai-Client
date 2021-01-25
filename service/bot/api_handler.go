@@ -258,7 +258,9 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 func HandleSetGroupKick(cli *client.QQClient, req *onebot.SetGroupKickReq) *onebot.SetGroupKickResp {
 	if group := cli.FindGroup(req.GroupId); group != nil {
 		if member := group.FindMember(req.UserId); member != nil {
-			member.Kick("", req.RejectAddRequest)
+			if err := member.Kick("", req.RejectAddRequest); err != nil {
+				return nil
+			}
 			return &onebot.SetGroupKickResp{}
 		}
 	}
@@ -268,7 +270,9 @@ func HandleSetGroupKick(cli *client.QQClient, req *onebot.SetGroupKickReq) *oneb
 func HandleSetGroupBan(cli *client.QQClient, req *onebot.SetGroupBanReq) *onebot.SetGroupBanResp {
 	if group := cli.FindGroup(req.GroupId); group != nil {
 		if member := group.FindMember(req.UserId); member != nil {
-			member.Mute(uint32(req.Duration))
+			if err := member.Mute(uint32(req.Duration)); err != nil {
+				return nil
+			}
 			return &onebot.SetGroupBanResp{}
 		}
 	}
