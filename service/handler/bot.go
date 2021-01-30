@@ -144,6 +144,7 @@ func CreateBotImpl(uin int64, password string) {
 	plugin.AddFriendMessageRecalledPlugin(plugins.ReportFriendMessageRecalled)
 	plugin.AddNewFriendAddedPlugin(plugins.ReportNewFriendAdded)
 	plugin.AddOfflineFilePlugin(plugins.ReportOfflineFile)
+	plugin.AddGroupMutePlugin(plugins.ReportGroupMute)
 
 	plugin.Serve(bot.Cli)
 	log.Infof("插件加载完成")

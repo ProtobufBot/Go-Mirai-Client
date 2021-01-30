@@ -21,6 +21,7 @@ type (
 	FriendMessageRecalledPlugin = func(*client.QQClient, *client.FriendMessageRecalledEvent) int32
 	NewFriendAddedPlugin        = func(*client.QQClient, *client.NewFriendEvent) int32
 	OfflineFilePlugin           = func(*client.QQClient, *client.OfflineFileEvent) int32
+	GroupMutePlugin             = func(*client.QQClient, *client.GroupMuteEvent) int32
 )
 
 const (
@@ -42,6 +43,7 @@ var GroupMessageRecalledPluginList = make([]GroupMessageRecalledPlugin, 0)
 var FriendMessageRecalledPluginList = make([]FriendMessageRecalledPlugin, 0)
 var NewFriendAddedPluginList = make([]NewFriendAddedPlugin, 0)
 var OfflineFilePluginList = make([]OfflineFilePlugin, 0)
+var GroupMutePluginList = make([]GroupMutePlugin, 0)
 
 func Serve(cli *client.QQClient) {
 	cli.OnPrivateMessage(handlePrivateMessage)
@@ -58,6 +60,7 @@ func Serve(cli *client.QQClient) {
 	cli.OnFriendMessageRecalled(handleFriendMessageRecalled)
 	cli.OnNewFriendAdded(handleNewFriendAdded)
 	cli.OnReceivedOfflineFile(handleOfflineFile)
+	cli.OnGroupMuted(handleGroupMute)
 }
 
 // 添加私聊消息插件
@@ -128,6 +131,11 @@ func AddNewFriendAddedPlugin(plugin NewFriendAddedPlugin) {
 // 添加离线文件处理插件
 func AddOfflineFilePlugin(plugin OfflineFilePlugin) {
 	OfflineFilePluginList = append(OfflineFilePluginList, plugin)
+}
+
+// 添加群成员被禁言插件
+func AddGroupMutePlugin(plugin GroupMutePlugin) {
+	GroupMutePluginList = append(GroupMutePluginList, plugin)
 }
 
 func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
@@ -270,3 +278,12 @@ func handleOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) {
 	})
 }
 
+func handleGroupMute(cli *client.QQClient, event *client.GroupMuteEvent) {
+	util.SafeGo(func() {
+		for _, plugin := range GroupMutePluginList {
+			if result := plugin(cli, event); result == MessageBlock {
+				break
+			}
+		}
+	})
+}

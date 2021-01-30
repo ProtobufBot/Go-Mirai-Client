@@ -255,6 +255,32 @@ func ReportLeaveGroup(cli *client.QQClient, event *client.GroupLeaveEvent) int32
 	return plugin.MessageIgnore
 }
 
+func ReportGroupMute(cli *client.QQClient, event *client.GroupMuteEvent) int32 {
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TGroupBanNoticeEvent,
+	}
+	eventProto.Data = &onebot.Frame_GroupBanNoticeEvent{
+		GroupBanNoticeEvent: &onebot.GroupBanNoticeEvent{
+			Time:       time.Now().Unix(),
+			SelfId:     cli.Uin,
+			PostType:   "notice",
+			NoticeType: "group_ban",
+			SubType: func() string {
+				if event.Time == 0 {
+					return "lift_ban"
+				}
+				return "ban"
+			}(),
+			GroupId:    event.GroupCode,
+			OperatorId: event.OperatorUin,
+			UserId:     event.TargetUin,
+			Duration:   int64(event.Time),
+		},
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
+
 func ReportNewFriendRequest(cli *client.QQClient, event *client.NewFriendRequest) int32 {
 	flag := strconv.FormatInt(event.RequestId, 10)
 	cache.FriendRequestLru.Add(flag, event)
