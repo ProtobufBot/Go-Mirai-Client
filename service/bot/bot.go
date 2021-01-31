@@ -2,11 +2,11 @@ package bot
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/utils"
 	"io/ioutil"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/utils"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"

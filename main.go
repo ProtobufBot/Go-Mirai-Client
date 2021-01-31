@@ -18,9 +18,11 @@ import (
 )
 
 func init() {
-	customFormatter := new(log.TextFormatter)
-	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
-	customFormatter.FullTimestamp = true
+	customFormatter := &log.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+		FullTimestamp:   true,
+		ForceColors:     true,
+	}
 	log.SetFormatter(customFormatter)
 }
 
