@@ -420,6 +420,6 @@ func ProtoGiftToMiraiGift(cli *client.QQClient, data map[string]string) message.
 			}
 		}
 	}
-	log.Warnf("unsupported gift: %+v", giftId)
+	log.Warnf("unsupported gift: %+v, free gift list: %+v", giftId, util.MustMarshal(freeGifts))
 	return EmptyText()
 }
