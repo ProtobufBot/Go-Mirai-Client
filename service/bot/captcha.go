@@ -33,7 +33,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 	log.Infof("验证码处理页面: http://localhost:%s/", config.RealPort)
 	switch rsp.Error {
 	case client.SliderNeededError:
-		log.Infof("遇到滑块验证码，请阅读README(顺便star)，根据提示操作 https://github.com/protobufbot/Go-Mirai-Client")
+		log.Infof("遇到滑块验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
 		Captcha = &dto.Captcha{
 			BotId:       cli.Uin,
 			CaptchaType: dto.Captcha_SLIDER_CAPTCHA,
@@ -51,7 +51,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		}
 		return ProcessLoginRsp(cli, rsp)
 	case client.NeedCaptcha:
-		log.Infof("遇到图形验证码，请阅读README(顺便star)，根据提示操作 https://github.com/protobufbot/Go-Mirai-Client")
+		log.Infof("遇到图形验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
 		_ = ioutil.WriteFile("captcha.jpg", rsp.CaptchaImage, 0644)
 		Captcha = &dto.Captcha{
 			BotId:       cli.Uin,
@@ -68,7 +68,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		}
 		return ProcessLoginRsp(cli, rsp)
 	case client.SMSNeededError:
-		log.Infof("遇到短信验证码，请阅读README(顺便star)，根据提示操作 https://github.com/protobufbot/Go-Mirai-Client")
+		log.Infof("遇到短信验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
 		if !cli.RequestSMS() {
 			return false, fmt.Errorf("请求短信验证码错误，可能是太频繁")
 		}
@@ -87,7 +87,8 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 
 		return ProcessLoginRsp(cli, rsp)
 	case client.UnsafeDeviceError:
-		log.Infof("遇到设备锁扫码验证码，请阅读README(顺便star)，根据提示操作 https://github.com/protobufbot/Go-Mirai-Client")
+		log.Infof("遇到设备锁扫码验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
+		log.Info("设置环境变量 SMS = 1 可优先使用短信验证码")
 		Captcha = &dto.Captcha{
 			BotId:       cli.Uin,
 			CaptchaType: dto.Captcha_UNSAFE_DEVICE_LOGIN_VERIFY,
