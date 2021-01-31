@@ -19,3 +19,12 @@ type LocalImageElement struct {
 	message.ImageElement
 	Stream io.ReadSeeker
 }
+
+type GiftElement struct {
+	Target int64
+	GiftId message.GroupGift
+}
+
+func (g *GiftElement) Type() message.ElementType {
+	return message.At
+}
