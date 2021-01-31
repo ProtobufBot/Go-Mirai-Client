@@ -161,6 +161,29 @@ func ReportTempMessage(cli *client.QQClient, event *message.TempMessage) int32 {
 	return plugin.MessageIgnore
 }
 
+func ReportMemberPermissionChanged(cli *client.QQClient, event *client.MemberPermissionChangedEvent) int32 {
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TGroupAdminNoticeEvent,
+	}
+	subType := "unset"
+	if event.NewPermission == client.Administrator {
+		subType = "set"
+	}
+	eventProto.Data = &onebot.Frame_GroupAdminNoticeEvent{
+		GroupAdminNoticeEvent: &onebot.GroupAdminNoticeEvent{
+			Time:       time.Now().Unix(),
+			SelfId:     cli.Uin,
+			PostType:   "notice",
+			NoticeType: "group_admin",
+			SubType:    subType,
+			GroupId:    event.Group.Code,
+			UserId:     event.Member.Uin,
+		},
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
+
 func ReportMemberJoin(cli *client.QQClient, event *client.MemberJoinGroupEvent) int32 {
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupIncreaseNoticeEvent,

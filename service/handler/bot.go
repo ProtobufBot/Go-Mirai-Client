@@ -133,6 +133,7 @@ func CreateBotImpl(uin int64, password string) {
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
 	plugin.AddTempMessagePlugin(plugins.ReportTempMessage)
+	plugin.AddMemberPermissionChangedPlugin(plugins.ReportMemberPermissionChanged)
 	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
 	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
 	plugin.AddJoinGroupPlugin(plugins.ReportJoinGroup)

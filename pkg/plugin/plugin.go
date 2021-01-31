@@ -7,21 +7,22 @@ import (
 )
 
 type (
-	PrivateMessagePlugin        = func(*client.QQClient, *message.PrivateMessage) int32
-	GroupMessagePlugin          = func(*client.QQClient, *message.GroupMessage) int32
-	TempMessagePlugin           = func(*client.QQClient, *message.TempMessage) int32
-	MemberJoinGroupPlugin       = func(*client.QQClient, *client.MemberJoinGroupEvent) int32
-	MemberLeaveGroupPlugin      = func(*client.QQClient, *client.MemberLeaveGroupEvent) int32
-	JoinGroupPlugin             = func(*client.QQClient, *client.GroupInfo) int32
-	LeaveGroupPlugin            = func(*client.QQClient, *client.GroupLeaveEvent) int32
-	NewFriendRequestPlugin      = func(*client.QQClient, *client.NewFriendRequest) int32
-	UserJoinGroupRequestPlugin  = func(*client.QQClient, *client.UserJoinGroupRequest) int32
-	GroupInvitedRequestPlugin   = func(*client.QQClient, *client.GroupInvitedRequest) int32
-	GroupMessageRecalledPlugin  = func(*client.QQClient, *client.GroupMessageRecalledEvent) int32
-	FriendMessageRecalledPlugin = func(*client.QQClient, *client.FriendMessageRecalledEvent) int32
-	NewFriendAddedPlugin        = func(*client.QQClient, *client.NewFriendEvent) int32
-	OfflineFilePlugin           = func(*client.QQClient, *client.OfflineFileEvent) int32
-	GroupMutePlugin             = func(*client.QQClient, *client.GroupMuteEvent) int32
+	PrivateMessagePlugin          = func(*client.QQClient, *message.PrivateMessage) int32
+	GroupMessagePlugin            = func(*client.QQClient, *message.GroupMessage) int32
+	TempMessagePlugin             = func(*client.QQClient, *message.TempMessage) int32
+	MemberJoinGroupPlugin         = func(*client.QQClient, *client.MemberJoinGroupEvent) int32
+	MemberLeaveGroupPlugin        = func(*client.QQClient, *client.MemberLeaveGroupEvent) int32
+	JoinGroupPlugin               = func(*client.QQClient, *client.GroupInfo) int32
+	LeaveGroupPlugin              = func(*client.QQClient, *client.GroupLeaveEvent) int32
+	NewFriendRequestPlugin        = func(*client.QQClient, *client.NewFriendRequest) int32
+	UserJoinGroupRequestPlugin    = func(*client.QQClient, *client.UserJoinGroupRequest) int32
+	GroupInvitedRequestPlugin     = func(*client.QQClient, *client.GroupInvitedRequest) int32
+	GroupMessageRecalledPlugin    = func(*client.QQClient, *client.GroupMessageRecalledEvent) int32
+	FriendMessageRecalledPlugin   = func(*client.QQClient, *client.FriendMessageRecalledEvent) int32
+	NewFriendAddedPlugin          = func(*client.QQClient, *client.NewFriendEvent) int32
+	OfflineFilePlugin             = func(*client.QQClient, *client.OfflineFileEvent) int32
+	GroupMutePlugin               = func(*client.QQClient, *client.GroupMuteEvent) int32
+	MemberPermissionChangedPlugin = func(*client.QQClient, *client.MemberPermissionChangedEvent) int32
 )
 
 const (
@@ -44,6 +45,7 @@ var FriendMessageRecalledPluginList = make([]FriendMessageRecalledPlugin, 0)
 var NewFriendAddedPluginList = make([]NewFriendAddedPlugin, 0)
 var OfflineFilePluginList = make([]OfflineFilePlugin, 0)
 var GroupMutePluginList = make([]GroupMutePlugin, 0)
+var MemberPermissionChangedPluginList = make([]MemberPermissionChangedPlugin, 0)
 
 func Serve(cli *client.QQClient) {
 	cli.OnPrivateMessage(handlePrivateMessage)
@@ -61,6 +63,7 @@ func Serve(cli *client.QQClient) {
 	cli.OnNewFriendAdded(handleNewFriendAdded)
 	cli.OnReceivedOfflineFile(handleOfflineFile)
 	cli.OnGroupMuted(handleGroupMute)
+	cli.OnGroupMemberPermissionChanged(handleMemberPermissionChanged)
 }
 
 // 添加私聊消息插件
@@ -136,6 +139,11 @@ func AddOfflineFilePlugin(plugin OfflineFilePlugin) {
 // 添加群成员被禁言插件
 func AddGroupMutePlugin(plugin GroupMutePlugin) {
 	GroupMutePluginList = append(GroupMutePluginList, plugin)
+}
+
+// 添加群成员权限变动插件
+func AddMemberPermissionChangedPlugin(plugin MemberPermissionChangedPlugin) {
+	MemberPermissionChangedPluginList = append(MemberPermissionChangedPluginList, plugin)
 }
 
 func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
@@ -281,6 +289,16 @@ func handleOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) {
 func handleGroupMute(cli *client.QQClient, event *client.GroupMuteEvent) {
 	util.SafeGo(func() {
 		for _, plugin := range GroupMutePluginList {
+			if result := plugin(cli, event); result == MessageBlock {
+				break
+			}
+		}
+	})
+}
+
+func handleMemberPermissionChanged(cli *client.QQClient, event *client.MemberPermissionChangedEvent) {
+	util.SafeGo(func() {
+		for _, plugin := range MemberPermissionChangedPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}
