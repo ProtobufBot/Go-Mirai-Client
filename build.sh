@@ -2,6 +2,11 @@
 
 NAME="Go-Mirai-Client"
 OUTPUT_DIR="output"
+RELEASE_DIR="releases"
+
+rm -rf $OUTPUT_DIR
+mkdir -p $OUTPUT_DIR
+mkdir -p $RELEASE_DIR
 
 PLATFORMS="darwin/amd64"                         # amd64 only as of go1.5
 PLATFORMS="$PLATFORMS windows/amd64 windows/386" # arm compilation not available for Windows
@@ -21,7 +26,7 @@ for PLATFORM in $PLATFORMS; do
   GOARCH=${PLATFORM#*/}
   BIN_FILENAME="${OUTPUT_DIR}/${NAME}-${GOOS}-${GOARCH}"
   if [[ "${GOOS}" == "windows" ]]; then BIN_FILENAME="${BIN_FILENAME}.exe"; fi
-  CMD="GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME} $@"
+  CMD="GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME}"
   echo $CMD
   eval $CMD || FAILURES="${FAILURES} ${PLATFORM}"
 done
@@ -43,3 +48,10 @@ cp application.yml "${OUTPUT_DIR}/application.yml"
 cp -r static "${OUTPUT_DIR}/static" # https://github.com/ProtobufBot/Client-UI 前端编译产物dist
 
 echo "可以把不要的系统删掉">"${OUTPUT_DIR}/可以把不要的系统删掉"
+
+if [ -n "$1" ]; then
+  rm "$RELEASE_DIR/gmc-$1.zip"
+  CMD="zip -r $RELEASE_DIR/gmc-$1.zip $OUTPUT_DIR -x \".*\" -x \"__MACOSX\""
+  echo $CMD
+  eval $CMD
+fi
