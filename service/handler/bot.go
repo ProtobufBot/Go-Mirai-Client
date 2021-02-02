@@ -111,9 +111,8 @@ func Return(c *gin.Context, resp proto.Message) {
 }
 
 func CreateBotImpl(uin int64, password string) {
-	log.Infof("开始读取设备信息")
-	devicePath := fmt.Sprintf("device-%d.json", uin)
-	bot.InitDevice(devicePath)
+	log.Infof("开始初始化设备信息")
+	bot.InitDevice(uin)
 	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
 
 	log.Infof("创建机器人 %+v", uin)

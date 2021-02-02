@@ -3,6 +3,8 @@ package bot
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -14,7 +16,15 @@ import (
 
 var Cli *client.QQClient
 
-func InitDevice(path string) {
+func InitDevice(uin int64) {
+	if !util.PathExists("device") {
+		log.Info("device 文件夹不存在，自动创建")
+		if err := os.MkdirAll("device", 0777); err != nil {
+			log.Warnf("failed to mkdir device, err: %+v", err)
+		}
+	}
+	devicePath := path.Join("device", fmt.Sprintf("device-%d.json", uin))
+
 	log.Info("生成随机设备信息")
 	client.GenRandomDevice()
 	client.SystemDeviceInfo.Display = []byte("GMC." + utils.RandomStringRange(6, "0123456789") + ".001")
@@ -29,17 +39,17 @@ func InitDevice(path string) {
 	client.SystemDeviceInfo.Protocol = client.IPad
 	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 31, 101}
 
-	if util.PathExists(path) {
-		log.Infof("使用 %s 内的设备信息覆盖随机设备信息", path)
-		if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText(path))); err != nil {
+	if util.PathExists(devicePath) {
+		log.Infof("使用 %s 内的设备信息覆盖设备信息", devicePath)
+		if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText(devicePath))); err != nil {
 			util.FatalError(fmt.Errorf("failed to load device info, err: %+v", err))
 		}
 	}
 
-	log.Infof("保存设备信息到文件 %s", path)
-	err := ioutil.WriteFile(path, client.SystemDeviceInfo.ToJson(), 0644)
+	log.Infof("保存设备信息到文件 %s", devicePath)
+	err := ioutil.WriteFile(devicePath, client.SystemDeviceInfo.ToJson(), 0644)
 	if err != nil {
-		log.Warnf("写设备信息文件 %s 失败", path)
+		log.Warnf("写设备信息文件 %s 失败", devicePath)
 	}
 }
 
