@@ -36,8 +36,9 @@ func InitDevice(uin int64) {
 	client.SystemDeviceInfo.Model = []byte("gmc")
 	client.SystemDeviceInfo.Brand = []byte("pbbot")
 	client.SystemDeviceInfo.Product = []byte("gmc")
+	client.SystemDeviceInfo.WifiSSID = []byte("TP-LINK-"+utils.RandomStringRange(6,"ABCDEF1234567890"))
+	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 1, byte(100 + uin%100)}
 	client.SystemDeviceInfo.Protocol = client.IPad
-	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 31, byte(100 + uin%100)}
 
 	if util.PathExists(devicePath) {
 		log.Infof("使用 %s 内的设备信息覆盖设备信息", devicePath)
