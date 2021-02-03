@@ -37,7 +37,7 @@ func InitDevice(uin int64) {
 	client.SystemDeviceInfo.Brand = []byte("pbbot")
 	client.SystemDeviceInfo.Product = []byte("gmc")
 	client.SystemDeviceInfo.Protocol = client.IPad
-	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 31, 101}
+	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 31, byte(100 + uin%100)}
 
 	if util.PathExists(devicePath) {
 		log.Infof("使用 %s 内的设备信息覆盖设备信息", devicePath)
