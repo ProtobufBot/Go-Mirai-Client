@@ -1,12 +1,14 @@
 package bot
 
 import (
+	"math/rand"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/ProtobufBot/Go-Mirai-Client/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/safe_ws"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/golang/protobuf/proto"
@@ -14,130 +16,76 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type WsSendingMessage struct {
-	MessageType int
-	Data        []byte
-}
-
-var Conn *websocket.Conn
-var WsSendChannel = make(chan *WsSendingMessage, 500)
-
-var WsUrl = "ws://localhost:8081/ws/cq/"
-
-var connecting = false
-var connectLock sync.Mutex
-
-func init() {
-	go func() {
-		for {
-			errCount := 0
-			for errCount < 5 {
-				for msg := range WsSendChannel {
-					if Conn == nil {
-						log.Warnf("websocket conn is nil")
-						continue
-					}
-
-					_ = Conn.SetWriteDeadline(time.Now().Add(15 * time.Second))
-					if err := Conn.WriteMessage(msg.MessageType, msg.Data); err != nil {
-						log.Errorf("failed to write message messageType: %+v, err: %+v", msg.MessageType, err.Error())
-						errCount++
-					} else {
-						errCount = 0
-					}
-				}
-			}
-			log.Errorf("websocket 连续发送失败5次，开始重连，5秒后继续")
-			ConnectUniversal(Cli)
-			time.Sleep(5 * time.Second)
-		}
-	}()
-}
-
-func SendWsMsg(messageType int, data []byte) {
-	msg := &WsSendingMessage{
-		MessageType: messageType,
-		Data:        data,
-	}
-	WsSendChannel <- msg
-}
+var (
+	WsServers = make(map[string]*safe_ws.SafeWebSocket) // TODO 线程安全？改用sync.map
+)
 
 func ConnectUniversal(cli *client.QQClient) {
-	connectLock.Lock()
-	if connecting {
-		connectLock.Unlock()
-		return
-	}
-	connecting = true
-	connectLock.Unlock()
 	header := http.Header{
 		"X-Client-Role": []string{"Universal"},
 		"X-Self-ID":     []string{strconv.FormatInt(cli.Uin, 10)},
 		"User-Agent":    []string{"CQHttp/4.15.0"},
 	}
-
-	for {
-		conn, _, err := websocket.DefaultDialer.Dial(WsUrl, header)
-		if err != nil {
-			log.Warnf("连接Websocket服务器 %v 时出现错误: %v", WsUrl, err)
-			time.Sleep(5 * time.Second)
-			continue
-		} else {
-			log.Infof("已连接Websocket %v", WsUrl)
-			Conn = conn
-			time.Sleep(1 * time.Second)
-			connectLock.Lock()
-			connecting = false
-			connectLock.Unlock()
-			break
-		}
-	}
-}
-
-func Ping() {
-	for {
-		if Conn == nil {
-			time.Sleep(5 * time.Second)
+	for _, serverGroup := range config.Conf.ServerGroups {
+		if serverGroup.Disabled {
 			continue
 		}
-		SendWsMsg(websocket.PingMessage, []byte("ping"))
-		time.Sleep(5 * time.Second)
-	}
-}
-
-func ListenApi(cli *client.QQClient) {
-	for {
-		if Conn == nil {
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		messageType, buf, err := Conn.ReadMessage()
-		if err != nil {
-			log.Warnf("监听反向WS API时出现错误: %v 10秒后重试", err)
-			ConnectUniversal(cli)
-			time.Sleep(10 * time.Second)
-			continue
-		}
-		if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
-			continue
-		}
-
-		var req onebot.Frame
-		err = proto.Unmarshal(buf, &req)
-		if err != nil {
-			log.Errorf("收到API buffer，解析错误 %v", err)
-			continue
-		}
-
 		util.SafeGo(func() {
-			resp := handleApiFrame(cli, &req)
-			respBytes, err := resp.Marshal()
-			if err != nil {
-				log.Errorf("序列化ApiResp错误 %v", err)
+			for {
+				serverUrl := serverGroup.Urls[rand.Intn(len(serverGroup.Urls))]
+				log.Infof("开始连接Websocket服务器 [%s](%s)", serverGroup.Name, serverUrl)
+				conn, _, err := websocket.DefaultDialer.Dial(serverUrl, header)
+				if err != nil {
+					log.Warnf("连接Websocket服务器 [%s](%s) 错误，5秒后重连: %v", serverGroup.Name, serverUrl, err)
+					time.Sleep(5 * time.Second)
+					continue
+				}
+				log.Infof("连接Websocket服务器成功 [%s](%s)", serverGroup.Name, serverUrl)
+				closeChan := make(chan int, 1)
+				safeWs := safe_ws.NewSafeWebSocket(conn, OnWsRecvMessage, func() {
+					defer func() {
+						_ = recover() // 可能多次触发
+					}()
+					closeChan <- 1
+				})
+				WsServers[serverGroup.Name] = safeWs
+				util.SafeGo(func() {
+					for {
+						if err := safeWs.Send(websocket.PingMessage, []byte("ping")); err != nil {
+							break
+						}
+						time.Sleep(5 * time.Second)
+					}
+				})
+				<-closeChan
+				close(closeChan)
+				delete(WsServers, serverGroup.Name)
+				log.Warnf("Websocket 服务器 [%s](%s) 已断开，5秒后重连", serverGroup.Name, serverUrl)
+				time.Sleep(5 * time.Second)
 			}
-			SendWsMsg(websocket.BinaryMessage, respBytes)
 		})
 	}
+}
+
+func OnWsRecvMessage(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+	if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
+		return
+	}
+	var apiReq onebot.Frame
+	err := proto.Unmarshal(data, &apiReq)
+	if err != nil {
+		log.Errorf("收到API buffer，解析错误 %v", err)
+		return
+	}
+	log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
+
+	apiResp := handleApiFrame(Cli, &apiReq)
+	respBytes, err := apiResp.Marshal()
+	if err != nil {
+		log.Errorf("failed to marshal api resp, %+v", err)
+	}
+	log.Debugf("发送 apiResp 信息, %+v", util.MustMarshal(apiResp))
+	_ = ws.Send(websocket.BinaryMessage, respBytes)
 }
 
 func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
@@ -267,10 +215,8 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		return
 	}
 
-	if Conn == nil {
-		ConnectUniversal(cli)
-		return
+	for name, ws := range WsServers {
+		log.Debugf("上报 event 给 [%s]", name)
+		_ = ws.Send(websocket.BinaryMessage, eventBytes)
 	}
-
-	SendWsMsg(websocket.BinaryMessage, eventBytes)
 }

@@ -1,17 +1,15 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -27,27 +25,48 @@ func init() {
 }
 
 func main() {
-	port := "9000"
-	conf, err := config.LoadConfig("application.yml")
-	if err == nil && conf != nil {
-		if conf.Bot.Client.WsUrl != "" {
-			bot.WsUrl = conf.Bot.Client.WsUrl
-		}
-		if conf.Server.Port != 0 {
-			port = strconv.Itoa(int(conf.Server.Port))
+	gmcConfigPath := "gmc_config.json"
+	LoadGmcConfigFile(gmcConfigPath)  // 如果文件存在，从文件读取gmc config
+	LoadEnvConfig()                   // 如果环境变量存在，从环境变量读取gmc config，并覆盖
+	WriteGmcConfigFile(gmcConfigPath) // 内存中的gmc config写到文件
+
+	CreateBotIfEnvAccountExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
+	InitGin()                    // 初始化GIN HTTP管理
+
+	select {}
+}
+
+func LoadGmcConfigFile(filePath string) {
+	if util.PathExists(filePath) {
+		if err := config.Conf.ReadJson([]byte(util.ReadAllText(filePath))); err != nil {
+			log.Errorf("failed to read gmc config file %s, %+v", filePath, err)
 		}
 	}
+}
+
+func LoadEnvConfig() {
 	if os.Getenv("SMS") == "1" {
-		bot.SmsFirst = true
-	}
-	envPort := os.Getenv("PORT")
-	if envPort != "" {
-		port = envPort
+		config.Conf.SMS = true
 	}
 	envWsUrl := os.Getenv("WS_URL")
 	if envWsUrl != "" {
-		bot.WsUrl = envWsUrl
+		config.Conf.ServerGroups = []*config.ServerGroup{
+			{Name: "default", Urls: []string{envWsUrl}},
+		}
 	}
+	envPort := os.Getenv("PORT")
+	if envPort != "" {
+		config.Conf.Port = envPort
+	}
+}
+
+func WriteGmcConfigFile(filePath string) {
+	if err := ioutil.WriteFile(filePath, config.Conf.ToJson(), 0644); err != nil {
+		log.Warnf("failed to write gmc config file %s, %+v", filePath, err)
+	}
+}
+
+func CreateBotIfEnvAccountExist() {
 	envUin := os.Getenv("UIN")
 	envPass := os.Getenv("PASSWORD")
 	if envUin != "" || envPass != "" {
@@ -60,8 +79,9 @@ func main() {
 			handler.CreateBotImpl(uin, envPass)
 		}()
 	}
+}
 
-	port = ":" + port
+func InitGin() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
@@ -72,14 +92,13 @@ func main() {
 	router.POST("/bot/list/v1", handler.ListBot)
 	router.POST("/captcha/list/v1", handler.ListCaptcha)
 	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
-	realPort, err := RunGin(router, port)
+	realPort, err := RunGin(router, ":"+config.Conf.Port)
 	if err != nil {
 		util.FatalError(fmt.Errorf("failed to run gin, err: %+v", err))
 	}
-	config.RealPort = realPort
+	config.Conf.Port = realPort
 	log.Infof("端口号 %s", realPort)
 	log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
-	select {}
 }
 
 func RunGin(engine *gin.Engine, port string) (string, error) {
@@ -94,44 +113,4 @@ func RunGin(engine *gin.Engine, port string) (string, error) {
 		}
 	}()
 	return randPort, nil
-}
-
-func TestBot() {
-	Console := bufio.NewReader(os.Stdin)
-	uinStr := os.Getenv("uin")
-	pass := os.Getenv("pass")
-	if uinStr == "" || pass == "" {
-		log.Warnf("请在环境变量设置 uin 和 pass")
-		time.Sleep(5 * time.Second)
-		return
-	}
-
-	uin, err := strconv.ParseInt(uinStr, 10, 64)
-	if err != nil {
-		log.Warnf("uin 错误")
-		time.Sleep(5 * time.Second)
-		panic(err)
-	}
-
-	go func() {
-		handler.CreateBotImpl(uin, pass)
-	}()
-
-	// TODO 改成 gin 处理验证码
-	for {
-		if bot.Captcha == nil {
-			break
-		}
-		log.Infof("请输入验证码%+v", bot.Captcha)
-		text, _ := Console.ReadString('\n')
-		log.Infof("你输入的是:%v", text)
-		err := bot.CaptchaPromise.Resolve(text)
-		if err != nil {
-			break
-		}
-		time.Sleep(5 * time.Second)
-	}
-
-	_, _ = Console.ReadString('\n')
-
 }
