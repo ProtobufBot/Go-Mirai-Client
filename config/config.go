@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	Fragment = false  // 是否分片
+	Fragment = false // 是否分片
 	Conf     = &GmcConfig{
 		SMS:  false,
 		Port: "9000",
@@ -17,16 +17,16 @@ var (
 )
 
 type GmcConfig struct {
-	Port         string         `json:"port"`
+	Port         string         `json:"port"`          // 管理端口
 	SMS          bool           `json:"sms"`           // 设备锁是否优先使用短信认证
 	ServerGroups []*ServerGroup `json:"server_groups"` // 服务器组
 }
 
 type ServerGroup struct {
-	Name     string   `json:"name"`
-	Disabled bool     `json:"disabled"`
-	Urls     []string `json:"urls"`
-	// TODO event filter, msg filter
+	Name     string   `json:"name"`     // 功能名称
+	Disabled bool     `json:"disabled"` // 不填false默认启用
+	Urls     []string `json:"urls"`     // 服务器列表
+	// TODO event filter, msg filter, regex filter, prefix filter, suffix filter
 }
 
 func (g *GmcConfig) ReadJson(d []byte) error {
@@ -39,6 +39,6 @@ func (g *GmcConfig) ReadJson(d []byte) error {
 }
 
 func (g *GmcConfig) ToJson() []byte {
-	b, _ := json.MarshalIndent(g,"","    ")
+	b, _ := json.MarshalIndent(g, "", "    ")
 	return b
 }
