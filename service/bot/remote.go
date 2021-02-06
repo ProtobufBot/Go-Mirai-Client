@@ -26,10 +26,11 @@ func ConnectUniversal(cli *client.QQClient) {
 		"X-Self-ID":     []string{strconv.FormatInt(cli.Uin, 10)},
 		"User-Agent":    []string{"CQHttp/4.15.0"},
 	}
-	for _, serverGroup := range config.Conf.ServerGroups {
-		if serverGroup.Disabled {
+	for _, group := range config.Conf.ServerGroups {
+		if group.Disabled {
 			continue
 		}
+		serverGroup := *group
 		util.SafeGo(func() {
 			for {
 				serverUrl := serverGroup.Urls[rand.Intn(len(serverGroup.Urls))]
