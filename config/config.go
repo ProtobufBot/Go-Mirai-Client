@@ -39,6 +39,6 @@ func (g *GmcConfig) ReadJson(d []byte) error {
 }
 
 func (g *GmcConfig) ToJson() []byte {
-	b, _ := json.Marshal(g)
+	b, _ := json.MarshalIndent(g,"","    ")
 	return b
 }
