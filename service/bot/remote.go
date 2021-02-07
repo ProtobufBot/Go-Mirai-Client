@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -17,8 +18,14 @@ import (
 )
 
 var (
-	WsServers = make(map[string]*safe_ws.SafeWebSocket) // TODO 线程安全？改用sync.map
+	WsServers = make(map[string]*WsServer) // TODO 线程安全？改用sync.map
 )
+
+type WsServer struct {
+	*safe_ws.SafeWebSocket        // 线程安全的ws
+	*config.ServerGroup           // 服务器组配置
+	wsUrl                  string // 随机抽中的url
+}
 
 func ConnectUniversal(cli *client.QQClient) {
 	header := http.Header{
@@ -49,7 +56,11 @@ func ConnectUniversal(cli *client.QQClient) {
 					}()
 					closeChan <- 1
 				})
-				WsServers[serverGroup.Name] = safeWs
+				WsServers[serverGroup.Name] = &WsServer{
+					SafeWebSocket: safeWs,
+					ServerGroup:   &serverGroup,
+					wsUrl:         serverUrl,
+				}
 				util.SafeGo(func() {
 					for {
 						if err := safeWs.Send(websocket.PingMessage, []byte("ping")); err != nil {
@@ -216,8 +227,51 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		return
 	}
 
-	for name, ws := range WsServers {
-		log.Debugf("上报 event 给 [%s]", name)
-		_ = ws.Send(websocket.BinaryMessage, eventBytes)
+	for _, ws := range WsServers {
+		if ws.EventFilter != nil && len(ws.EventFilter) > 0 { // 有event filter
+			if !int32SliceContains(ws.EventFilter, int32(eventFrame.FrameType)) {
+				log.Debugf("EventFilter 跳过 [%s](%s)", ws.Name, ws.wsUrl)
+				continue
+			}
+		}
+
+		report := true // 是否上报event
+
+		if ws.PrefixFilter != nil && len(ws.PrefixFilter) > 0 { // 有prefix filter
+			if e, ok := eventFrame.Data.(*onebot.Frame_PrivateMessageEvent); ok {
+				reportMessage := false
+				for _, prefix := range ws.PrefixFilter {
+					if strings.HasPrefix(e.PrivateMessageEvent.RawMessage, prefix) {
+						reportMessage = true
+						break
+					}
+				}
+				report = report && reportMessage
+			}
+			if e, ok := eventFrame.Data.(*onebot.Frame_GroupMessageEvent); ok {
+				reportMessage := false
+				for _, prefix := range ws.PrefixFilter {
+					if strings.HasPrefix(e.GroupMessageEvent.RawMessage, prefix) {
+						reportMessage = true
+						break
+					}
+				}
+				report = report && reportMessage
+			}
+		}
+
+		if report {
+			log.Debugf("上报 event 给 [%s](%s)", ws.Name, ws.wsUrl)
+			_ = ws.Send(websocket.BinaryMessage, eventBytes)
+		}
 	}
+}
+
+func int32SliceContains(numbers []int32, num int32) bool {
+	for _, number := range numbers {
+		if number == num {
+			return true
+		}
+	}
+	return false
 }

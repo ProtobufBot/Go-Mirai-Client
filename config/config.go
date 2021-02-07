@@ -11,7 +11,13 @@ var (
 		SMS:  false,
 		Port: "9000",
 		ServerGroups: []*ServerGroup{
-			{Name: "default", Disabled: false, Urls: []string{"ws://localhost:8081/ws/cq/"}},
+			{
+				Name:         "default",
+				Disabled:     false,
+				Urls:         []string{"ws://localhost:8081/ws/cq/"},
+				EventFilter:  []int32{},
+				PrefixFilter: []string{},
+			},
 		},
 	}
 )
@@ -23,9 +29,11 @@ type GmcConfig struct {
 }
 
 type ServerGroup struct {
-	Name     string   `json:"name"`     // 功能名称
-	Disabled bool     `json:"disabled"` // 不填false默认启用
-	Urls     []string `json:"urls"`     // 服务器列表
+	Name         string   `json:"name"`          // 功能名称
+	Disabled     bool     `json:"disabled"`      // 不填false默认启用
+	Urls         []string `json:"urls"`          // 服务器列表
+	EventFilter  []int32  `json:"event_filter"`  // 事件过滤
+	PrefixFilter []string `json:"prefix_filter"` // 前缀过滤
 	// TODO event filter, msg filter, regex filter, prefix filter, suffix filter
 }
 
