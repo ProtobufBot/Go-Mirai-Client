@@ -230,13 +230,25 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
 func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 	eventFrame.Ok = true
 	eventFrame.BotId = cli.Uin
+	eventBytes, err := eventFrame.Marshal() // 原消息
+	if err != nil {
+		log.Errorf("event 序列化错误 %v", err)
+		return
+	}
 
 	for _, ws := range WsServers {
+
 		if ws.EventFilter != nil && len(ws.EventFilter) > 0 { // 有event filter
 			if !int32SliceContains(ws.EventFilter, int32(eventFrame.FrameType)) {
 				log.Debugf("EventFilter 跳过 [%s](%s)", ws.Name, ws.wsUrl)
 				continue
 			}
+		}
+
+		err := proto.Unmarshal(eventBytes, eventFrame) // 每个serverGroup, eventFrame 恢复原消息，防止因正则匹配互相影响
+		if err != nil {
+			log.Errorf("failed to unmarshal raw event frame, %+v", err)
+			return
 		}
 
 		report := true // 是否上报event
@@ -261,13 +273,13 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		}
 
 		if report {
-			eventBytes, err := eventFrame.Marshal()
+			sendingBytes, err := eventFrame.Marshal() // 使用正则修改后的eventFrame
 			if err != nil {
 				log.Errorf("event 序列化错误 %v", err)
-				return
+				continue
 			}
 			log.Debugf("上报 event 给 [%s](%s)", ws.Name, ws.wsUrl)
-			_ = ws.Send(websocket.BinaryMessage, eventBytes)
+			_ = ws.Send(websocket.BinaryMessage, sendingBytes)
 		}
 	}
 }
