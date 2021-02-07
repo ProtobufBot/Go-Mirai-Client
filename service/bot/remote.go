@@ -3,8 +3,8 @@ package bot
 import (
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -25,6 +25,7 @@ type WsServer struct {
 	*safe_ws.SafeWebSocket        // 线程安全的ws
 	*config.ServerGroup           // 服务器组配置
 	wsUrl                  string // 随机抽中的url
+	regexp                 *regexp.Regexp
 }
 
 func ConnectUniversal(cli *client.QQClient) {
@@ -60,6 +61,14 @@ func ConnectUniversal(cli *client.QQClient) {
 					SafeWebSocket: safeWs,
 					ServerGroup:   &serverGroup,
 					wsUrl:         serverUrl,
+					regexp:        nil,
+				}
+				if serverGroup.RegexFilter != "" {
+					if regex, err := regexp.Compile(serverGroup.RegexFilter); err != nil {
+						log.Errorf("failed to compile [%s], regex_filter: %s", serverGroup.Name, serverGroup.RegexFilter)
+					} else {
+						WsServers[serverGroup.Name].regexp = regex
+					}
 				}
 				util.SafeGo(func() {
 					for {
@@ -221,11 +230,6 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
 func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 	eventFrame.Ok = true
 	eventFrame.BotId = cli.Uin
-	eventBytes, err := eventFrame.Marshal()
-	if err != nil {
-		log.Errorf("event 序列化错误 %v", err)
-		return
-	}
 
 	for _, ws := range WsServers {
 		if ws.EventFilter != nil && len(ws.EventFilter) > 0 { // 有event filter
@@ -237,30 +241,31 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 
 		report := true // 是否上报event
 
-		if ws.PrefixFilter != nil && len(ws.PrefixFilter) > 0 { // 有prefix filter
+		if ws.regexp != nil { // 有prefix filter
 			if e, ok := eventFrame.Data.(*onebot.Frame_PrivateMessageEvent); ok {
-				reportMessage := false
-				for _, prefix := range ws.PrefixFilter {
-					if strings.HasPrefix(e.PrivateMessageEvent.RawMessage, prefix) {
-						reportMessage = true
-						break
-					}
+				b := ws.regexp.Find([]byte(e.PrivateMessageEvent.RawMessage))
+				if b == nil {
+					report = false
+				} else {
+					e.PrivateMessageEvent.RawMessage = string(b)
 				}
-				report = report && reportMessage
 			}
 			if e, ok := eventFrame.Data.(*onebot.Frame_GroupMessageEvent); ok {
-				reportMessage := false
-				for _, prefix := range ws.PrefixFilter {
-					if strings.HasPrefix(e.GroupMessageEvent.RawMessage, prefix) {
-						reportMessage = true
-						break
-					}
+				b := ws.regexp.Find([]byte(e.GroupMessageEvent.RawMessage))
+				if b == nil {
+					report = false
+				} else {
+					e.GroupMessageEvent.RawMessage = string(b)
 				}
-				report = report && reportMessage
 			}
 		}
 
 		if report {
+			eventBytes, err := eventFrame.Marshal()
+			if err != nil {
+				log.Errorf("event 序列化错误 %v", err)
+				return
+			}
 			log.Debugf("上报 event 给 [%s](%s)", ws.Name, ws.wsUrl)
 			_ = ws.Send(websocket.BinaryMessage, eventBytes)
 		}
