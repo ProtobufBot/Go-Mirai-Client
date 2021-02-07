@@ -38,7 +38,7 @@ done
 #  # build for each ARM version
 #  for GOARM in 7 6 5; do
 #    BIN_FILENAME="${OUTPUT_DIR}/${NAME}-${GOOS}-${GOARCH}${GOARM}"
-#    CMD="GOARM=${GOARM} GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME} $@"
+#    CMD="GOARM=${GOARM} GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME}"
 #    echo "${CMD}"
 #    eval "${CMD}" || FAILURES="${FAILURES} ${GOOS}/${GOARCH}${GOARM}"
 #  done
