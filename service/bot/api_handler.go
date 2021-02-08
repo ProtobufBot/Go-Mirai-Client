@@ -136,6 +136,10 @@ func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *
 }
 
 func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *onebot.SendGroupMsgResp {
+	if cli.FindGroup(req.GroupId) == nil {
+		log.Warnf("发送消息失败，群聊 %d 不存在", req.GroupId)
+		return nil
+	}
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(miraiMsg))
@@ -174,6 +178,10 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 	}
 
 	if req.GroupId != 0 { // 群
+		if cli.FindGroup(req.GroupId) == nil {
+			log.Warnf("发送消息失败，群聊 %d 不存在", req.GroupId)
+			return nil
+		}
 		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
 		ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.Fragment)
 		if ret == nil || ret.Id == -1 {
