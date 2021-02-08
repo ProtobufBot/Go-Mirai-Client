@@ -255,19 +255,13 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 
 		if ws.regexp != nil { // 有prefix filter
 			if e, ok := eventFrame.Data.(*onebot.Frame_PrivateMessageEvent); ok {
-				b := ws.regexp.Find([]byte(e.PrivateMessageEvent.RawMessage))
-				if b == nil {
-					report = false
-				} else {
-					e.PrivateMessageEvent.RawMessage = string(b)
+				if report = ws.regexp.MatchString(e.PrivateMessageEvent.RawMessage); report && ws.RegexReplace != "" {
+					e.PrivateMessageEvent.RawMessage = ws.regexp.ReplaceAllString(e.PrivateMessageEvent.RawMessage, ws.RegexReplace)
 				}
 			}
 			if e, ok := eventFrame.Data.(*onebot.Frame_GroupMessageEvent); ok {
-				b := ws.regexp.Find([]byte(e.GroupMessageEvent.RawMessage))
-				if b == nil {
-					report = false
-				} else {
-					e.GroupMessageEvent.RawMessage = string(b)
+				if report = ws.regexp.MatchString(e.GroupMessageEvent.RawMessage); report && ws.RegexReplace != "" {
+					e.GroupMessageEvent.RawMessage = ws.regexp.ReplaceAllString(e.GroupMessageEvent.RawMessage, ws.RegexReplace)
 				}
 			}
 		}
