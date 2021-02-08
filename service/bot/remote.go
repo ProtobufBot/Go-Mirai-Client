@@ -35,7 +35,7 @@ func ConnectUniversal(cli *client.QQClient) {
 		"User-Agent":    []string{"CQHttp/4.15.0"},
 	}
 	for _, group := range config.Conf.ServerGroups {
-		if group.Disabled {
+		if group.Disabled || group.Urls == nil || len(group.Urls) < 1 {
 			continue
 		}
 		serverGroup := *group
