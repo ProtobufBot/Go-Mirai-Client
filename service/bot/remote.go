@@ -29,11 +29,7 @@ type WsServer struct {
 }
 
 func ConnectUniversal(cli *client.QQClient) {
-	header := http.Header{
-		"X-Client-Role": []string{"Universal"},
-		"X-Self-ID":     []string{strconv.FormatInt(cli.Uin, 10)},
-		"User-Agent":    []string{"CQHttp/4.15.0"},
-	}
+
 	for _, group := range config.Conf.ServerGroups {
 		if group.Disabled || group.Urls == nil || len(group.Urls) < 1 {
 			continue
@@ -43,6 +39,13 @@ func ConnectUniversal(cli *client.QQClient) {
 			for {
 				serverUrl := serverGroup.Urls[rand.Intn(len(serverGroup.Urls))]
 				log.Infof("开始连接Websocket服务器 [%s](%s)", serverGroup.Name, serverUrl)
+				header := http.Header{}
+				for k, v := range serverGroup.ExtraHeader {
+					header[k] = []string{v}
+				}
+				header["X-Self-ID"] = []string{strconv.FormatInt(cli.Uin, 10)}
+				header["X-Client-Role"] = []string{"Universal"}
+				header["User-Agent"] = []string{"GMC"}
 				conn, _, err := websocket.DefaultDialer.Dial(serverUrl, header)
 				if err != nil {
 					log.Warnf("连接Websocket服务器 [%s](%s) 错误，5秒后重连: %v", serverGroup.Name, serverUrl, err)
