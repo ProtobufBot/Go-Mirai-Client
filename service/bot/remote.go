@@ -41,11 +41,12 @@ func ConnectUniversal(cli *client.QQClient) {
 				log.Infof("开始连接Websocket服务器 [%s](%s)", serverGroup.Name, serverUrl)
 				header := http.Header{}
 				for k, v := range serverGroup.ExtraHeader {
-					header[k] = []string{v}
+					if v != nil {
+						header[k] = v
+					}
 				}
 				header["X-Self-ID"] = []string{strconv.FormatInt(cli.Uin, 10)}
 				header["X-Client-Role"] = []string{"Universal"}
-				header["User-Agent"] = []string{"GMC"}
 				conn, _, err := websocket.DefaultDialer.Dial(serverUrl, header)
 				if err != nil {
 					log.Warnf("连接Websocket服务器 [%s](%s) 错误，5秒后重连: %v", serverGroup.Name, serverUrl, err)

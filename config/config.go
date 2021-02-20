@@ -19,7 +19,9 @@ var (
 				EventFilter:  []int32{},
 				RegexFilter:  "",
 				RegexReplace: "",
-				ExtraHeader:  map[string]string{},
+				ExtraHeader: map[string][]string{
+					"User-Agent": {"GMC"},
+				},
 			},
 		},
 	}
@@ -32,13 +34,13 @@ type GmcConfig struct {
 }
 
 type ServerGroup struct {
-	Name         string            `json:"name"`          // 功能名称
-	Disabled     bool              `json:"disabled"`      // 不填false默认启用
-	Urls         []string          `json:"urls"`          // 服务器列表
-	EventFilter  []int32           `json:"event_filter"`  // 事件过滤
-	RegexFilter  string            `json:"regex_filter"`  // 正则过滤
-	RegexReplace string            `json:"regex_replace"` // 正则替换
-	ExtraHeader  map[string]string `json:"extra_header"`  // 自定义请求头
+	Name         string              `json:"name"`          // 功能名称
+	Disabled     bool                `json:"disabled"`      // 不填false默认启用
+	Urls         []string            `json:"urls"`          // 服务器列表
+	EventFilter  []int32             `json:"event_filter"`  // 事件过滤
+	RegexFilter  string              `json:"regex_filter"`  // 正则过滤
+	RegexReplace string              `json:"regex_replace"` // 正则替换
+	ExtraHeader  map[string][]string `json:"extra_header"`  // 自定义请求头
 	// TODO event filter, msg filter, regex filter, prefix filter, suffix filter
 }
 
