@@ -36,8 +36,11 @@ func ConnectUniversal(cli *client.QQClient) {
 		}
 		serverGroup := *group
 		util.SafeGo(func() {
+			rand.Shuffle(len(serverGroup.Urls), func(i, j int) { serverGroup.Urls[i], serverGroup.Urls[j] = serverGroup.Urls[j], serverGroup.Urls[i] })
+			urlIndex := 0 // 使用第几个url
 			for {
-				serverUrl := serverGroup.Urls[rand.Intn(len(serverGroup.Urls))]
+				urlIndex = (urlIndex + 1) % len(serverGroup.Urls)
+				serverUrl := serverGroup.Urls[urlIndex]
 				log.Infof("开始连接Websocket服务器 [%s](%s)", serverGroup.Name, serverUrl)
 				header := http.Header{}
 				for k, v := range serverGroup.ExtraHeader {
