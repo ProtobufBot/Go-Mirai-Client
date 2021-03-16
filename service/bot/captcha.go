@@ -103,7 +103,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		}
 		return ProcessLoginRsp(cli, rsp)
 	case client.OtherLoginError, client.UnknownLoginError:
-		//log.Errorf(rsp.ErrorMessage)
+		log.Errorf(rsp.ErrorMessage)
 		log.Warnf("登陆失败，建议开启/关闭设备锁后重试，或删除device-<QQ>.json文件后再次尝试")
 		msg := rsp.ErrorMessage
 		if strings.Contains(msg, "版本") {
