@@ -18,6 +18,8 @@ func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
 			result += fmt.Sprintf(`<at qq="%d"/>`, elem.Target)
 		case *message.ImageElement:
 			result += fmt.Sprintf(`<image url="%s"/>`, html.EscapeString(elem.Url))
+		case *clz.LocalImageElement:
+			result += fmt.Sprintf(`<image sending/>`)
 		case *message.FaceElement:
 			result += fmt.Sprintf(`<face id="%d" name="%s"/>`, elem.Index, html.EscapeString(elem.Name))
 		case *message.VoiceElement:

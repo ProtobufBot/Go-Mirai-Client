@@ -104,7 +104,6 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 			return EmptyText()
 		}
 		elem.Stream = bytes.NewReader(b)
-		return elem
 	} else {
 		imageFile, err := os.Open(url)
 		if err != nil {
@@ -112,8 +111,19 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 			return EmptyText()
 		}
 		elem.Stream = imageFile
-		return elem
 	}
+
+	elem.Tp = data["type"] // show或flash
+	if elem.Tp == "show" {
+		effectIdStr := data["effect_id"]
+		effectId, err := strconv.Atoi(effectIdStr)
+		if err != nil || effectId < 40000 || effectId > 40005 {
+			effectId = 40000
+		}
+		elem.EffectId = int32(effectId)
+	}
+
+	return elem
 }
 
 func ProtoVoiceToMiraiVoice(data map[string]string) message.IMessageElement {

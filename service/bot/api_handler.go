@@ -42,12 +42,16 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 	newElements := make([]message.IMessageElement, 0, len(m.Elements))
 	for _, element := range m.Elements {
 		if i, ok := element.(*clz.LocalImageElement); ok {
-			gm, err := cli.UploadPrivateImage(target, i.Stream)
+			img, err := cli.UploadPrivateImage(target, i.Stream)
 			if err != nil {
 				log.Errorf("failed to upload private image, %+v", err)
 				continue
 			}
-			newElements = append(newElements, gm)
+			if i.Tp == "flash" {
+				newElements = append(newElements, &message.FriendFlashPicElement{FriendImageElement: *img})
+			} else {
+				newElements = append(newElements, img)
+			}
 			continue
 		}
 		if i, ok := element.(*message.VoiceElement); ok {
@@ -77,12 +81,18 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			continue
 		}
 		if i, ok := element.(*clz.LocalImageElement); ok {
-			gm, err := cli.UploadGroupImage(groupCode, i.Stream)
+			img, err := cli.UploadGroupImage(groupCode, i.Stream)
 			if err != nil {
 				log.Errorf("failed to upload group image, %+v", err)
 				continue
 			}
-			newElements = append(newElements, gm)
+			if i.Tp == "flash" {
+				newElements = append(newElements, &message.GroupFlashPicElement{GroupImageElement: *img})
+			} else if i.Tp == "show" {
+				newElements = append(newElements, &message.GroupShowPicElement{GroupImageElement: *img, EffectId: i.EffectId})
+			} else {
+				newElements = append(newElements, img)
+			}
 			continue
 		}
 		if i, ok := element.(*message.VoiceElement); ok {
