@@ -8,7 +8,7 @@ import (
 
 type LruCache struct {
 	*lru.Cache
-	mutex sync.Mutex
+	sync.Mutex
 }
 
 func NewLruCache(maxEntries int) *LruCache {
@@ -18,14 +18,14 @@ func NewLruCache(maxEntries int) *LruCache {
 }
 
 func (l *LruCache) Add(key lru.Key, value interface{}) {
-	l.mutex.Lock()
+	l.Lock()
 	l.Cache.Add(key, value)
-	l.mutex.Unlock()
+	l.Unlock()
 }
 func (l *LruCache) Get(key lru.Key) (value interface{}, ok bool) {
-	l.mutex.Lock()
+	l.Lock()
 	value, ok = l.Cache.Get(key)
-	l.mutex.Unlock()
+	l.Unlock()
 	return
 }
 
