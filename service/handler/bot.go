@@ -61,19 +61,19 @@ func ListBot(c *gin.Context) {
 }
 
 func ListCaptcha(c *gin.Context) {
-	req := &dto.GetCaptchaListReq{}
+	req := &dto.ListCaptchaReq{}
 	err := c.Bind(req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	var resp *dto.GetCaptchaListResp
+	var resp *dto.ListCaptchaResp
 	if bot.Captcha != nil {
-		resp = &dto.GetCaptchaListResp{
+		resp = &dto.ListCaptchaResp{
 			CaptchaList: []*dto.Captcha{bot.Captcha},
 		}
 	} else {
-		resp = &dto.GetCaptchaListResp{
+		resp = &dto.ListCaptchaResp{
 			CaptchaList: []*dto.Captcha{},
 		}
 	}
