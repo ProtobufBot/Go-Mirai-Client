@@ -93,6 +93,8 @@ func InitGin() {
 	router.POST("/bot/list/v1", handler.ListBot)
 	router.POST("/captcha/list/v1", handler.ListCaptcha)
 	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
+	router.POST("/qrcode/fetch/v1", handler.FetchQrCode)
+	router.POST("/qrcode/query/v1", handler.QueryQRCodeStatus)
 	realPort, err := RunGin(router, ":"+config.Conf.Port)
 	if err != nil {
 		util.FatalError(fmt.Errorf("failed to run gin, err: %+v", err))

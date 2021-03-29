@@ -74,12 +74,12 @@ message QRCodeLoginResp{
     bytes sig = 3;
     enum QRCodeLoginState{
         Unknown = 0;
-        QRCodeImageFetch         = 1;
-        QRCodeWaitingForScan     = 2;
-        QRCodeWaitingForConfirm  = 3;
-        QRCodeTimeout            = 4;
-        QRCodeConfirmed          = 5;
-        QRCodeCanceled           = 6;
+        QRCodeImageFetch = 1;
+        QRCodeWaitingForScan = 2; // 等待扫描
+        QRCodeWaitingForConfirm = 3; // 扫码成功，请确认登陆
+        QRCodeTimeout = 4; // 二维码过期
+        QRCodeConfirmed = 5; // 已确认登陆
+        QRCodeCanceled = 6; // 扫码被用户取消
     }
 }
 

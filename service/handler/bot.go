@@ -102,6 +102,51 @@ func SolveCaptcha(c *gin.Context) {
 	Return(c, resp)
 }
 
+func FetchQrCode(c *gin.Context) {
+	bot.Cli = client.NewClientEmpty()
+	fetchQRCodeResp, err := bot.Cli.FetchQRCode()
+	if err != nil {
+		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
+		return
+	}
+	resp := &dto.QRCodeLoginResp{
+		State:     dto.QRCodeLoginResp_QRCodeLoginState(fetchQRCodeResp.State),
+		ImageData: fetchQRCodeResp.ImageData,
+		Sig:       fetchQRCodeResp.Sig,
+	}
+	Return(c, resp)
+}
+
+func QueryQRCodeStatus(c *gin.Context) {
+	req := &dto.QueryQRCodeStatusReq{}
+	err := c.Bind(req)
+	if err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("failed to bind, %+v", err))
+		return
+	}
+
+	queryQRCodeStatusResp, err := bot.Cli.QueryQRCodeStatus(req.Sig)
+	if err != nil {
+		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to query qrcode status, %+v", err))
+		return
+	}
+	if queryQRCodeStatusResp.State == client.QRCodeConfirmed {
+		loginResp, err := bot.Cli.QRCodeLogin(queryQRCodeStatusResp.LoginInfo)
+		if err != nil {
+			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
+			return
+		}
+		go bot.ProcessLoginRsp(bot.Cli, loginResp)
+	}
+
+	resp := &dto.QRCodeLoginResp{
+		State:     dto.QRCodeLoginResp_QRCodeLoginState(queryQRCodeStatusResp.State),
+		ImageData: queryQRCodeStatusResp.ImageData,
+		Sig:       queryQRCodeStatusResp.Sig,
+	}
+	Return(c, resp)
+}
+
 func Return(c *gin.Context, resp proto.Message) {
 	var (
 		data []byte
