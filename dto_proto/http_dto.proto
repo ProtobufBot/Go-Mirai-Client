@@ -60,6 +60,29 @@ message SolveCaptchaReq{
 message SolveCaptchaResp{
 }
 
+// 获取二维码 /qrcode/fetch/v1/
+message FetchQrCodeReq{
+}
+// 查询二维码状态 /qrcode/query/v1/
+message QueryQRCodeStatusReq{
+    bytes sig = 1;
+}
+// 二维码登陆响应（获取和查询统一）
+message QRCodeLoginResp{
+    QRCodeLoginState state = 1;
+    bytes image_data = 2;
+    bytes sig = 3;
+    enum QRCodeLoginState{
+        Unknown = 0;
+        QRCodeImageFetch         = 1;
+        QRCodeWaitingForScan     = 2;
+        QRCodeWaitingForConfirm  = 3;
+        QRCodeTimeout            = 4;
+        QRCodeConfirmed          = 5;
+        QRCodeCanceled           = 6;
+    }
+}
+
 
 service HttpService{
     rpc CreateBot(CreateBotReq)returns (CreateBotResp);
@@ -67,4 +90,6 @@ service HttpService{
     rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
     rpc GetCaptchaList(GetCaptchaListReq)returns (GetCaptchaListResp);
     rpc SolveCaptcha(SolveCaptchaReq)returns (SolveCaptchaResp);
+    rpc FetchQrCode(FetchQrCodeReq)returns (QRCodeLoginResp);
+    rpc QueryQRCodeStatus(QueryQRCodeStatusReq)returns (QRCodeLoginResp);
 }
