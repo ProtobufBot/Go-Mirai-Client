@@ -61,7 +61,7 @@ message SolveCaptchaResp{
 }
 
 // 获取二维码 /qrcode/fetch/v1/
-message FetchQrCodeReq{
+message FetchQRCodeReq{
 }
 // 查询二维码状态 /qrcode/query/v1/
 message QueryQRCodeStatusReq{
@@ -90,6 +90,6 @@ service HttpService{
     rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
     rpc ListCaptcha(ListCaptchaReq)returns (ListCaptchaResp);
     rpc SolveCaptcha(SolveCaptchaReq)returns (SolveCaptchaResp);
-    rpc FetchQrCode(FetchQrCodeReq)returns (QRCodeLoginResp);
+    rpc FetchQRCode(FetchQRCodeReq)returns (QRCodeLoginResp);
     rpc QueryQRCodeStatus(QueryQRCodeStatusReq)returns (QRCodeLoginResp);
 }
