@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/plugins"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 )
@@ -101,13 +103,21 @@ func SolveCaptcha(c *gin.Context) {
 }
 
 func Return(c *gin.Context, resp proto.Message) {
-	data, err := proto.Marshal(resp)
+	var (
+		data []byte
+		err  error
+	)
+	switch c.ContentType() {
+	case binding.MIMEPROTOBUF:
+		data, err = proto.Marshal(resp)
+	case binding.MIMEJSON:
+		data, err = json.Marshal(resp)
+	}
 	if err != nil {
 		c.String(http.StatusInternalServerError, "marshal resp error")
 		return
 	}
 	c.Data(http.StatusOK, c.ContentType(), data)
-	return
 }
 
 func CreateBotImpl(uin int64, password string) {
