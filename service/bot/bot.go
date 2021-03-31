@@ -26,6 +26,7 @@ func InitDevice(uin int64) {
 	devicePath := path.Join("device", fmt.Sprintf("device-%d.json", uin))
 
 	log.Info("生成随机设备信息")
+	client.SystemDeviceInfo.AndroidId = []byte("MIRAI.123456.001")
 	client.GenRandomDevice()
 	client.SystemDeviceInfo.Display = []byte("GMC." + utils.RandomStringRange(6, "0123456789") + ".001")
 	client.SystemDeviceInfo.FingerPrint = []byte("pbbot/gmc/gmc:10/PBBOT.200324.001/" + utils.RandomStringRange(7, "0123456789") + ":user/release-keys")
@@ -36,7 +37,7 @@ func InitDevice(uin int64) {
 	client.SystemDeviceInfo.Model = []byte("gmc")
 	client.SystemDeviceInfo.Brand = []byte("pbbot")
 	client.SystemDeviceInfo.Product = []byte("gmc")
-	client.SystemDeviceInfo.WifiSSID = []byte("TP-LINK-"+utils.RandomStringRange(6,"ABCDEF1234567890"))
+	client.SystemDeviceInfo.WifiSSID = []byte("TP-LINK-" + utils.RandomStringRange(6, "ABCDEF1234567890"))
 	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 1, byte(100 + uin%100)}
 	client.SystemDeviceInfo.Protocol = client.IPad
 

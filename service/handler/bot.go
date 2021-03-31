@@ -18,6 +18,32 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	log.Infof("加载日志插件 Log")
+	plugin.AddPrivateMessagePlugin(plugins.LogPrivateMessage)
+	plugin.AddGroupMessagePlugin(plugins.LogGroupMessage)
+
+	log.Infof("加载测试插件 Hello")
+	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
+
+	log.Infof("加载上报插件 Report")
+	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
+	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
+	plugin.AddTempMessagePlugin(plugins.ReportTempMessage)
+	plugin.AddMemberPermissionChangedPlugin(plugins.ReportMemberPermissionChanged)
+	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
+	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
+	plugin.AddJoinGroupPlugin(plugins.ReportJoinGroup)
+	plugin.AddLeaveGroupPlugin(plugins.ReportLeaveGroup)
+	plugin.AddNewFriendRequestPlugin(plugins.ReportNewFriendRequest)
+	plugin.AddUserJoinGroupRequestPlugin(plugins.ReportUserJoinGroupRequest)
+	plugin.AddGroupInvitedRequestPlugin(plugins.ReportGroupInvitedRequest)
+	plugin.AddGroupMessageRecalledPlugin(plugins.ReportGroupMessageRecalled)
+	plugin.AddFriendMessageRecalledPlugin(plugins.ReportFriendMessageRecalled)
+	plugin.AddNewFriendAddedPlugin(plugins.ReportNewFriendAdded)
+	plugin.AddOfflineFilePlugin(plugins.ReportOfflineFile)
+	plugin.AddGroupMutePlugin(plugins.ReportGroupMute)
+}
 func CreateBot(c *gin.Context) {
 	req := &dto.CreateBotReq{}
 	err := c.Bind(req)
@@ -25,7 +51,7 @@ func CreateBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	if bot.Cli != nil {
+	if bot.Cli != nil && bot.Cli.Uin != 0 {
 		c.String(http.StatusInternalServerError, "only one bot is allowed")
 	}
 	go func() {
@@ -43,7 +69,7 @@ func ListBot(c *gin.Context) {
 		return
 	}
 	var resp *dto.ListBotResp
-	if bot.Cli != nil {
+	if bot.Cli != nil && bot.Cli.Uin != 0 {
 		resp = &dto.ListBotResp{
 			BotList: []*dto.Bot{
 				{
@@ -103,7 +129,12 @@ func SolveCaptcha(c *gin.Context) {
 }
 
 func FetchQrCode(c *gin.Context) {
+	log.Infof("开始初始化设备信息")
+	bot.InitDevice(0)
+	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
 	bot.Cli = client.NewClientEmpty()
+	log.Infof("初始化日志")
+	bot.InitLog(bot.Cli)
 	fetchQRCodeResp, err := bot.Cli.FetchQRCode()
 	if err != nil {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
@@ -136,7 +167,18 @@ func QueryQRCodeStatus(c *gin.Context) {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
 			return
 		}
-		go bot.ProcessLoginRsp(bot.Cli, loginResp)
+		go func() {
+			ok, err := bot.ProcessLoginRsp(bot.Cli, loginResp)
+			if err != nil {
+				util.FatalError(fmt.Errorf("failed to login, err: %+v", err))
+			}
+			if ok {
+				log.Infof("登录成功")
+			} else {
+				log.Infof("登录失败")
+			}
+			AfterLogin()
+		}()
 	}
 
 	resp := &dto.QRCodeLoginResp{
@@ -176,34 +218,6 @@ func CreateBotImpl(uin int64, password string) {
 	log.Infof("初始化日志")
 	bot.InitLog(bot.Cli)
 
-	log.Infof("加载日志插件 Log")
-	plugin.AddPrivateMessagePlugin(plugins.LogPrivateMessage)
-	plugin.AddGroupMessagePlugin(plugins.LogGroupMessage)
-
-	log.Infof("加载测试插件 Hello")
-	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
-
-	log.Infof("加载上报插件 Report")
-	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
-	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
-	plugin.AddTempMessagePlugin(plugins.ReportTempMessage)
-	plugin.AddMemberPermissionChangedPlugin(plugins.ReportMemberPermissionChanged)
-	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
-	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
-	plugin.AddJoinGroupPlugin(plugins.ReportJoinGroup)
-	plugin.AddLeaveGroupPlugin(plugins.ReportLeaveGroup)
-	plugin.AddNewFriendRequestPlugin(plugins.ReportNewFriendRequest)
-	plugin.AddUserJoinGroupRequestPlugin(plugins.ReportUserJoinGroupRequest)
-	plugin.AddGroupInvitedRequestPlugin(plugins.ReportGroupInvitedRequest)
-	plugin.AddGroupMessageRecalledPlugin(plugins.ReportGroupMessageRecalled)
-	plugin.AddFriendMessageRecalledPlugin(plugins.ReportFriendMessageRecalled)
-	plugin.AddNewFriendAddedPlugin(plugins.ReportNewFriendAdded)
-	plugin.AddOfflineFilePlugin(plugins.ReportOfflineFile)
-	plugin.AddGroupMutePlugin(plugins.ReportGroupMute)
-
-	plugin.Serve(bot.Cli)
-	log.Infof("插件加载完成")
-
 	log.Infof("登录中...")
 	ok, err := bot.Login(bot.Cli)
 	if err != nil {
@@ -214,7 +228,10 @@ func CreateBotImpl(uin int64, password string) {
 	} else {
 		log.Infof("登录失败")
 	}
+	AfterLogin()
+}
 
+func AfterLogin() {
 	for {
 		time.Sleep(5 * time.Second)
 		if bot.Cli.Online {
@@ -222,6 +239,8 @@ func CreateBotImpl(uin int64, password string) {
 		}
 		log.Infof("机器人不在线，可能在等待输入验证码")
 	}
+	plugin.Serve(bot.Cli)
+	log.Infof("插件加载完成")
 
 	log.Infof("刷新好友列表")
 	if err := bot.Cli.ReloadFriendList(); err != nil {
