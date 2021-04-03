@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math"
 	"strconv"
+	_ "unsafe"
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
@@ -520,4 +521,11 @@ func HandleGetStrangerInfo(cli *client.QQClient, req *onebot.GetStrangerInfoReq)
 		Level:     info.Level,
 		LoginDays: info.LoginDays,
 	}
+}
+
+//go:linkname GetCookiesWithDomain github.com/Mrs4s/MiraiGo/client.(*QQClient).getCookiesWithDomain
+func GetCookiesWithDomain(c *client.QQClient, domain string) string
+
+func HandleGetCookies(cli *client.QQClient, req *onebot.GetCookiesReq) *onebot.GetCookiesResp {
+	return &onebot.GetCookiesResp{Cookies: GetCookiesWithDomain(cli, req.Domain)}
 }
