@@ -529,3 +529,12 @@ func GetCookiesWithDomain(c *client.QQClient, domain string) string
 func HandleGetCookies(cli *client.QQClient, req *onebot.GetCookiesReq) *onebot.GetCookiesResp {
 	return &onebot.GetCookiesResp{Cookies: GetCookiesWithDomain(cli, req.Domain)}
 }
+
+//go:linkname GetCSRFToken github.com/Mrs4s/MiraiGo/client.(*QQClient).getCSRFToken
+func GetCSRFToken(c *client.QQClient) int
+
+func HandleGetCSRFToken(cli *client.QQClient, req *onebot.GetCsrfTokenReq) *onebot.GetCsrfTokenResp {
+	return &onebot.GetCsrfTokenResp{
+		Token: int32(GetCSRFToken(cli)),
+	}
+}
