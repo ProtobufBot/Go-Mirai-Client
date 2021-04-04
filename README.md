@@ -24,7 +24,7 @@ Java/Kotlin用户推荐使用 [spring-boot-starter](https://github.com/protobufb
 
 打开链接，扫码之后，右侧输入任意内容提交
 
-在部分情况下，可以选择设备锁验证码(扫码)和短信验证码，默认选择扫码。如果需要默认选择短信，可以设置环境变量`SMS=1`
+在部分情况下，可以选择设备锁验证码(扫码)和短信验证码，默认选择扫码。如果需要默认选择短信，可以使用参数`-sms`
 
 ### 图形验证码
 
@@ -81,23 +81,36 @@ TODO
 
 如果需要登陆验证（图形/短信验证码等），必须使用浏览器访问`127.0.0.1:PORT`，PORT不能乱填
 
-如果已经挂了很久，非常确定不会遇到验证码的时候，可以把环境变量的`PORT`设为0，表示使用随机端口。
+如果已经挂了很久，非常确定不会遇到验证码的时候，可以把参数的`port`设为0，表示使用随机端口。
+
+参数
+```shell
+Usage of GMC:
+  -uin int
+        机器人QQ
+  -pass string
+        机器人密码
+  -port int
+        http管理端口, 0 表示随机 (默认 9000)
+  -sms bool
+        登录优先使用短信验证
+  -ws_url string
+        消息处理websocket服务器地址
+  -device string
+        设备文件位置
+  -help
+        帮助
+```
 
 ### Windows
 
 ```shell
-set UIN=机器人QQ号
-set PASSWORD=机器人QQ密码
-set PORT=9000
-Go-Mirai-Client.exe
+Go-Mirai-Client.exe -uin <机器人QQ> -pass <机器人密码> -port <HTTP端口> -device <设备信息位置> -ws_url <消息处理器地址> -sms <是否优先短信登录>
 ```
 
 ### Linux
 ```shell
 chmod +x ./Go-Mirai-Client
 
-export UIN=机器人QQ号
-export PASSWORD=机器人QQ密码
-export PORT=9000
-./Go-Mirai-Client
+./Go-Mirai-Client -uin <机器人QQ> -pass <机器人密码> -port <HTTP端口> -device <设备信息位置> -ws_url <消息处理器地址> -sms <是否优先短信登录>
 ```
