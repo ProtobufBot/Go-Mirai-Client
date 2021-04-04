@@ -19,14 +19,14 @@ import (
 )
 
 func init() {
-	log.Infof("加载日志插件 Log")
+	//log.Infof("加载日志插件 Log")
 	plugin.AddPrivateMessagePlugin(plugins.LogPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.LogGroupMessage)
 
-	log.Infof("加载测试插件 Hello")
+	//log.Infof("加载测试插件 Hello")
 	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
 
-	log.Infof("加载上报插件 Report")
+	//log.Infof("加载上报插件 Report")
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
 	plugin.AddTempMessagePlugin(plugins.ReportTempMessage)

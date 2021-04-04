@@ -23,13 +23,13 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		return true, nil
 	}
 	if rsp.Error == client.SMSOrVerifyNeededError {
-		if config.Conf.SMS {
+		if config.SMS {
 			rsp.Error = client.SMSNeededError
 		} else {
 			rsp.Error = client.UnsafeDeviceError
 		}
 	}
-	log.Infof("验证码处理页面: http://localhost:%s/", config.Conf.Port)
+	log.Infof("验证码处理页面: http://localhost:%s/", config.Port)
 	switch rsp.Error {
 	case client.SliderNeededError:
 		log.Infof("遇到滑块验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")

@@ -8,9 +8,11 @@ import (
 
 var (
 	Fragment = false // 是否分片
+	Port     = "9000"
+	SMS      = false
 	Conf     = &GmcConfig{
-		SMS:  false,
-		Port: "9000",
+		//SMS:  false,
+		//Port: "9000",
 		ServerGroups: []*ServerGroup{
 			{
 				Name:         "default",
@@ -28,8 +30,8 @@ var (
 )
 
 type GmcConfig struct {
-	Port         string         `json:"port"`          // 管理端口
-	SMS          bool           `json:"sms"`           // 设备锁是否优先使用短信认证
+	//Port         string         `json:"port"`          // 管理端口
+	//SMS          bool           `json:"sms"`           // 设备锁是否优先使用短信认证
 	ServerGroups []*ServerGroup `json:"server_groups"` // 服务器组
 }
 
