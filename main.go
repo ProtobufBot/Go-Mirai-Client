@@ -23,6 +23,7 @@ var (
 	port         = 9000  // 端口号
 	uin    int64 = 0     // qq
 	pass         = ""    //password
+	device       = ""    // device file path
 	help         = false // help
 )
 
@@ -32,6 +33,7 @@ func init() {
 	flag.IntVar(&port, "port", 9000, "admin http api port, 0 is random")
 	flag.Int64Var(&uin, "uin", 0, "bot's qq")
 	flag.StringVar(&pass, "pass", "", "bot's password")
+	flag.StringVar(&device, "device", "", "device file")
 	flag.BoolVar(&help, "help", false, "this help")
 	flag.Parse()
 
@@ -85,6 +87,10 @@ func LoadParamConfig() {
 
 	if port != 9000 {
 		config.Port = strconv.Itoa(port)
+	}
+
+	if device != "" {
+		config.Device = device
 	}
 }
 

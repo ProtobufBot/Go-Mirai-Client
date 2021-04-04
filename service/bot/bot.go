@@ -9,6 +9,7 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"
@@ -17,13 +18,21 @@ import (
 var Cli *client.QQClient
 
 func InitDevice(uin int64) {
-	if !util.PathExists("device") {
-		log.Info("device 文件夹不存在，自动创建")
-		if err := os.MkdirAll("device", 0777); err != nil {
-			log.Warnf("failed to mkdir device, err: %+v", err)
+	// 默认 device/device-qq.json
+	devicePath := path.Join("device", fmt.Sprintf("device-%d.json", uin))
+
+	// 优先使用参数目录
+	if config.Device != "" {
+		devicePath = config.Device
+	}
+
+	deviceDir := path.Dir(devicePath)
+	if !util.PathExists(deviceDir) {
+		log.Infof("%+v 目录不存在，自动创建", deviceDir)
+		if err := os.MkdirAll(deviceDir, 0777); err != nil {
+			log.Warnf("failed to mkdir deviceDir, err: %+v", err)
 		}
 	}
-	devicePath := path.Join("device", fmt.Sprintf("device-%d.json", uin))
 
 	log.Info("生成随机设备信息")
 	client.SystemDeviceInfo.AndroidId = []byte("MIRAI.123456.001")

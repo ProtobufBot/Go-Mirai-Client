@@ -10,6 +10,7 @@ var (
 	Fragment = false // 是否分片
 	Port     = "9000"
 	SMS      = false
+	Device   = ""
 	Conf     = &GmcConfig{
 		//SMS:  false,
 		//Port: "9000",
