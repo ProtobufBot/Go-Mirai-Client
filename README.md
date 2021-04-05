@@ -83,7 +83,7 @@ TODO
 
 如果已经挂了很久，非常确定不会遇到验证码的时候，可以把参数的`port`设为0，表示使用随机端口。
 
-参数
+### 参数
 ```shell
 Usage of GMC:
   -uin int
@@ -91,7 +91,7 @@ Usage of GMC:
   -pass string
         机器人密码
   -port int
-        http管理端口, 0 表示随机 (默认 9000)
+        http管理端口(默认 9000), 0表示随机, 如果不需要处理验证码, 可以随便填
   -sms bool
         登录优先使用短信验证
   -ws_url string
