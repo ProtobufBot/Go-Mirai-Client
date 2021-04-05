@@ -233,6 +233,11 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
 		resp.Data = &onebot.Frame_GetCookiesResp{
 			GetCookiesResp: HandleGetCookies(cli, data.GetCookiesReq),
 		}
+	case *onebot.Frame_GetCsrfTokenReq:
+		resp.FrameType = onebot.Frame_TGetCsrfTokenResp
+		resp.Data = &onebot.Frame_GetCsrfTokenResp{
+			GetCsrfTokenResp: HandleGetCSRFToken(cli, data.GetCsrfTokenReq),
+		}
 	default:
 		return resp
 	}
