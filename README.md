@@ -12,6 +12,51 @@ Java/Kotlin用户推荐使用 [spring-boot-starter](https://github.com/protobufb
 
 有问题发issue，或者进QQ群335783090
 
+## 自动登陆脚本
+
+可以编写多个启动脚本自动启动不同的账号，不同账号PORT必须不同(或者写0表示随机)
+
+如果需要登陆验证（图形/短信验证码等），必须使用浏览器访问`127.0.0.1:PORT`，PORT不能乱填
+
+如果已经挂了很久，非常确定不会遇到验证码的时候，可以把参数的`port`设为0，表示使用随机端口。
+
+### 参数
+```shell
+Usage of GMC:
+  -uin int
+        机器人QQ
+  -pass string
+        机器人密码
+  -port int
+        http管理端口(默认 9000), 0表示随机, 如果不需要处理验证码, 可以随便填
+  -sms bool
+        登录优先使用短信验证
+  -ws_url string
+        消息处理websocket服务器地址
+  -device string
+        设备文件位置
+  -help
+        帮助
+```
+
+### Windows
+
+创建一个文件，后缀为`.bat`，写入以下内容，双击运行
+
+```shell
+Go-Mirai-Client.exe -uin <机器人QQ> -pass <机器人密码> -port <HTTP端口> -device <设备信息位置> -ws_url <消息处理器地址> -sms <是否优先短信登录>
+```
+
+### Linux
+
+创建一个文件，后缀为`.sh`，写入以下内容，添加执行权限，运行
+
+```shell
+chmod +x ./Go-Mirai-Client
+
+./Go-Mirai-Client -uin <机器人QQ> -pass <机器人密码> -port <HTTP端口> -device <设备信息位置> -ws_url <消息处理器地址> -sms <是否优先短信登录>
+```
+
 ## 验证码类型及处理方法
 
 处理验证码时必须用到浏览器
@@ -73,44 +118,3 @@ Java/Kotlin用户推荐使用 [spring-boot-starter](https://github.com/protobufb
 下载专用软件进行验证
 
 TODO
-
-
-## 自动登陆脚本
-
-可以编写多个启动脚本自动启动不同的账号，不同账号PORT必须不同(或者写0表示随机)
-
-如果需要登陆验证（图形/短信验证码等），必须使用浏览器访问`127.0.0.1:PORT`，PORT不能乱填
-
-如果已经挂了很久，非常确定不会遇到验证码的时候，可以把参数的`port`设为0，表示使用随机端口。
-
-### 参数
-```shell
-Usage of GMC:
-  -uin int
-        机器人QQ
-  -pass string
-        机器人密码
-  -port int
-        http管理端口(默认 9000), 0表示随机, 如果不需要处理验证码, 可以随便填
-  -sms bool
-        登录优先使用短信验证
-  -ws_url string
-        消息处理websocket服务器地址
-  -device string
-        设备文件位置
-  -help
-        帮助
-```
-
-### Windows
-
-```shell
-Go-Mirai-Client.exe -uin <机器人QQ> -pass <机器人密码> -port <HTTP端口> -device <设备信息位置> -ws_url <消息处理器地址> -sms <是否优先短信登录>
-```
-
-### Linux
-```shell
-chmod +x ./Go-Mirai-Client
-
-./Go-Mirai-Client -uin <机器人QQ> -pass <机器人密码> -port <HTTP端口> -device <设备信息位置> -ws_url <消息处理器地址> -sms <是否优先短信登录>
-```
