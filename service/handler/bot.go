@@ -160,6 +160,11 @@ func QueryQRCodeStatus(c *gin.Context) {
 		return
 	}
 
+	if bot.Cli.Online {
+		c.String(http.StatusBadRequest, "already online")
+		return
+	}
+
 	queryQRCodeStatusResp, err := bot.Cli.QueryQRCodeStatus(req.Sig)
 	if err != nil {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to query qrcode status, %+v", err))
