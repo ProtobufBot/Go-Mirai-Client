@@ -129,6 +129,11 @@ func SolveCaptcha(c *gin.Context) {
 }
 
 func FetchQrCode(c *gin.Context) {
+	if bot.Cli != nil && bot.Cli.Online {
+		c.String(http.StatusBadRequest, "already online")
+		return
+	}
+
 	log.Infof("开始初始化设备信息")
 	bot.InitDevice(0)
 	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
@@ -153,15 +158,15 @@ func FetchQrCode(c *gin.Context) {
 }
 
 func QueryQRCodeStatus(c *gin.Context) {
+	if bot.Cli != nil && bot.Cli.Online {
+		c.String(http.StatusBadRequest, "already online")
+		return
+	}
+
 	req := &dto.QueryQRCodeStatusReq{}
 	err := c.Bind(req)
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("failed to bind, %+v", err))
-		return
-	}
-
-	if bot.Cli.Online {
-		c.String(http.StatusBadRequest, "already online")
 		return
 	}
 
