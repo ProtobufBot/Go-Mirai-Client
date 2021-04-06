@@ -237,7 +237,7 @@ func AfterLogin() {
 		if bot.Cli.Online {
 			break
 		}
-		log.Infof("机器人不在线，可能在等待输入验证码")
+		log.Warnf("机器人不在线，可能在等待输入验证码，或出错了。如果出错请重启。")
 	}
 	plugin.Serve(bot.Cli)
 	log.Infof("插件加载完成")

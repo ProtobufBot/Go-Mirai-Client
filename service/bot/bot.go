@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"runtime/debug"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -72,6 +73,7 @@ func InitLog(cli *client.QQClient) {
 			log.Info("MiraiGo -> " + e.Message)
 		case "ERROR":
 			log.Error("MiraiGo -> " + e.Message)
+			log.Errorf("%+v", string(debug.Stack()))
 		case "DEBUG":
 			log.Debug("MiraiGo -> " + e.Message)
 		}
