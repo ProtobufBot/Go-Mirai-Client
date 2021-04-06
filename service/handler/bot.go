@@ -132,6 +132,10 @@ func FetchQrCode(c *gin.Context) {
 	log.Infof("开始初始化设备信息")
 	bot.InitDevice(0)
 	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
+	if bot.Cli != nil {
+		bot.Cli.Disconnect()
+		time.Sleep(time.Second)
+	}
 	bot.Cli = client.NewClientEmpty()
 	log.Infof("初始化日志")
 	bot.InitLog(bot.Cli)
@@ -213,6 +217,10 @@ func CreateBotImpl(uin int64, password string) {
 	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
 
 	log.Infof("创建机器人 %+v", uin)
+	if bot.Cli != nil {
+		bot.Cli.Disconnect()
+		time.Sleep(time.Second)
+	}
 	bot.Cli = client.NewClient(uin, password)
 
 	log.Infof("初始化日志")
