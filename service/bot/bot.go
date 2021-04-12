@@ -131,6 +131,8 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 				return
 			}
 
+			time.Sleep(time.Second)
+
 			// 尝试密码登录
 			ok, err := Login(cli)
 
