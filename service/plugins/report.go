@@ -135,7 +135,7 @@ func CheckGroupFile(cli *client.QQClient, event *message.GroupMessage) bool {
 	return false
 }
 
-func ReportTempMessage(cli *client.QQClient, event *message.TempMessage) int32 {
+func ReportTempMessage(cli *client.QQClient, event *client.TempMessageEvent) int32 {
 	// TODO 撤回？
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TPrivateMessageEvent,
@@ -147,13 +147,13 @@ func ReportTempMessage(cli *client.QQClient, event *message.TempMessage) int32 {
 			PostType:    "message",
 			MessageType: "private",
 			SubType:     "group",
-			MessageId:   event.Id,
-			UserId:      event.Sender.Uin,
-			Message:     bot.MiraiMsgToProtoMsg(event.Elements),
-			RawMessage:  bot.MiraiMsgToRawMsg(event.Elements),
+			MessageId:   event.Message.Id,
+			UserId:      event.Message.Sender.Uin,
+			Message:     bot.MiraiMsgToProtoMsg(event.Message.Elements),
+			RawMessage:  bot.MiraiMsgToRawMsg(event.Message.Elements),
 			Sender: &onebot.PrivateMessageEvent_Sender{
-				UserId:   event.Sender.Uin,
-				Nickname: event.Sender.Nickname,
+				UserId:   event.Message.Sender.Uin,
+				Nickname: event.Message.Sender.Nickname,
 			},
 		},
 	}

@@ -9,7 +9,7 @@ import (
 type (
 	PrivateMessagePlugin          = func(*client.QQClient, *message.PrivateMessage) int32
 	GroupMessagePlugin            = func(*client.QQClient, *message.GroupMessage) int32
-	TempMessagePlugin             = func(*client.QQClient, *message.TempMessage) int32
+	TempMessagePlugin             = func(*client.QQClient, *client.TempMessageEvent) int32
 	MemberJoinGroupPlugin         = func(*client.QQClient, *client.MemberJoinGroupEvent) int32
 	MemberLeaveGroupPlugin        = func(*client.QQClient, *client.MemberLeaveGroupEvent) int32
 	JoinGroupPlugin               = func(*client.QQClient, *client.GroupInfo) int32
@@ -166,7 +166,7 @@ func handleGroupMessage(cli *client.QQClient, event *message.GroupMessage) {
 	})
 }
 
-func handleTempMessage(cli *client.QQClient, event *message.TempMessage) {
+func handleTempMessage(cli *client.QQClient, event *client.TempMessageEvent) {
 	util.SafeGo(func() {
 		for _, plugin := range TempMessagePluginList {
 			if result := plugin(cli, event); result == MessageBlock {

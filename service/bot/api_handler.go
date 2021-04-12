@@ -181,7 +181,7 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 	}
 
 	if req.GroupId != 0 && req.UserId != 0 { // 临时
-		ret := cli.SendTempMessage(req.GroupId, req.UserId, sendingMessage)
+		ret := cli.SendGroupTempMessage(req.GroupId, req.UserId, sendingMessage)
 		cache.PrivateMessageLru.Add(ret.Id, ret)
 		return &onebot.SendMsgResp{
 			MessageId: ret.Id,

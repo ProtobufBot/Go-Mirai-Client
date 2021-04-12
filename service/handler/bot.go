@@ -274,5 +274,6 @@ func AfterLogin() {
 
 	bot.ConnectUniversal(bot.Cli)
 
+	bot.LoginToken=bot.Cli.GenToken()
 	bot.SetRelogin(bot.Cli, 10, 30)
 }

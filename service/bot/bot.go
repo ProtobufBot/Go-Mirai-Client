@@ -17,6 +17,7 @@ import (
 )
 
 var Cli *client.QQClient
+var LoginToken []byte
 
 func InitDevice(uin int64) {
 	// 默认 device/device-qq.json
@@ -113,14 +114,24 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 				log.Warn("Bot已登录")
 				return
 			}
-			if retryCount == 0 {
-			} else if times > retryCount {
+			if times > retryCount {
 				break
 			}
 			log.Warnf("Bot已离线 (%v)，将在 %v 秒后尝试重连. 重连次数：%v",
 				e.Message, retryInterval, times)
 			times++
 			time.Sleep(time.Second * time.Duration(retryInterval))
+
+			// 尝试token登录
+			if err := cli.TokenLogin(LoginToken); err != nil {
+				log.Errorf("failed to relogin with token, try to login with password, %+v", err)
+			} else {
+				LoginToken = cli.GenToken()
+				log.Info("succeed to relogin with token")
+				return
+			}
+
+			// 尝试密码登录
 			ok, err := Login(cli)
 
 			if err != nil {
@@ -128,6 +139,7 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 				continue
 			}
 			if ok {
+				LoginToken = cli.GenToken()
 				log.Info("重连成功")
 				return
 			}
