@@ -31,4 +31,8 @@ RUN chmod +x /usr/bin/gmc
 
 COPY --from=ui_builder /build/Client-UI/dist /data/static
 
-CMD "gmc"
+ADD ./scripts/env_run.sh /data/
+
+RUN chmod +x /data/env_run.sh
+
+CMD /data/env_run.sh

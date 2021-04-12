@@ -1,29 +1,29 @@
-#!/bin/bash
+#!/bin/sh
 
-cmd="gmc "
+CMD="gmc"
 
 if [ $UIN ];then
-  cmd+="-uin $UIN "
+  CMD="$CMD -uin $UIN"
 fi
 
 if [ $PASS ];then
-  cmd+="-pass $PASS "
+  CMD="$CMD -pass $PASS"
 fi
 
 if [ $PORT ];then
-  cmd+="-port $PORT "
+  CMD="$CMD -port $PORT"
 fi
 
 if [ $WS_URL ];then
-  cmd+="-ws_url $WS_URL "
+  CMD="$CMD -ws_url $WS_URL"
 fi
 
 if [ $SMS ];then
-  cmd+="-sms $SMS "
+  CMD="$CMD -sms $SMS"
 fi
 
 if [ $DEVICE ];then
-  cmd+="-device $DEVICE "
+  CMD="$CMD -device $DEVICE"
 fi
-
-eval $cmd
+echo $CMD
+eval $CMD
