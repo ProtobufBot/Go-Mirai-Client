@@ -21,6 +21,7 @@ Java/Kotlin用户推荐使用 [spring-boot-starter](https://github.com/protobufb
 如果已经挂了很久，非常确定不会遇到验证码的时候，可以把参数的`port`设为0，表示使用随机端口。
 
 ### 参数
+
 ```shell
 Usage of GMC:
   -uin int
@@ -57,6 +58,20 @@ chmod +x ./Go-Mirai-Client
 ./Go-Mirai-Client -uin <机器人QQ> -pass <机器人密码> -port <HTTP端口> -device <设备信息位置> -ws_url <消息处理器地址> -sms <是否优先短信登录>
 ```
 
+### Docker
+
+```shell
+docker run -it \
+--name=gmc \
+-p 9000:9000 \
+-e UIN=<账号> \
+-e PASS=<密码> \
+-e WS_URL=<WebSocket地址> \
+-e DEVICE=/deivce/123.json \
+-v <设备文件目录>:/deivce \
+lz1998/gmc:0.1.11
+```
+
 ## 验证码类型及处理方法
 
 处理验证码时必须用到浏览器
@@ -83,7 +98,7 @@ chmod +x ./Go-Mirai-Client
 
 该方案为具体的抓包教程, 如果您已经知道如何在浏览器中抓包. 可以略过接下来的文档并直接抓取 `cap_union_new_verify` 的返回值, 提取 `Ticket` 并在命令行提交.
 
-首先打开滑块链接. 这里以 *Microsoft Edge* 浏览器为例, *Chrome* 同理. 
+首先打开滑块链接. 这里以 *Microsoft Edge* 浏览器为例, *Chrome* 同理.
 
 ![image.png](https://i.loli.net/2020/12/27/otk9Hz7lBCaRFMV.png)
 
@@ -107,7 +122,7 @@ chmod +x ./Go-Mirai-Client
 
 此时如果有多个请求, 请不要慌张. 看到上面的 `Filter` 没? 此时在 `Filter` 输入框中输入 `cap_union_new`, 就应该只剩一个请求了.
 
-然后点击该请求. 点开 `Preview` 选项卡 (箭头):  
+然后点击该请求. 点开 `Preview` 选项卡 (箭头):
 
 ![image.png](https://i.loli.net/2020/12/27/P1VtxRWpjY8524Z.png)
 
