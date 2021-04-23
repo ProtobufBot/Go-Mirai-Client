@@ -72,6 +72,17 @@ docker run -it \
 lz1998/gmc:0.1.11
 ```
 
+## 修改协议
+
+修改device文件的protocol，对应关系如下：
+
+- IPad: 0
+- AndroidPhone: 1
+- AndroidWatch: 2
+- MacOS: 3
+
+输入其他数字默认表示IPad
+
 ## 验证码类型及处理方法
 
 处理验证码时必须用到浏览器
