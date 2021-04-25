@@ -100,14 +100,14 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 	if strings.Contains(url, "http://") || strings.Contains(url, "https://") {
 		b, err := util.GetBytes(url)
 		if err != nil {
-			log.Errorf("failed to download image")
+			log.Errorf("failed to download image, %+v", err)
 			return EmptyText()
 		}
 		elem.Stream = bytes.NewReader(b)
 	} else {
 		imageFile, err := os.Open(url)
 		if err != nil {
-			log.Errorf("failed to open local image")
+			log.Errorf("failed to open local image, %+v", err)
 			return EmptyText()
 		}
 		elem.Stream = imageFile
@@ -298,7 +298,7 @@ func ProtoSleep(data map[string]string) {
 	}
 	ms, err := strconv.Atoi(t)
 	if err != nil {
-		log.Warnf("failed to get sleep time2")
+		log.Warnf("failed to get sleep time2, %+v", err)
 		return
 	}
 	if ms > 24*3600*1000 {
@@ -322,7 +322,7 @@ func ProtoTtsToMiraiTts(cli *client.QQClient, data map[string]string) (m message
 	}
 	b, err := cli.GetTts(text)
 	if err != nil {
-		log.Warnf("failed to get tts")
+		log.Warnf("failed to get tts, %+v", err)
 		return EmptyText()
 	}
 	return &message.VoiceElement{Data: b}
@@ -386,7 +386,7 @@ func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m mes
 
 	videoFile, err := os.Open(videoFilePath)
 	if err != nil {
-		log.Errorf("failed to open video file")
+		log.Errorf("failed to open local video file, %+v", err)
 		return EmptyText()
 	}
 	elem.UploadingVideo = videoFile
