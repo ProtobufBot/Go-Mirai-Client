@@ -43,6 +43,7 @@ func init() {
 		ForceColors:     true,
 	}
 	log.SetFormatter(customFormatter)
+	log.SetOutput(os.Stdout)
 }
 
 func main() {
