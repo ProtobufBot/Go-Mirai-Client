@@ -2,6 +2,7 @@ package bot
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
 	"path"
 	"strconv"
@@ -105,12 +106,12 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 		}
 		elem.Stream = bytes.NewReader(b)
 	} else {
-		imageFile, err := os.Open(url)
+		imageBytes, err := ioutil.ReadFile(url)
 		if err != nil {
 			log.Errorf("failed to open local image, %+v", err)
 			return EmptyText()
 		}
-		elem.Stream = imageFile
+		elem.Stream = bytes.NewReader(imageBytes)
 	}
 
 	elem.Tp = data["type"] // show或flash
@@ -351,12 +352,12 @@ func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m mes
 		}
 		elem.UploadingCover = bytes.NewReader(coverBytes)
 	} else {
-		coverFile, err := os.Open(coverUrl)
+		coverBytes, err := ioutil.ReadFile(coverUrl)
 		if err != nil {
 			log.Errorf("failed to open file, err: %+v", err)
 			return EmptyText()
 		}
-		elem.UploadingCover = coverFile
+		elem.UploadingCover = bytes.NewReader(coverBytes)
 	}
 
 	videoFilePath := path.Join("video", util.MustMd5(url)+".mp4")
@@ -384,12 +385,12 @@ func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m mes
 		videoFilePath = url
 	}
 
-	videoFile, err := os.Open(videoFilePath)
+	videoBytes, err := ioutil.ReadFile(videoFilePath)
 	if err != nil {
 		log.Errorf("failed to open local video file, %+v", err)
 		return EmptyText()
 	}
-	elem.UploadingVideo = videoFile
+	elem.UploadingVideo = bytes.NewReader(videoBytes)
 	elem.Url = url           // 仅用于发送日志展示
 	elem.CoverUrl = coverUrl // 仅用于发送日志展示
 	return elem
