@@ -80,6 +80,7 @@ lz1998/gmc:0.1.11
 - AndroidPhone: 1
 - AndroidWatch: 2
 - MacOS: 3
+- 企点: 4
 
 输入其他数字默认表示IPad
 
