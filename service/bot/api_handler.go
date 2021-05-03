@@ -56,7 +56,7 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 			continue
 		}
 		if i, ok := element.(*message.VoiceElement); ok {
-			gm, err := cli.UploadPrivatePtt(target, i.Data)
+			gm, err := cli.UploadPrivatePtt(target, bytes.NewReader(i.Data))
 			if err != nil {
 				log.Errorf("failed to upload private ptt, %+v", err)
 				continue
