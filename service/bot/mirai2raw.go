@@ -31,7 +31,7 @@ func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
 		case *message.ShortVideoElement:
 			result += fmt.Sprintf(`<video name="%s" url="%s"/>`, html.EscapeString(elem.Name), html.EscapeString(elem.Url))
 		case *message.ReplyElement:
-			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.Sender, MiraiMsgToRawMsg(elem.Elements), elem.ReplySeq)
+			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.Sender, html.EscapeString(MiraiMsgToRawMsg(elem.Elements)), elem.ReplySeq)
 		case *clz.MyVideoElement:
 			result += fmt.Sprintf(`<video url="%s" cover="%s"/>`, html.EscapeString(elem.Url), html.EscapeString(elem.CoverUrl))
 		}
