@@ -155,6 +155,9 @@ func ReportTempMessage(cli *client.QQClient, event *client.TempMessageEvent) int
 				UserId:   event.Message.Sender.Uin,
 				Nickname: event.Message.Sender.Nickname,
 			},
+			Extra: map[string]string{
+				"group_id": strconv.FormatInt(event.Message.GroupCode, 10),
+			},
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
