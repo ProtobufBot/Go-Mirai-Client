@@ -3,11 +3,12 @@ package bot
 import (
 	"strconv"
 
+	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 )
 
-func MiraiMsgToProtoMsg(messageChain []message.IMessageElement) []*onebot.Message {
+func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageElement) []*onebot.Message {
 	msgList := make([]*onebot.Message, 0)
 	for _, element := range messageChain {
 		switch elem := element.(type) {
@@ -26,7 +27,7 @@ func MiraiMsgToProtoMsg(messageChain []message.IMessageElement) []*onebot.Messag
 		case *message.LightAppElement:
 			msgList = append(msgList, MiraiLightAppToProtoLightApp(elem))
 		case *message.ShortVideoElement:
-			msgList = append(msgList, MiraiVideoToProtoVideo(elem))
+			msgList = append(msgList, MiraiVideoToProtoVideo(cli, elem))
 		case *message.ReplyElement:
 			msgList = append(msgList, MiraiReplyToProtoReply(elem))
 		}
@@ -107,12 +108,12 @@ func MiraiLightAppToProtoLightApp(elem *message.LightAppElement) *onebot.Message
 	}
 }
 
-func MiraiVideoToProtoVideo(elem *message.ShortVideoElement) *onebot.Message {
+func MiraiVideoToProtoVideo(cli *client.QQClient, elem *message.ShortVideoElement) *onebot.Message {
 	return &onebot.Message{
 		Type: "video",
 		Data: map[string]string{
 			"name": elem.Name,
-			"url":  elem.Url,
+			"url":  cli.GetShortVideoUrl(elem.Uuid, elem.Md5),
 		},
 	}
 }

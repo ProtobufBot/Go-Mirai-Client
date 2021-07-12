@@ -246,7 +246,7 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 			MessageType: messageType,
 			MessageId:   req.MessageId,
 			RealId:      event.InternalId, // 不知道是什么？
-			Message:     MiraiMsgToProtoMsg(event.Elements),
+			Message:     MiraiMsgToProtoMsg(cli, event.Elements),
 			RawMessage:  MiraiMsgToRawMsg(event.Elements),
 			Sender: &onebot.GetMsgResp_Sender{
 				UserId:   event.Sender.Uin,
@@ -267,7 +267,7 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 			MessageType: messageType,
 			MessageId:   req.MessageId,
 			RealId:      event.InternalId, // 不知道是什么？
-			Message:     MiraiMsgToProtoMsg(event.Elements),
+			Message:     MiraiMsgToProtoMsg(cli, event.Elements),
 			RawMessage:  MiraiMsgToRawMsg(event.Elements),
 			Sender: &onebot.GetMsgResp_Sender{
 				UserId:   event.Sender.Uin,

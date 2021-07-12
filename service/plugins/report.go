@@ -29,7 +29,7 @@ func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) i
 			SubType:     "normal",
 			MessageId:   event.Id,
 			UserId:      event.Sender.Uin,
-			Message:     bot.MiraiMsgToProtoMsg(event.Elements),
+			Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
 			RawMessage:  bot.MiraiMsgToRawMsg(event.Elements),
 			Sender: &onebot.PrivateMessageEvent_Sender{
 				UserId:   event.Sender.Uin,
@@ -58,7 +58,7 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		MessageId:   event.Id,
 		GroupId:     event.GroupCode,
 		UserId:      event.Sender.Uin,
-		Message:     bot.MiraiMsgToProtoMsg(event.Elements),
+		Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
 		RawMessage:  bot.MiraiMsgToRawMsg(event.Elements),
 		Sender: &onebot.GroupMessageEvent_Sender{
 			UserId: event.Sender.Uin,
@@ -149,7 +149,7 @@ func ReportTempMessage(cli *client.QQClient, event *client.TempMessageEvent) int
 			SubType:     "group",
 			MessageId:   event.Message.Id,
 			UserId:      event.Message.Sender.Uin,
-			Message:     bot.MiraiMsgToProtoMsg(event.Message.Elements),
+			Message:     bot.MiraiMsgToProtoMsg(cli, event.Message.Elements),
 			RawMessage:  bot.MiraiMsgToRawMsg(event.Message.Elements),
 			Sender: &onebot.PrivateMessageEvent_Sender{
 				UserId:   event.Message.Sender.Uin,
