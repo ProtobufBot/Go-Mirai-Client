@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"html"
 
+	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 )
 
-func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
+func MiraiMsgToRawMsg(cli *client.QQClient, messageChain []message.IMessageElement) string {
 	result := ""
 	for _, element := range messageChain {
 		switch elem := element.(type) {
@@ -29,9 +30,9 @@ func MiraiMsgToRawMsg(messageChain []message.IMessageElement) string {
 		case *message.LightAppElement:
 			result += fmt.Sprintf(`<light_app content="%s"/>`, html.EscapeString(elem.Content))
 		case *message.ShortVideoElement:
-			result += fmt.Sprintf(`<video name="%s" url="%s"/>`, html.EscapeString(elem.Name), html.EscapeString(elem.Url))
+			result += fmt.Sprintf(`<video name="%s" url="%s"/>`, html.EscapeString(elem.Name), html.EscapeString(cli.GetShortVideoUrl(elem.Uuid, elem.Md5)))
 		case *message.ReplyElement:
-			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.Sender, html.EscapeString(MiraiMsgToRawMsg(elem.Elements)), elem.ReplySeq)
+			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.Sender, html.EscapeString(MiraiMsgToRawMsg(cli, elem.Elements)), elem.ReplySeq)
 		case *clz.MyVideoElement:
 			result += fmt.Sprintf(`<video url="%s" cover="%s"/>`, html.EscapeString(elem.Url), html.EscapeString(elem.CoverUrl))
 		}

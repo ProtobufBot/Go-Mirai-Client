@@ -11,7 +11,7 @@ func HelloPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) in
 	if event.Sender.Uin != 875543533 {
 		return plugin.MessageIgnore
 	}
-	if bot.MiraiMsgToRawMsg(event.Elements) != "hi" {
+	if bot.MiraiMsgToRawMsg(cli,event.Elements) != "hi" {
 		return plugin.MessageIgnore
 	}
 	cli.SendPrivateMessage(event.Sender.Uin, &message.SendingMessage{

@@ -137,7 +137,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *onebot.SendPrivateMsgResp {
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
-	log.Infof("Bot(%d) Private(%d) <- %s", cli.Uin, req.UserId, MiraiMsgToRawMsg(miraiMsg))
+	log.Infof("Bot(%d) Private(%d) <- %s", cli.Uin, req.UserId, MiraiMsgToRawMsg(cli, miraiMsg))
 	preProcessPrivateSendingMessage(cli, req.UserId, sendingMessage)
 	ret := cli.SendPrivateMessage(req.UserId, sendingMessage)
 	cache.PrivateMessageLru.Add(ret.Id, ret)
@@ -153,7 +153,7 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	}
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
-	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(miraiMsg))
+	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(cli, miraiMsg))
 	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
 	if len(sendingMessage.Elements) == 0 {
 		log.Warnf("发送消息内容为空")
@@ -247,7 +247,7 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 			MessageId:   req.MessageId,
 			RealId:      event.InternalId, // 不知道是什么？
 			Message:     MiraiMsgToProtoMsg(cli, event.Elements),
-			RawMessage:  MiraiMsgToRawMsg(event.Elements),
+			RawMessage:  MiraiMsgToRawMsg(cli, event.Elements),
 			Sender: &onebot.GetMsgResp_Sender{
 				UserId:   event.Sender.Uin,
 				Nickname: event.Sender.Nickname,
@@ -268,7 +268,7 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 			MessageId:   req.MessageId,
 			RealId:      event.InternalId, // 不知道是什么？
 			Message:     MiraiMsgToProtoMsg(cli, event.Elements),
-			RawMessage:  MiraiMsgToRawMsg(event.Elements),
+			RawMessage:  MiraiMsgToRawMsg(cli,event.Elements),
 			Sender: &onebot.GetMsgResp_Sender{
 				UserId:   event.Sender.Uin,
 				Nickname: event.Sender.Nickname,

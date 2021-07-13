@@ -29,7 +29,7 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 		case *message.ShortVideoElement:
 			msgList = append(msgList, MiraiVideoToProtoVideo(cli, elem))
 		case *message.ReplyElement:
-			msgList = append(msgList, MiraiReplyToProtoReply(elem))
+			msgList = append(msgList, MiraiReplyToProtoReply(cli,elem))
 		}
 	}
 	return msgList
@@ -118,14 +118,14 @@ func MiraiVideoToProtoVideo(cli *client.QQClient, elem *message.ShortVideoElemen
 	}
 }
 
-func MiraiReplyToProtoReply(elem *message.ReplyElement) *onebot.Message {
+func MiraiReplyToProtoReply(cli *client.QQClient,elem *message.ReplyElement) *onebot.Message {
 	return &onebot.Message{
 		Type: "reply",
 		Data: map[string]string{
 			"reply_seq":   strconv.FormatInt(int64(elem.ReplySeq), 10),
 			"sender":      strconv.FormatInt(elem.Sender, 10),
 			"time":        strconv.FormatInt(int64(elem.Time), 10),
-			"raw_message": MiraiMsgToRawMsg(elem.Elements),
+			"raw_message": MiraiMsgToRawMsg(cli,elem.Elements),
 		},
 	}
 }
