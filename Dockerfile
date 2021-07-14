@@ -1,4 +1,4 @@
-FROM golang:1.15-alpine AS gmc_builder
+FROM golang:1.16-alpine AS gmc_builder
 
 RUN go env -w GO111MODULE=auto \
   && go env -w CGO_ENABLED=0 \
