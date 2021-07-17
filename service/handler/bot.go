@@ -135,13 +135,14 @@ func FetchQrCode(c *gin.Context) {
 	}
 
 	log.Infof("开始初始化设备信息")
-	bot.InitDevice(0)
-	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
+	//bot.InitDevice(0)
+	deviceInfo := bot.GetDevice(0)
+	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 	if bot.Cli != nil {
 		bot.Cli.Disconnect()
 		time.Sleep(time.Second)
 	}
-	bot.Cli = client.NewClientEmpty()
+	bot.Cli = client.NewClientEmpty(deviceInfo)
 	log.Infof("初始化日志")
 	bot.InitLog(bot.Cli)
 	fetchQRCodeResp, err := bot.Cli.FetchQRCode()
@@ -223,15 +224,16 @@ func Return(c *gin.Context, resp proto.Message) {
 
 func CreateBotImpl(uin int64, password string) {
 	log.Infof("开始初始化设备信息")
-	bot.InitDevice(uin)
-	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
+	//bot.InitDevice(uin)
+	deviceInfo := bot.GetDevice(uin)
+	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 
 	log.Infof("创建机器人 %+v", uin)
 	if bot.Cli != nil {
 		bot.Cli.Disconnect()
 		time.Sleep(time.Second)
 	}
-	bot.Cli = client.NewClient(uin, password)
+	bot.Cli = client.NewClient(uin, password, deviceInfo)
 
 	log.Infof("初始化日志")
 	bot.InitLog(bot.Cli)
@@ -274,6 +276,6 @@ func AfterLogin() {
 
 	bot.ConnectUniversal(bot.Cli)
 
-	bot.LoginToken=bot.Cli.GenToken()
+	bot.LoginToken = bot.Cli.GenToken()
 	bot.SetRelogin(bot.Cli, 10, 30)
 }

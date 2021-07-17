@@ -19,7 +19,7 @@ import (
 var Cli *client.QQClient
 var LoginToken []byte
 
-func InitDevice(uin int64) {
+func GetDevice(uin int64) *client.DeviceInfo {
 	// 默认 device/device-qq.json
 	devicePath := path.Join("device", fmt.Sprintf("device-%d.json", uin))
 
@@ -36,35 +36,36 @@ func InitDevice(uin int64) {
 		}
 	}
 
+	deviceInfo := client.NewDeviceInfo()
 	log.Info("生成随机设备信息")
-	client.SystemDeviceInfo.AndroidId = []byte("MIRAI.123456.001")
-	client.GenRandomDevice()
-	client.SystemDeviceInfo.Display = []byte("GMC." + utils.RandomStringRange(6, "0123456789") + ".001")
-	client.SystemDeviceInfo.FingerPrint = []byte("pbbot/gmc/gmc:10/PBBOT.200324.001/" + utils.RandomStringRange(7, "0123456789") + ":user/release-keys")
-	client.SystemDeviceInfo.ProcVersion = []byte("Linux 5.4.0-54-generic" + utils.RandomString(8) + " (android-build@gmail.com)")
-	client.SystemDeviceInfo.AndroidId = client.SystemDeviceInfo.Display
-	client.SystemDeviceInfo.Device = []byte("gmc")
-	client.SystemDeviceInfo.Board = []byte("gmc")
-	client.SystemDeviceInfo.Model = []byte("gmc")
-	client.SystemDeviceInfo.Brand = []byte("pbbot")
-	client.SystemDeviceInfo.Product = []byte("gmc")
-	client.SystemDeviceInfo.WifiSSID = []byte("TP-LINK-" + utils.RandomStringRange(6, "ABCDEF1234567890"))
-	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 1, byte(100 + uin%100)}
-	client.SystemDeviceInfo.Protocol = client.IPad
-	client.SystemDeviceInfo.VendorOSName = []byte("gmc")
+	deviceInfo.AndroidId = "MIRAI.123456.001"
+	deviceInfo.Display = "GMC." + utils.RandomStringRange(6, "0123456789") + ".001"
+	deviceInfo.FingerPrint = "pbbot/gmc/gmc:10/PBBOT.200324.001/" + utils.RandomStringRange(7, "0123456789") + ":user/release-keys"
+	deviceInfo.ProcVersion = "Linux 5.4.0-54-generic" + utils.RandomString(8) + " (android-build@gmail.com)"
+	deviceInfo.AndroidId = deviceInfo.Display
+	deviceInfo.Device = "gmc"
+	deviceInfo.Board = "gmc"
+	deviceInfo.Model = "gmc"
+	deviceInfo.Brand = "pbbot"
+	deviceInfo.Product = "gmc"
+	deviceInfo.WifiSSID = "TP-LINK-" + utils.RandomStringRange(6, "ABCDEF1234567890")
+	deviceInfo.IpAddress = []byte{192, 168, 1, byte(100 + uin%100)}
+	deviceInfo.Protocol = client.IPad
+	deviceInfo.VendorOSName = "gmc"
 
 	if util.PathExists(devicePath) {
 		log.Infof("使用 %s 内的设备信息覆盖设备信息", devicePath)
-		if err := client.SystemDeviceInfo.ReadJson([]byte(util.ReadAllText(devicePath))); err != nil {
+		if err := deviceInfo.ReadJson([]byte(util.ReadAllText(devicePath))); err != nil {
 			util.FatalError(fmt.Errorf("failed to load device info, err: %+v", err))
 		}
 	}
 
 	log.Infof("保存设备信息到文件 %s", devicePath)
-	err := ioutil.WriteFile(devicePath, client.SystemDeviceInfo.ToJson(), 0644)
+	err := ioutil.WriteFile(devicePath, deviceInfo.ToJson(), 0644)
 	if err != nil {
 		log.Warnf("写设备信息文件 %s 失败", devicePath)
 	}
+	return deviceInfo
 }
 
 func InitLog(cli *client.QQClient) {
