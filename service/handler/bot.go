@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/device"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/plugins"
+
+	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/protobuf/proto"
@@ -51,8 +53,9 @@ func CreateBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	if bot.Cli != nil && bot.Cli.Uin != 0 {
-		c.String(http.StatusInternalServerError, "only one bot is allowed")
+	_, ok := bot.Clients[req.BotId]
+	if ok {
+		c.String(http.StatusInternalServerError, "botId already exists")
 	}
 	go func() {
 		CreateBotImpl(req.BotId, req.Password)
@@ -68,20 +71,14 @@ func ListBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	var resp *dto.ListBotResp
-	if bot.Cli != nil && bot.Cli.Uin != 0 {
-		resp = &dto.ListBotResp{
-			BotList: []*dto.Bot{
-				{
-					BotId:    bot.Cli.Uin,
-					IsOnline: bot.Cli.Online,
-				},
-			},
-		}
-	} else {
-		resp = &dto.ListBotResp{
-			BotList: []*dto.Bot{},
-		}
+	var resp = &dto.ListBotResp{
+		BotList: []*dto.Bot{},
+	}
+	for _, cli := range bot.Clients {
+		resp.BotList = append(resp.BotList, &dto.Bot{
+			BotId:    cli.Uin,
+			IsOnline: cli.Online,
+		})
 	}
 	Return(c, resp)
 }
@@ -113,12 +110,13 @@ func SolveCaptcha(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	if bot.CaptchaPromise == nil {
+	captchaProm, ok := bot.CaptchaPromises[req.BotId]
+	if !ok {
 		c.String(http.StatusInternalServerError, "captcha not found")
 		return
 	}
 
-	err = bot.CaptchaPromise.Resolve(req.Result)
+	err = captchaProm.Resolve(req.Result)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "solve captcha error")
 		return
@@ -129,22 +127,16 @@ func SolveCaptcha(c *gin.Context) {
 }
 
 func FetchQrCode(c *gin.Context) {
-	if bot.Cli != nil && bot.Cli.Online {
-		c.String(http.StatusBadRequest, "already online")
-		return
+	cli, ok := bot.Clients[0]
+	if ok {
+		cli.Disconnect()
 	}
+	cli = client.NewClientEmpty()
+	bot.Clients[0] = cli
 
-	log.Infof("开始初始化设备信息")
-	bot.InitDevice(0)
-	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
-	if bot.Cli != nil {
-		bot.Cli.Disconnect()
-		time.Sleep(time.Second)
-	}
-	bot.Cli = client.NewClientEmpty()
 	log.Infof("初始化日志")
-	bot.InitLog(bot.Cli)
-	fetchQRCodeResp, err := bot.Cli.FetchQRCode()
+	bot.InitLog(cli)
+	fetchQRCodeResp, err := cli.FetchQRCode()
 	if err != nil {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
 		return
@@ -158,11 +150,6 @@ func FetchQrCode(c *gin.Context) {
 }
 
 func QueryQRCodeStatus(c *gin.Context) {
-	if bot.Cli != nil && bot.Cli.Online {
-		c.String(http.StatusBadRequest, "already online")
-		return
-	}
-
 	req := &dto.QueryQRCodeStatusReq{}
 	err := c.Bind(req)
 	if err != nil {
@@ -170,28 +157,46 @@ func QueryQRCodeStatus(c *gin.Context) {
 		return
 	}
 
-	queryQRCodeStatusResp, err := bot.Cli.QueryQRCodeStatus(req.Sig)
+	cli, ok := bot.Clients[req.BotId]
+	if !ok {
+		c.String(http.StatusBadRequest, "botId not exists")
+		return
+	}
+
+	if cli.Online {
+		c.String(http.StatusBadRequest, "already online")
+		return
+	}
+
+	queryQRCodeStatusResp, err := cli.QueryQRCodeStatus(req.Sig)
 	if err != nil {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to query qrcode status, %+v", err))
 		return
 	}
 	if queryQRCodeStatusResp.State == client.QRCodeConfirmed {
-		loginResp, err := bot.Cli.QRCodeLogin(queryQRCodeStatusResp.LoginInfo)
+		loginResp, err := cli.QRCodeLogin(queryQRCodeStatusResp.LoginInfo)
 		if err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
 			return
 		}
 		go func() {
-			ok, err := bot.ProcessLoginRsp(bot.Cli, loginResp)
+			ok, err := bot.ProcessLoginRsp(cli, loginResp)
 			if err != nil {
 				util.FatalError(fmt.Errorf("failed to login, err: %+v", err))
 			}
 			if ok {
 				log.Infof("登录成功")
+				originCli, ok := bot.Clients[cli.Uin]
+				if ok {
+					// 重复登录，旧的断开
+					originCli.Disconnect()
+				}
+				delete(bot.Clients, 0)
+				bot.Clients[cli.Uin] = cli
+				AfterLogin(cli)
 			} else {
 				log.Infof("登录失败")
 			}
-			AfterLogin()
 		}()
 	}
 
@@ -223,57 +228,56 @@ func Return(c *gin.Context, resp proto.Message) {
 
 func CreateBotImpl(uin int64, password string) {
 	log.Infof("开始初始化设备信息")
-	bot.InitDevice(uin)
-	log.Infof("设备信息 %+v", string(client.SystemDeviceInfo.ToJson()))
+	//bot.InitDevice(uin)
+	deviceInfo := device.GetDevice(uin)
+	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 
 	log.Infof("创建机器人 %+v", uin)
-	if bot.Cli != nil {
-		bot.Cli.Disconnect()
-		time.Sleep(time.Second)
-	}
-	bot.Cli = client.NewClient(uin, password)
+
+	cli := client.NewClient(uin, password)
+	cli.UseDevice(deviceInfo)
+	bot.Clients[uin] = cli
 
 	log.Infof("初始化日志")
-	bot.InitLog(bot.Cli)
+	bot.InitLog(cli)
 
 	log.Infof("登录中...")
-	ok, err := bot.Login(bot.Cli)
+	ok, err := bot.Login(cli)
 	if err != nil {
 		util.FatalError(fmt.Errorf("failed to login, err: %+v", err))
 	}
 	if ok {
 		log.Infof("登录成功")
+		AfterLogin(cli)
 	} else {
 		log.Infof("登录失败")
 	}
-	AfterLogin()
 }
 
-func AfterLogin() {
+func AfterLogin(cli *client.QQClient) {
 	for {
 		time.Sleep(5 * time.Second)
-		if bot.Cli.Online {
+		if cli.Online {
 			break
 		}
 		log.Warnf("机器人不在线，可能在等待输入验证码，或出错了。如果出错请重启。")
 	}
-	plugin.Serve(bot.Cli)
+	plugin.Serve(cli)
 	log.Infof("插件加载完成")
 
 	log.Infof("刷新好友列表")
-	if err := bot.Cli.ReloadFriendList(); err != nil {
+	if err := cli.ReloadFriendList(); err != nil {
 		util.FatalError(fmt.Errorf("failed to load friend list, err: %+v", err))
 	}
-	log.Infof("共加载 %v 个好友.", len(bot.Cli.FriendList))
+	log.Infof("共加载 %v 个好友.", len(cli.FriendList))
 
 	log.Infof("刷新群列表")
-	if err := bot.Cli.ReloadGroupList(); err != nil {
+	if err := cli.ReloadGroupList(); err != nil {
 		util.FatalError(fmt.Errorf("failed to load group list, err: %+v", err))
 	}
-	log.Infof("共加载 %v 个群.", len(bot.Cli.GroupList))
+	log.Infof("共加载 %v 个群.", len(cli.GroupList))
 
-	bot.ConnectUniversal(bot.Cli)
+	bot.ConnectUniversal(cli)
 
-	bot.LoginToken=bot.Cli.GenToken()
-	bot.SetRelogin(bot.Cli, 10, 30)
+	bot.SetRelogin(cli, 30, 20)
 }

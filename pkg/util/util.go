@@ -126,7 +126,7 @@ func FatalError(err error) {
 	sBuf := string(buf)
 	log.Errorf(sBuf)
 	time.Sleep(5 * time.Second)
-	os.Exit(0)
+	panic(err)
 }
 
 func MustMd5(text string) string {

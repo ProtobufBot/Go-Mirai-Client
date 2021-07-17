@@ -6,16 +6,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
+
+	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"
 )
 
 var Captcha *dto.Captcha
-var CaptchaPromise *promise.Promise
+
+// TODO sync
+var CaptchaPromises = map[int64]*promise.Promise{}
 
 func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, error) {
 	if rsp.Success {
@@ -38,8 +41,10 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			CaptchaType: dto.Captcha_SLIDER_CAPTCHA,
 			Data:        &dto.Captcha_Url{Url: rsp.VerifyUrl},
 		}
-		CaptchaPromise = promise.NewPromise()
-		result, err := CaptchaPromise.Get()
+		prom := promise.NewPromise()
+		CaptchaPromises[cli.Uin] = prom
+		defer delete(CaptchaPromises, cli.Uin)
+		result, err := prom.Get()
 		if err != nil {
 			return false, fmt.Errorf("提交ticket错误")
 		}
@@ -57,8 +62,10 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			CaptchaType: dto.Captcha_PIC_CAPTCHA,
 			Data:        &dto.Captcha_Image{Image: rsp.CaptchaImage},
 		}
-		CaptchaPromise = promise.NewPromise()
-		result, err := CaptchaPromise.Get()
+		prom := promise.NewPromise()
+		CaptchaPromises[cli.Uin] = prom
+		defer delete(CaptchaPromises, cli.Uin)
+		result, err := prom.Get()
 		text := result.(string)
 		rsp, err := cli.SubmitCaptcha(strings.ReplaceAll(text, "\n", ""), rsp.CaptchaSign)
 		util.DelFile("captcha.jpg")
@@ -76,8 +83,10 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			CaptchaType: dto.Captcha_SMS,
 			Data:        &dto.Captcha_Url{Url: rsp.SMSPhone},
 		}
-		CaptchaPromise = promise.NewPromise()
-		result, err := CaptchaPromise.Get()
+		prom := promise.NewPromise()
+		CaptchaPromises[cli.Uin] = prom
+		defer delete(CaptchaPromises, cli.Uin)
+		result, err := prom.Get()
 		if err != nil {
 			return false, fmt.Errorf("提交短信验证码错误")
 		}
@@ -93,8 +102,10 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			CaptchaType: dto.Captcha_UNSAFE_DEVICE_LOGIN_VERIFY,
 			Data:        &dto.Captcha_Url{Url: rsp.VerifyUrl},
 		}
-		CaptchaPromise = promise.NewPromise()
-		_, err := CaptchaPromise.Get()
+		prom := promise.NewPromise()
+		CaptchaPromises[cli.Uin] = prom
+		defer delete(CaptchaPromises, cli.Uin)
+		_, err := prom.Get()
 		cli.Disconnect()
 		time.Sleep(3 * time.Second)
 		rsp, err := cli.Login()
