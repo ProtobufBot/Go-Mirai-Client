@@ -66,6 +66,7 @@ message FetchQRCodeReq{
 // 查询二维码状态 /qrcode/query/v1/
 message QueryQRCodeStatusReq{
     bytes sig = 1;
+    int64 bot_id = 2;
 }
 // 二维码登陆响应（获取和查询统一）
 message QRCodeLoginResp{

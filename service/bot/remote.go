@@ -29,7 +29,6 @@ type WsServer struct {
 }
 
 func ConnectUniversal(cli *client.QQClient) {
-
 	for _, group := range config.Conf.ServerGroups {
 		if group.Disabled || group.Urls == nil || len(group.Urls) < 1 {
 			continue
@@ -58,7 +57,7 @@ func ConnectUniversal(cli *client.QQClient) {
 				}
 				log.Infof("连接Websocket服务器成功 [%s](%s)", serverGroup.Name, serverUrl)
 				closeChan := make(chan int, 1)
-				safeWs := safe_ws.NewSafeWebSocket(conn, OnWsRecvMessage, func() {
+				safeWs := safe_ws.NewSafeWebSocket(conn, OnWsRecvMessage(cli), func() {
 					defer func() {
 						_ = recover() // 可能多次触发
 					}()
@@ -95,25 +94,27 @@ func ConnectUniversal(cli *client.QQClient) {
 	}
 }
 
-func OnWsRecvMessage(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
-	if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
-		return
-	}
-	var apiReq onebot.Frame
-	err := proto.Unmarshal(data, &apiReq)
-	if err != nil {
-		log.Errorf("收到API buffer，解析错误 %v", err)
-		return
-	}
-	log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
+func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+	return func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+		if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
+			return
+		}
+		var apiReq onebot.Frame
+		err := proto.Unmarshal(data, &apiReq)
+		if err != nil {
+			log.Errorf("收到API buffer，解析错误 %v", err)
+			return
+		}
+		log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
 
-	apiResp := handleApiFrame(Cli, &apiReq)
-	respBytes, err := apiResp.Marshal()
-	if err != nil {
-		log.Errorf("failed to marshal api resp, %+v", err)
+		apiResp := handleApiFrame(cli, &apiReq)
+		respBytes, err := apiResp.Marshal()
+		if err != nil {
+			log.Errorf("failed to marshal api resp, %+v", err)
+		}
+		log.Debugf("发送 apiResp 信息, %+v", util.MustMarshal(apiResp))
+		_ = ws.Send(websocket.BinaryMessage, respBytes)
 	}
-	log.Debugf("发送 apiResp 信息, %+v", util.MustMarshal(apiResp))
-	_ = ws.Send(websocket.BinaryMessage, respBytes)
 }
 
 func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {

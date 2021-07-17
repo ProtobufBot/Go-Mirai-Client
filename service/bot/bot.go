@@ -16,7 +16,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var Cli *client.QQClient
+// TODO sync
+var Clis = map[int64]*client.QQClient{}
 var LoginToken []byte
 
 func GetDevice(uin int64) *client.DeviceInfo {
