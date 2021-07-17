@@ -64,6 +64,15 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 			newElements = append(newElements, gm)
 			continue
 		}
+		if i, ok := element.(*clz.MyVideoElement); ok {
+			gm, err := cli.UploadGroupShortVideo(target, i.UploadingVideo, i.UploadingCover)
+			if err != nil {
+				log.Errorf("failed to upload private video, %+v", err)
+				continue
+			}
+			newElements = append(newElements, gm)
+			continue
+		}
 		newElements = append(newElements, element)
 	}
 	m.Elements = newElements
