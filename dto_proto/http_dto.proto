@@ -62,6 +62,7 @@ message SolveCaptchaResp{
 
 // 获取二维码 /qrcode/fetch/v1/
 message FetchQRCodeReq{
+    int64 device_seed = 1;
 }
 // 查询二维码状态 /qrcode/query/v1/
 message QueryQRCodeStatusReq{

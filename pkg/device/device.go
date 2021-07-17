@@ -99,14 +99,15 @@ func GenNewTgtgtKey(randGen *rand.Rand, info *client.DeviceInfo) {
 }
 
 // GetDevice
-// 如果文件夹不存在，自动创建文件夹
-// 如果设备文件不存在，使用种子生成随机设备信息
-// 如果已有设备文件，使用已有设备信息
+// 如果设备文件夹不存在，自动创建文件夹
+// 使用种子生成随机设备信息
+// 如果已有设备文件，使用已有设备信息覆盖
+// 存储设备信息到文件
 func GetDevice(seed int64) *client.DeviceInfo {
-	if seed == 0 {
-		seed = time.Now().UnixNano()
-	}
 	randGen := rand.New(rand.NewSource(seed))
+	if seed == 0 {
+		randGen = rand.New(rand.NewSource(time.Now().UnixNano()))
+	}
 	// 默认 device/device-qq.json
 	devicePath := path.Join("device", fmt.Sprintf("device-%d.json", seed))
 

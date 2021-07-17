@@ -127,11 +127,19 @@ func SolveCaptcha(c *gin.Context) {
 }
 
 func FetchQrCode(c *gin.Context) {
+	req := &dto.FetchQRCodeReq{}
+	err := c.Bind(req)
+	if err != nil {
+		c.String(http.StatusBadRequest, "bad request, not protobuf")
+		return
+	}
 	cli, ok := bot.Clients[0]
 	if ok {
 		cli.Disconnect()
 	}
 	cli = client.NewClientEmpty()
+	deviceInfo := device.GetDevice(req.DeviceSeed)
+	cli.UseDevice(deviceInfo)
 	bot.Clients[0] = cli
 
 	log.Infof("初始化日志")
