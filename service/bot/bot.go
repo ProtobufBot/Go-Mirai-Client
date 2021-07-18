@@ -105,12 +105,13 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 			}
 		}
 		log.Errorf("failed to reconnect: 重连次数达到设置的上限值, %+v", cli.Uin)
-		CloseClient(cli)
+		ReleaseClient(cli)
 	})
 }
 
-func CloseClient(cli *client.QQClient) {
-	cli.Disconnect()
+// ReleaseClient 断开连接并释放资源
+func ReleaseClient(cli *client.QQClient) {
+	cli.Release()
 	delete(Clients, cli.Uin)
 	delete(LoginTokens, cli.Uin)
 }

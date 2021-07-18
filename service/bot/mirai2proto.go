@@ -5,6 +5,7 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 )
 
@@ -16,8 +17,12 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 			msgList = append(msgList, MiraiTextToProtoText(elem))
 		case *message.AtElement:
 			msgList = append(msgList, MiraiAtToProtoAt(elem))
-		case *message.ImageElement:
-			msgList = append(msgList, MiraiImageToProtoImage(elem))
+		case *message.FriendImageElement:
+			msgList = append(msgList, MiraiFriendImageToProtoImage(elem))
+		case *message.GroupImageElement:
+			msgList = append(msgList, MiraiGroupImageToProtoImage(elem))
+		case *clz.LocalImageElement:
+			msgList = append(msgList, MiraiLocalImageToProtoImage(elem))
 		case *message.FaceElement:
 			msgList = append(msgList, MiraiFaceToProtoFace(elem))
 		case *message.VoiceElement:
@@ -29,7 +34,7 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 		case *message.ShortVideoElement:
 			msgList = append(msgList, MiraiVideoToProtoVideo(cli, elem))
 		case *message.ReplyElement:
-			msgList = append(msgList, MiraiReplyToProtoReply(cli,elem))
+			msgList = append(msgList, MiraiReplyToProtoReply(cli, elem))
 		}
 	}
 	return msgList
@@ -44,7 +49,27 @@ func MiraiTextToProtoText(elem *message.TextElement) *onebot.Message {
 	}
 }
 
-func MiraiImageToProtoImage(elem *message.ImageElement) *onebot.Message {
+func MiraiFriendImageToProtoImage(elem *message.FriendImageElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "image",
+		Data: map[string]string{
+			"file": elem.Url,
+			"url":  elem.Url,
+		},
+	}
+}
+
+func MiraiGroupImageToProtoImage(elem *message.GroupImageElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "image",
+		Data: map[string]string{
+			"file": elem.Url,
+			"url":  elem.Url,
+		},
+	}
+}
+
+func MiraiLocalImageToProtoImage(elem *clz.LocalImageElement) *onebot.Message {
 	return &onebot.Message{
 		Type: "image",
 		Data: map[string]string{
@@ -118,14 +143,14 @@ func MiraiVideoToProtoVideo(cli *client.QQClient, elem *message.ShortVideoElemen
 	}
 }
 
-func MiraiReplyToProtoReply(cli *client.QQClient,elem *message.ReplyElement) *onebot.Message {
+func MiraiReplyToProtoReply(cli *client.QQClient, elem *message.ReplyElement) *onebot.Message {
 	return &onebot.Message{
 		Type: "reply",
 		Data: map[string]string{
 			"reply_seq":   strconv.FormatInt(int64(elem.ReplySeq), 10),
 			"sender":      strconv.FormatInt(elem.Sender, 10),
 			"time":        strconv.FormatInt(int64(elem.Time), 10),
-			"raw_message": MiraiMsgToRawMsg(cli,elem.Elements),
+			"raw_message": MiraiMsgToRawMsg(cli, elem.Elements),
 		},
 	}
 }

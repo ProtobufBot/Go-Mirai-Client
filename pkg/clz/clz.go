@@ -16,10 +16,14 @@ type MyVideoElement struct {
 }
 
 type LocalImageElement struct {
-	message.ImageElement
+	Url      string
 	Stream   io.ReadSeeker
 	Tp       string // 类型 flash/show
-	EffectId int32 // show的特效id，范围40000-40005
+	EffectId int32  // show的特效id，范围40000-40005
+}
+
+func (m *LocalImageElement) Type() message.ElementType {
+	return message.Image
 }
 
 type GiftElement struct {

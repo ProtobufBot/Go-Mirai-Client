@@ -135,7 +135,7 @@ func FetchQrCode(c *gin.Context) {
 	}
 	cli, ok := bot.Clients[0]
 	if ok {
-		cli.Disconnect()
+		cli.Release()
 	}
 	cli = client.NewClientEmpty()
 	deviceInfo := device.GetDevice(req.DeviceSeed)
@@ -197,7 +197,7 @@ func QueryQRCodeStatus(c *gin.Context) {
 				originCli, ok := bot.Clients[cli.Uin]
 				if ok {
 					// 重复登录，旧的断开
-					originCli.Disconnect()
+					originCli.Release()
 				}
 				delete(bot.Clients, 0)
 				bot.Clients[cli.Uin] = cli

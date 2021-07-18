@@ -49,10 +49,9 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 				continue
 			}
 			if i.Tp == "flash" {
-				newElements = append(newElements, &message.FriendFlashPicElement{FriendImageElement: *img})
-			} else {
-				newElements = append(newElements, img)
+				img.Flash = true
 			}
+			newElements = append(newElements, img)
 			continue
 		}
 		if i, ok := element.(*message.VoiceElement); ok {
@@ -97,12 +96,11 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 				continue
 			}
 			if i.Tp == "flash" {
-				newElements = append(newElements, &message.GroupFlashPicElement{GroupImageElement: *img})
+				img.Flash = true
 			} else if i.Tp == "show" {
-				newElements = append(newElements, &message.GroupShowPicElement{GroupImageElement: *img, EffectId: i.EffectId})
-			} else {
-				newElements = append(newElements, img)
+				img.EffectID = i.EffectId
 			}
+			newElements = append(newElements, img)
 			continue
 		}
 		if i, ok := element.(*message.VoiceElement); ok {
@@ -277,7 +275,7 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 			MessageId:   req.MessageId,
 			RealId:      event.InternalId, // 不知道是什么？
 			Message:     MiraiMsgToProtoMsg(cli, event.Elements),
-			RawMessage:  MiraiMsgToRawMsg(cli,event.Elements),
+			RawMessage:  MiraiMsgToRawMsg(cli, event.Elements),
 			Sender: &onebot.GetMsgResp_Sender{
 				UserId:   event.Sender.Uin,
 				Nickname: event.Sender.Nickname,
