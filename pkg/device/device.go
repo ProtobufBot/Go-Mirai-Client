@@ -34,9 +34,8 @@ func RandDevice(randGen *rand.Rand) *client.DeviceInfo {
 		BaseBand:     []byte{},
 		SimInfo:      []byte("T-Mobile"),
 		OSType:       []byte("android"),
-		MacAddress:   []byte("00:50:56:C0:00:08"),
+		MacAddress:   []byte(fmt.Sprintf("EC:D0:9F:%s:%s:%s", util.RandomStringRange(randGen, 2, "02468ACD"), util.RandomStringRange(randGen, 2, "02468ACD"), util.RandomStringRange(randGen, 2, "02468ACD"))),
 		IpAddress:    []byte{10, 0, 1, 3}, // 10.0.1.3
-		WifiBSSID:    []byte("00:50:56:C0:00:08"),
 		WifiSSID:     []byte("TP-LINK-" + util.RandomStringRange(randGen, 6, "ABCDEF1234567890")),
 		IMEI:         GenIMEI(randGen),
 		APN:          []byte("wifi"),
@@ -50,6 +49,7 @@ func RandDevice(randGen *rand.Rand) *client.DeviceInfo {
 			Sdk:         29,
 		},
 	}
+	device.WifiBSSID = device.MacAddress
 	r := make([]byte, 16)
 	randGen.Read(r)
 	device.BootId = binary.GenUUID(r)

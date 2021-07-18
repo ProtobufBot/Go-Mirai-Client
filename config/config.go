@@ -28,6 +28,7 @@ var (
 			},
 		},
 	}
+	HttpAuth = map[string]string{}
 )
 
 type GmcConfig struct {

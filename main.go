@@ -25,6 +25,7 @@ var (
 	pass         = ""    //password
 	device       = ""    // device file path
 	help         = false // help
+	auth         = ""
 )
 
 func init() {
@@ -35,6 +36,7 @@ func init() {
 	flag.StringVar(&pass, "pass", "", "bot's password")
 	flag.StringVar(&device, "device", "", "device file")
 	flag.BoolVar(&help, "help", false, "this help")
+	flag.StringVar(&auth, "auth", "", "http basic auth: 'username,password'")
 	flag.Parse()
 
 	customFormatter := &log.TextFormatter{
@@ -93,6 +95,15 @@ func LoadParamConfig() {
 	if device != "" {
 		config.Device = device
 	}
+
+	if auth != "" {
+		authSplit := strings.Split(auth, ",")
+		if len(authSplit) == 2 {
+			config.HttpAuth[authSplit[0]] = authSplit[1]
+		} else {
+			log.Warnf("auth 参数错误，正确格式: 'username,password'")
+		}
+	}
 }
 
 func WriteGmcConfigFile(filePath string) {
@@ -114,6 +125,9 @@ func InitGin() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
+	if len(config.HttpAuth) > 0 {
+		router.Use(gin.BasicAuth(config.HttpAuth))
+	}
 
 	router.Use(handler.CORSMiddleware())
 	router.Static("/", "./static")
