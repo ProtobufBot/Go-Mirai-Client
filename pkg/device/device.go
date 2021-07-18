@@ -136,6 +136,9 @@ func GetDevice(seed int64) *client.DeviceInfo {
 		}
 	}
 
+	GenNewGuid(deviceInfo)
+	GenNewTgtgtKey(randGen, deviceInfo)
+
 	log.Infof("保存设备信息到文件 %s", devicePath)
 	err := ioutil.WriteFile(devicePath, deviceInfo.ToJson(), 0644)
 	if err != nil {
