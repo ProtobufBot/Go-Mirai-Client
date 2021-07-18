@@ -34,5 +34,5 @@ COPY --from=ui_builder /build/Client-UI/dist /data/static
 ADD ./scripts/env_run.sh /data/
 
 RUN chmod +x /data/env_run.sh
-
+EXPOSE 9000
 CMD /data/env_run.sh

@@ -25,5 +25,9 @@ fi
 if [ $DEVICE ];then
   CMD="$CMD -device $DEVICE"
 fi
+
+if [ $AUTH ];then
+  CMD="$CMD -auth $AUTH"
+fi
 echo $CMD
 eval $CMD
