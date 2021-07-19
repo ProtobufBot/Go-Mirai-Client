@@ -116,7 +116,7 @@ func CreateBotIfParamExist() {
 	if uin != 0 && pass != "" {
 		log.Infof("使用参数创建机器人 %d", uin)
 		go func() {
-			handler.CreateBotImpl(uin, pass)
+			handler.CreateBotImpl(uin, pass, 0)
 		}()
 	}
 }
@@ -132,6 +132,7 @@ func InitGin() {
 	router.Use(handler.CORSMiddleware())
 	router.Static("/", "./static")
 	router.POST("/bot/create/v1", handler.CreateBot)
+	router.POST("/bot/delete/v1", handler.DeleteBot)
 	router.POST("/bot/list/v1", handler.ListBot)
 	router.POST("/captcha/list/v1", handler.ListCaptcha)
 	router.POST("/captcha/solve/v1", handler.SolveCaptcha)

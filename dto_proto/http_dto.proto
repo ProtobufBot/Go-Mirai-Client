@@ -11,8 +11,16 @@ message Bot{
 message CreateBotReq{
     int64 bot_id = 1;
     string password = 2;
+    int64 device_seed = 3; // 设备信息随机种子
 }
 message CreateBotResp{
+}
+
+// 创建机器人 /bot/delete/v1/
+message DeleteBotReq{
+    int64 bot_id = 1;
+}
+message DeleteBotResp{
 }
 
 // 查询机器人 /bot/list/v1/
@@ -88,6 +96,7 @@ message QRCodeLoginResp{
 
 service HttpService{
     rpc CreateBot(CreateBotReq)returns (CreateBotResp);
+    rpc DeleteBot(DeleteBotReq)returns (DeleteBotResp);
     rpc ListBot(ListBotReq)returns (ListBotResp);
     rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
     rpc ListCaptcha(ListCaptchaReq)returns (ListCaptchaResp);

@@ -46,6 +46,7 @@ func init() {
 	plugin.AddOfflineFilePlugin(plugins.ReportOfflineFile)
 	plugin.AddGroupMutePlugin(plugins.ReportGroupMute)
 }
+
 func CreateBot(c *gin.Context) {
 	req := &dto.CreateBotReq{}
 	err := c.Bind(req)
@@ -58,9 +59,26 @@ func CreateBot(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "botId already exists")
 	}
 	go func() {
-		CreateBotImpl(req.BotId, req.Password)
+		CreateBotImpl(req.BotId, req.Password, req.DeviceSeed)
 	}()
 	resp := &dto.CreateBotResp{}
+	Return(c, resp)
+}
+
+func DeleteBot(c *gin.Context) {
+	req := &dto.DeleteBotReq{}
+	err := c.Bind(req)
+	if err != nil {
+		c.String(http.StatusBadRequest, "bad request, not protobuf")
+		return
+	}
+	cli, ok := bot.Clients[req.BotId]
+	if !ok {
+		c.String(http.StatusBadRequest, "bot not exists")
+		return
+	}
+	bot.ReleaseClient(cli)
+	resp := &dto.DeleteBotResp{}
 	Return(c, resp)
 }
 
@@ -234,10 +252,12 @@ func Return(c *gin.Context, resp proto.Message) {
 	c.Data(http.StatusOK, c.ContentType(), data)
 }
 
-func CreateBotImpl(uin int64, password string) {
+func CreateBotImpl(uin int64, password string, deviceRandSeed int64) {
 	log.Infof("开始初始化设备信息")
-	//bot.InitDevice(uin)
 	deviceInfo := device.GetDevice(uin)
+	if deviceRandSeed != 0 {
+		deviceInfo = device.GetDevice(deviceRandSeed)
+	}
 	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 
 	log.Infof("创建机器人 %+v", uin)
