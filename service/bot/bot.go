@@ -60,13 +60,13 @@ func Login(cli *client.QQClient) (bool, error) {
 func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 	LoginTokens[cli.Uin] = cli.GenToken()
 	cli.OnDisconnected(func(bot *client.QQClient, e *client.ClientDisconnectedEvent) {
-		if cli.Online {
+		if bot.Online {
 			return
 		}
-		cli.Disconnect()
+		bot.Disconnect()
 		var times = 1
-		for {
-			if cli.Online {
+		for IsClientExist(bot.Uin) {
+			if bot.Online {
 				log.Warn("Bot已登录")
 				return
 			}
@@ -79,11 +79,11 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 			time.Sleep(time.Second * time.Duration(retryInterval))
 
 			// 尝试token登录
-			if err := cli.TokenLogin(LoginTokens[cli.Uin]); err != nil {
+			if err := bot.TokenLogin(LoginTokens[bot.Uin]); err != nil {
 				log.Errorf("failed to relogin with token, try to login with password, %+v", err)
-				cli.Disconnect()
+				bot.Disconnect()
 			} else {
-				LoginTokens[cli.Uin] = cli.GenToken()
+				LoginTokens[cli.Uin] = bot.GenToken()
 				log.Info("succeed to relogin with token")
 				return
 			}
@@ -91,15 +91,15 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 			time.Sleep(time.Second)
 
 			// 尝试密码登录
-			ok, err := Login(cli)
+			ok, err := Login(bot)
 
 			if err != nil {
 				log.Errorf("重连失败: %v", err)
-				cli.Disconnect()
+				bot.Disconnect()
 				continue
 			}
 			if ok {
-				LoginTokens[cli.Uin] = cli.GenToken()
+				LoginTokens[bot.Uin] = bot.GenToken()
 				log.Info("重连成功")
 				return
 			}
