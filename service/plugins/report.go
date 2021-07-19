@@ -345,6 +345,9 @@ func ReportUserJoinGroupRequest(cli *client.QQClient, event *client.UserJoinGrou
 			UserId:      event.RequesterUin,
 			Comment:     event.Message,
 			Flag:        flag,
+			Extra: map[string]string{
+				"actor_id": strconv.FormatInt(event.Actor, 10),
+			},
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
@@ -368,6 +371,9 @@ func ReportGroupInvitedRequest(cli *client.QQClient, event *client.GroupInvitedR
 			UserId:      event.InvitorUin,
 			Comment:     "",
 			Flag:        flag,
+			Extra: map[string]string{
+				"actor_id": strconv.FormatInt(event.Actor, 10),
+			},
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
