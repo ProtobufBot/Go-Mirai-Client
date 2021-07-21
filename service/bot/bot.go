@@ -1,14 +1,10 @@
 package bot
 
 import (
-	"fmt"
 	"runtime/debug"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-
 	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,17 +40,11 @@ func Login(cli *client.QQClient) (bool, error) {
 		return false, err
 	}
 
-	v, err := promise.Start(func() bool {
-		ok, err := ProcessLoginRsp(cli, rsp)
-		if err != nil {
-			util.FatalError(fmt.Errorf("failed to login: %+v", err))
-		}
-		return ok
-	}()).Get()
+	ok, err := ProcessLoginRsp(cli, rsp)
 	if err != nil {
 		return false, err
 	}
-	return v.(bool), nil
+	return ok, nil
 }
 
 func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {

@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/device"
@@ -19,6 +21,9 @@ import (
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 )
+
+var queryQRCodeMutex = &sync.RWMutex{}
+var qrCodeBot *client.QQClient
 
 func init() {
 	//log.Infof("加载日志插件 Log")
@@ -96,27 +101,13 @@ func ListBot(c *gin.Context) {
 		resp.BotList = append(resp.BotList, &dto.Bot{
 			BotId:    cli.Uin,
 			IsOnline: cli.Online,
+			Captcha: func() *dto.Bot_Captcha {
+				if waitingCaptcha, ok := bot.WaitingCaptchas[cli.Uin]; ok {
+					return waitingCaptcha.Captcha
+				}
+				return nil
+			}(),
 		})
-	}
-	Return(c, resp)
-}
-
-func ListCaptcha(c *gin.Context) {
-	req := &dto.ListCaptchaReq{}
-	err := c.Bind(req)
-	if err != nil {
-		c.String(http.StatusBadRequest, "bad request, not protobuf")
-		return
-	}
-	var resp *dto.ListCaptchaResp
-	if bot.Captcha != nil {
-		resp = &dto.ListCaptchaResp{
-			CaptchaList: []*dto.Captcha{bot.Captcha},
-		}
-	} else {
-		resp = &dto.ListCaptchaResp{
-			CaptchaList: []*dto.Captcha{},
-		}
 	}
 	Return(c, resp)
 }
@@ -128,13 +119,13 @@ func SolveCaptcha(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	captchaProm, ok := bot.CaptchaPromises[req.BotId]
+	waitingCaptcha, ok := bot.WaitingCaptchas[req.BotId]
 	if !ok {
 		c.String(http.StatusInternalServerError, "captcha not found")
 		return
 	}
 
-	err = captchaProm.Resolve(req.Result)
+	err = waitingCaptcha.Prom.Resolve(req.Result)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "solve captcha error")
 		return
@@ -151,18 +142,16 @@ func FetchQrCode(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	cli, ok := bot.Clients[0]
-	if ok {
-		cli.Release()
+	if qrCodeBot != nil {
+		qrCodeBot.Release()
 	}
-	cli = client.NewClientEmpty()
+	qrCodeBot = client.NewClientEmpty()
 	deviceInfo := device.GetDevice(req.DeviceSeed)
-	cli.UseDevice(deviceInfo)
-	bot.Clients[0] = cli
+	qrCodeBot.UseDevice(deviceInfo)
 
 	log.Infof("初始化日志")
-	bot.InitLog(cli)
-	fetchQRCodeResp, err := cli.FetchQRCode()
+	bot.InitLog(qrCodeBot)
+	fetchQRCodeResp, err := qrCodeBot.FetchQRCode()
 	if err != nil {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
 		return
@@ -176,6 +165,8 @@ func FetchQrCode(c *gin.Context) {
 }
 
 func QueryQRCodeStatus(c *gin.Context) {
+	queryQRCodeMutex.Lock()
+	defer queryQRCodeMutex.Unlock()
 	req := &dto.QueryQRCodeStatusReq{}
 	err := c.Bind(req)
 	if err != nil {
@@ -183,46 +174,44 @@ func QueryQRCodeStatus(c *gin.Context) {
 		return
 	}
 
-	cli, ok := bot.Clients[req.BotId]
-	if !ok {
-		c.String(http.StatusBadRequest, "botId not exists")
+	if qrCodeBot == nil {
+		c.String(http.StatusBadRequest, "please fetch qrcode first")
 		return
 	}
 
-	if cli.Online {
+	if qrCodeBot.Online {
 		c.String(http.StatusBadRequest, "already online")
 		return
 	}
 
-	queryQRCodeStatusResp, err := cli.QueryQRCodeStatus(req.Sig)
+	queryQRCodeStatusResp, err := qrCodeBot.QueryQRCodeStatus(req.Sig)
 	if err != nil {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to query qrcode status, %+v", err))
 		return
 	}
 	if queryQRCodeStatusResp.State == client.QRCodeConfirmed {
-		loginResp, err := cli.QRCodeLogin(queryQRCodeStatusResp.LoginInfo)
-		if err != nil {
-			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
-			return
-		}
 		go func() {
-			ok, err := bot.ProcessLoginRsp(cli, loginResp)
+			queryQRCodeMutex.Lock()
+			defer queryQRCodeMutex.Unlock()
+
+			loginResp, err := qrCodeBot.QRCodeLogin(queryQRCodeStatusResp.LoginInfo)
 			if err != nil {
-				util.FatalError(fmt.Errorf("failed to login, err: %+v", err))
+				c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
+				return
 			}
+			if !loginResp.Success {
+				c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
+				return
+			}
+			log.Infof("登录成功")
+			originCli, ok := bot.Clients[qrCodeBot.Uin]
+			// 重复登录，旧的断开
 			if ok {
-				log.Infof("登录成功")
-				originCli, ok := bot.Clients[cli.Uin]
-				if ok {
-					// 重复登录，旧的断开
-					originCli.Release()
-				}
-				delete(bot.Clients, 0)
-				bot.Clients[cli.Uin] = cli
-				AfterLogin(cli)
-			} else {
-				log.Infof("登录失败")
+				originCli.Release()
 			}
+			bot.Clients[qrCodeBot.Uin] = qrCodeBot
+			go AfterLogin(bot.Clients[qrCodeBot.Uin])
+			qrCodeBot = nil
 		}()
 	}
 
@@ -253,6 +242,10 @@ func Return(c *gin.Context, resp proto.Message) {
 }
 
 func CreateBotImpl(uin int64, password string, deviceRandSeed int64) {
+	CreateBotImplMd5(uin, md5.Sum([]byte(password)), deviceRandSeed)
+}
+
+func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64) {
 	log.Infof("开始初始化设备信息")
 	deviceInfo := device.GetDevice(uin)
 	if deviceRandSeed != 0 {
@@ -262,7 +255,7 @@ func CreateBotImpl(uin int64, password string, deviceRandSeed int64) {
 
 	log.Infof("创建机器人 %+v", uin)
 
-	cli := client.NewClient(uin, password)
+	cli := client.NewClientMd5(uin, passwordMd5)
 	cli.UseDevice(deviceInfo)
 	bot.Clients[uin] = cli
 
@@ -272,7 +265,9 @@ func CreateBotImpl(uin int64, password string, deviceRandSeed int64) {
 	log.Infof("登录中...")
 	ok, err := bot.Login(cli)
 	if err != nil {
-		util.FatalError(fmt.Errorf("failed to login, err: %+v", err))
+		// TODO 登录失败，是否需要删除？
+		log.Errorf("failed to login, err: %+v", err)
+		return
 	}
 	if ok {
 		log.Infof("登录成功")

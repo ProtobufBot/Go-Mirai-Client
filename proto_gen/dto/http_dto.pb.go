@@ -22,35 +22,35 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type Captcha_CaptchaType int32
+type Bot_Captcha_CaptchaType int32
 
 const (
-	Captcha_PIC_CAPTCHA                Captcha_CaptchaType = 0
-	Captcha_SLIDER_CAPTCHA             Captcha_CaptchaType = 1
-	Captcha_UNSAFE_DEVICE_LOGIN_VERIFY Captcha_CaptchaType = 2
-	Captcha_SMS                        Captcha_CaptchaType = 4
+	Bot_Captcha_PIC_CAPTCHA                Bot_Captcha_CaptchaType = 0
+	Bot_Captcha_SLIDER_CAPTCHA             Bot_Captcha_CaptchaType = 1
+	Bot_Captcha_UNSAFE_DEVICE_LOGIN_VERIFY Bot_Captcha_CaptchaType = 2
+	Bot_Captcha_SMS                        Bot_Captcha_CaptchaType = 4
 )
 
-var Captcha_CaptchaType_name = map[int32]string{
+var Bot_Captcha_CaptchaType_name = map[int32]string{
 	0: "PIC_CAPTCHA",
 	1: "SLIDER_CAPTCHA",
 	2: "UNSAFE_DEVICE_LOGIN_VERIFY",
 	4: "SMS",
 }
 
-var Captcha_CaptchaType_value = map[string]int32{
+var Bot_Captcha_CaptchaType_value = map[string]int32{
 	"PIC_CAPTCHA":                0,
 	"SLIDER_CAPTCHA":             1,
 	"UNSAFE_DEVICE_LOGIN_VERIFY": 2,
 	"SMS":                        4,
 }
 
-func (x Captcha_CaptchaType) String() string {
-	return proto.EnumName(Captcha_CaptchaType_name, int32(x))
+func (x Bot_Captcha_CaptchaType) String() string {
+	return proto.EnumName(Bot_Captcha_CaptchaType_name, int32(x))
 }
 
-func (Captcha_CaptchaType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{9, 0}
+func (Bot_Captcha_CaptchaType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{0, 0, 0}
 }
 
 type QRCodeLoginResp_QRCodeLoginState int32
@@ -90,15 +90,16 @@ func (x QRCodeLoginResp_QRCodeLoginState) String() string {
 }
 
 func (QRCodeLoginResp_QRCodeLoginState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{16, 0}
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{13, 0}
 }
 
 type Bot struct {
-	BotId                int64    `protobuf:"varint,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
-	IsOnline             bool     `protobuf:"varint,2,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	BotId                int64        `protobuf:"varint,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	IsOnline             bool         `protobuf:"varint,2,opt,name=is_online,json=isOnline,proto3" json:"is_online,omitempty"`
+	Captcha              *Bot_Captcha `protobuf:"bytes,3,opt,name=captcha,proto3" json:"captcha,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
 }
 
 func (m *Bot) Reset()         { *m = Bot{} }
@@ -146,6 +147,117 @@ func (m *Bot) GetIsOnline() bool {
 		return m.IsOnline
 	}
 	return false
+}
+
+func (m *Bot) GetCaptcha() *Bot_Captcha {
+	if m != nil {
+		return m.Captcha
+	}
+	return nil
+}
+
+type Bot_Captcha struct {
+	BotId       int64                   `protobuf:"varint,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
+	CaptchaType Bot_Captcha_CaptchaType `protobuf:"varint,2,opt,name=captcha_type,json=captchaType,proto3,enum=dto.Bot_Captcha_CaptchaType" json:"captcha_type,omitempty"`
+	// Types that are valid to be assigned to Data:
+	//	*Bot_Captcha_Url
+	//	*Bot_Captcha_Image
+	Data                 isBot_Captcha_Data `protobuf_oneof:"data"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
+}
+
+func (m *Bot_Captcha) Reset()         { *m = Bot_Captcha{} }
+func (m *Bot_Captcha) String() string { return proto.CompactTextString(m) }
+func (*Bot_Captcha) ProtoMessage()    {}
+func (*Bot_Captcha) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{0, 0}
+}
+func (m *Bot_Captcha) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Bot_Captcha) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Bot_Captcha.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Bot_Captcha) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Bot_Captcha.Merge(m, src)
+}
+func (m *Bot_Captcha) XXX_Size() int {
+	return m.Size()
+}
+func (m *Bot_Captcha) XXX_DiscardUnknown() {
+	xxx_messageInfo_Bot_Captcha.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Bot_Captcha proto.InternalMessageInfo
+
+type isBot_Captcha_Data interface {
+	isBot_Captcha_Data()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type Bot_Captcha_Url struct {
+	Url string `protobuf:"bytes,3,opt,name=url,proto3,oneof" json:"url,omitempty"`
+}
+type Bot_Captcha_Image struct {
+	Image []byte `protobuf:"bytes,4,opt,name=image,proto3,oneof" json:"image,omitempty"`
+}
+
+func (*Bot_Captcha_Url) isBot_Captcha_Data()   {}
+func (*Bot_Captcha_Image) isBot_Captcha_Data() {}
+
+func (m *Bot_Captcha) GetData() isBot_Captcha_Data {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+func (m *Bot_Captcha) GetBotId() int64 {
+	if m != nil {
+		return m.BotId
+	}
+	return 0
+}
+
+func (m *Bot_Captcha) GetCaptchaType() Bot_Captcha_CaptchaType {
+	if m != nil {
+		return m.CaptchaType
+	}
+	return Bot_Captcha_PIC_CAPTCHA
+}
+
+func (m *Bot_Captcha) GetUrl() string {
+	if x, ok := m.GetData().(*Bot_Captcha_Url); ok {
+		return x.Url
+	}
+	return ""
+}
+
+func (m *Bot_Captcha) GetImage() []byte {
+	if x, ok := m.GetData().(*Bot_Captcha_Image); ok {
+		return x.Image
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*Bot_Captcha) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*Bot_Captcha_Url)(nil),
+		(*Bot_Captcha_Image)(nil),
+	}
 }
 
 // 创建机器人 /bot/create/v1/
@@ -512,197 +624,6 @@ func (m *BotLoginAsyncResp) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BotLoginAsyncResp proto.InternalMessageInfo
 
-type Captcha struct {
-	BotId       int64               `protobuf:"varint,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
-	CaptchaType Captcha_CaptchaType `protobuf:"varint,2,opt,name=captcha_type,json=captchaType,proto3,enum=dto.Captcha_CaptchaType" json:"captcha_type,omitempty"`
-	// Types that are valid to be assigned to Data:
-	//	*Captcha_Url
-	//	*Captcha_Image
-	Data                 isCaptcha_Data `protobuf_oneof:"data"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
-}
-
-func (m *Captcha) Reset()         { *m = Captcha{} }
-func (m *Captcha) String() string { return proto.CompactTextString(m) }
-func (*Captcha) ProtoMessage()    {}
-func (*Captcha) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{9}
-}
-func (m *Captcha) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Captcha) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Captcha.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *Captcha) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Captcha.Merge(m, src)
-}
-func (m *Captcha) XXX_Size() int {
-	return m.Size()
-}
-func (m *Captcha) XXX_DiscardUnknown() {
-	xxx_messageInfo_Captcha.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Captcha proto.InternalMessageInfo
-
-type isCaptcha_Data interface {
-	isCaptcha_Data()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type Captcha_Url struct {
-	Url string `protobuf:"bytes,3,opt,name=url,proto3,oneof" json:"url,omitempty"`
-}
-type Captcha_Image struct {
-	Image []byte `protobuf:"bytes,4,opt,name=image,proto3,oneof" json:"image,omitempty"`
-}
-
-func (*Captcha_Url) isCaptcha_Data()   {}
-func (*Captcha_Image) isCaptcha_Data() {}
-
-func (m *Captcha) GetData() isCaptcha_Data {
-	if m != nil {
-		return m.Data
-	}
-	return nil
-}
-
-func (m *Captcha) GetBotId() int64 {
-	if m != nil {
-		return m.BotId
-	}
-	return 0
-}
-
-func (m *Captcha) GetCaptchaType() Captcha_CaptchaType {
-	if m != nil {
-		return m.CaptchaType
-	}
-	return Captcha_PIC_CAPTCHA
-}
-
-func (m *Captcha) GetUrl() string {
-	if x, ok := m.GetData().(*Captcha_Url); ok {
-		return x.Url
-	}
-	return ""
-}
-
-func (m *Captcha) GetImage() []byte {
-	if x, ok := m.GetData().(*Captcha_Image); ok {
-		return x.Image
-	}
-	return nil
-}
-
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*Captcha) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*Captcha_Url)(nil),
-		(*Captcha_Image)(nil),
-	}
-}
-
-// 获取验证码 /captcha/list/v1/
-type ListCaptchaReq struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ListCaptchaReq) Reset()         { *m = ListCaptchaReq{} }
-func (m *ListCaptchaReq) String() string { return proto.CompactTextString(m) }
-func (*ListCaptchaReq) ProtoMessage()    {}
-func (*ListCaptchaReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{10}
-}
-func (m *ListCaptchaReq) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ListCaptchaReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ListCaptchaReq.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ListCaptchaReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListCaptchaReq.Merge(m, src)
-}
-func (m *ListCaptchaReq) XXX_Size() int {
-	return m.Size()
-}
-func (m *ListCaptchaReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListCaptchaReq.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ListCaptchaReq proto.InternalMessageInfo
-
-type ListCaptchaResp struct {
-	CaptchaList          []*Captcha `protobuf:"bytes,1,rep,name=captcha_list,json=captchaList,proto3" json:"captcha_list,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
-	XXX_unrecognized     []byte     `json:"-"`
-	XXX_sizecache        int32      `json:"-"`
-}
-
-func (m *ListCaptchaResp) Reset()         { *m = ListCaptchaResp{} }
-func (m *ListCaptchaResp) String() string { return proto.CompactTextString(m) }
-func (*ListCaptchaResp) ProtoMessage()    {}
-func (*ListCaptchaResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{11}
-}
-func (m *ListCaptchaResp) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ListCaptchaResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ListCaptchaResp.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ListCaptchaResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListCaptchaResp.Merge(m, src)
-}
-func (m *ListCaptchaResp) XXX_Size() int {
-	return m.Size()
-}
-func (m *ListCaptchaResp) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListCaptchaResp.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ListCaptchaResp proto.InternalMessageInfo
-
-func (m *ListCaptchaResp) GetCaptchaList() []*Captcha {
-	if m != nil {
-		return m.CaptchaList
-	}
-	return nil
-}
-
 // 处理验证码 /captcha/solve/v1/
 type SolveCaptchaReq struct {
 	BotId                int64    `protobuf:"varint,1,opt,name=bot_id,json=botId,proto3" json:"bot_id,omitempty"`
@@ -716,7 +637,7 @@ func (m *SolveCaptchaReq) Reset()         { *m = SolveCaptchaReq{} }
 func (m *SolveCaptchaReq) String() string { return proto.CompactTextString(m) }
 func (*SolveCaptchaReq) ProtoMessage()    {}
 func (*SolveCaptchaReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{12}
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{9}
 }
 func (m *SolveCaptchaReq) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -769,7 +690,7 @@ func (m *SolveCaptchaResp) Reset()         { *m = SolveCaptchaResp{} }
 func (m *SolveCaptchaResp) String() string { return proto.CompactTextString(m) }
 func (*SolveCaptchaResp) ProtoMessage()    {}
 func (*SolveCaptchaResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{13}
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{10}
 }
 func (m *SolveCaptchaResp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -810,7 +731,7 @@ func (m *FetchQRCodeReq) Reset()         { *m = FetchQRCodeReq{} }
 func (m *FetchQRCodeReq) String() string { return proto.CompactTextString(m) }
 func (*FetchQRCodeReq) ProtoMessage()    {}
 func (*FetchQRCodeReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{14}
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{11}
 }
 func (m *FetchQRCodeReq) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -859,7 +780,7 @@ func (m *QueryQRCodeStatusReq) Reset()         { *m = QueryQRCodeStatusReq{} }
 func (m *QueryQRCodeStatusReq) String() string { return proto.CompactTextString(m) }
 func (*QueryQRCodeStatusReq) ProtoMessage()    {}
 func (*QueryQRCodeStatusReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{15}
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{12}
 }
 func (m *QueryQRCodeStatusReq) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -916,7 +837,7 @@ func (m *QRCodeLoginResp) Reset()         { *m = QRCodeLoginResp{} }
 func (m *QRCodeLoginResp) String() string { return proto.CompactTextString(m) }
 func (*QRCodeLoginResp) ProtoMessage()    {}
 func (*QRCodeLoginResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_3b5f7d4a2149a8d0, []int{16}
+	return fileDescriptor_3b5f7d4a2149a8d0, []int{13}
 }
 func (m *QRCodeLoginResp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -967,9 +888,10 @@ func (m *QRCodeLoginResp) GetSig() []byte {
 }
 
 func init() {
-	proto.RegisterEnum("dto.Captcha_CaptchaType", Captcha_CaptchaType_name, Captcha_CaptchaType_value)
+	proto.RegisterEnum("dto.Bot_Captcha_CaptchaType", Bot_Captcha_CaptchaType_name, Bot_Captcha_CaptchaType_value)
 	proto.RegisterEnum("dto.QRCodeLoginResp_QRCodeLoginState", QRCodeLoginResp_QRCodeLoginState_name, QRCodeLoginResp_QRCodeLoginState_value)
 	proto.RegisterType((*Bot)(nil), "dto.Bot")
+	proto.RegisterType((*Bot_Captcha)(nil), "dto.Bot.Captcha")
 	proto.RegisterType((*CreateBotReq)(nil), "dto.CreateBotReq")
 	proto.RegisterType((*CreateBotResp)(nil), "dto.CreateBotResp")
 	proto.RegisterType((*DeleteBotReq)(nil), "dto.DeleteBotReq")
@@ -978,9 +900,6 @@ func init() {
 	proto.RegisterType((*ListBotResp)(nil), "dto.ListBotResp")
 	proto.RegisterType((*BotLoginAsyncReq)(nil), "dto.BotLoginAsyncReq")
 	proto.RegisterType((*BotLoginAsyncResp)(nil), "dto.BotLoginAsyncResp")
-	proto.RegisterType((*Captcha)(nil), "dto.Captcha")
-	proto.RegisterType((*ListCaptchaReq)(nil), "dto.ListCaptchaReq")
-	proto.RegisterType((*ListCaptchaResp)(nil), "dto.ListCaptchaResp")
 	proto.RegisterType((*SolveCaptchaReq)(nil), "dto.SolveCaptchaReq")
 	proto.RegisterType((*SolveCaptchaResp)(nil), "dto.SolveCaptchaResp")
 	proto.RegisterType((*FetchQRCodeReq)(nil), "dto.FetchQRCodeReq")
@@ -991,58 +910,57 @@ func init() {
 func init() { proto.RegisterFile("http_dto.proto", fileDescriptor_3b5f7d4a2149a8d0) }
 
 var fileDescriptor_3b5f7d4a2149a8d0 = []byte{
-	// 815 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x55, 0xdd, 0x6e, 0xe3, 0x44,
-	0x14, 0x8e, 0xe3, 0x36, 0x3f, 0x27, 0x6e, 0x32, 0x3d, 0xfd, 0x21, 0x64, 0x45, 0xa8, 0x8c, 0x56,
-	0x2a, 0x12, 0x5a, 0x44, 0xb8, 0x01, 0xad, 0x04, 0x34, 0x4e, 0x4a, 0x23, 0x95, 0xfd, 0xb1, 0xbb,
-	0x8b, 0x10, 0x17, 0x96, 0x63, 0x0f, 0xad, 0x45, 0xea, 0x19, 0x3c, 0x93, 0x5d, 0xf5, 0x4d, 0x78,
-	0x04, 0xc4, 0x93, 0x70, 0xc9, 0x35, 0x57, 0xa8, 0xdc, 0xf3, 0x0c, 0x68, 0xc6, 0x8e, 0xe3, 0xb8,
-	0x2d, 0x7b, 0x95, 0x9c, 0x33, 0xe7, 0x3b, 0x67, 0xe6, 0x9b, 0x6f, 0x3e, 0x43, 0xf7, 0x4a, 0x4a,
-	0xee, 0x47, 0x92, 0x3d, 0xe1, 0x29, 0x93, 0x0c, 0xcd, 0x48, 0x32, 0xfb, 0x4b, 0x30, 0xc7, 0x4c,
-	0xe2, 0x01, 0x34, 0xe6, 0x4c, 0xfa, 0x71, 0xd4, 0x37, 0x8e, 0x8c, 0x63, 0xd3, 0xdd, 0x9e, 0x33,
-	0x39, 0x8b, 0xf0, 0x11, 0xb4, 0x63, 0xe1, 0xb3, 0x64, 0x11, 0x27, 0xb4, 0x5f, 0x3f, 0x32, 0x8e,
-	0x5b, 0x6e, 0x2b, 0x16, 0xcf, 0x75, 0x6c, 0xcf, 0xc1, 0x72, 0x52, 0x1a, 0x48, 0x3a, 0x66, 0xd2,
-	0xa5, 0xbf, 0x3c, 0xd4, 0x63, 0x00, 0x2d, 0x1e, 0x08, 0xf1, 0x96, 0xa5, 0x91, 0x6e, 0xd1, 0x76,
-	0x8b, 0x18, 0x3f, 0x84, 0x4e, 0x44, 0xdf, 0xc4, 0x21, 0xf5, 0x05, 0xa5, 0x51, 0xdf, 0xd4, 0x38,
-	0xc8, 0x52, 0x1e, 0xa5, 0x91, 0xdd, 0x83, 0x9d, 0xd2, 0x0c, 0xc1, 0xed, 0xc7, 0x60, 0x4d, 0xe8,
-	0x82, 0xbe, 0x63, 0xa8, 0xc2, 0x95, 0xca, 0x04, 0xb7, 0x2d, 0x80, 0xf3, 0x58, 0xc8, 0x0c, 0x65,
-	0x8f, 0xa0, 0x53, 0x44, 0x82, 0xe3, 0x47, 0xd0, 0x52, 0x4d, 0x16, 0xb1, 0x90, 0x7d, 0xe3, 0xc8,
-	0x3c, 0xee, 0x8c, 0x5a, 0x4f, 0x14, 0x4f, 0x6a, 0xbd, 0x39, 0x67, 0x52, 0xd5, 0xda, 0x1f, 0x03,
-	0x19, 0x33, 0x79, 0xce, 0x2e, 0xe3, 0xe4, 0x44, 0xdc, 0x24, 0xe1, 0xff, 0x4c, 0xdf, 0x83, 0xdd,
-	0x4a, 0xa9, 0xe0, 0xf6, 0xbf, 0x06, 0x34, 0x9d, 0x80, 0xcb, 0xf0, 0x2a, 0x78, 0x88, 0xaa, 0xa7,
-	0x60, 0x85, 0x59, 0x85, 0x2f, 0x6f, 0x78, 0xc6, 0x78, 0x77, 0xd4, 0xd7, 0x7b, 0xc9, 0xa1, 0xab,
-	0xdf, 0x8b, 0x1b, 0x4e, 0xdd, 0x4e, 0xb8, 0x0e, 0x10, 0xc1, 0x5c, 0xa6, 0x0b, 0xcd, 0x61, 0xfb,
-	0xac, 0xe6, 0xaa, 0x00, 0x0f, 0x61, 0x3b, 0xbe, 0x0e, 0x2e, 0x69, 0x7f, 0xeb, 0xc8, 0x38, 0xb6,
-	0xce, 0x6a, 0x6e, 0x16, 0xda, 0x3f, 0x42, 0xa7, 0xd4, 0x07, 0x7b, 0xd0, 0x79, 0x31, 0x73, 0x7c,
-	0xe7, 0xe4, 0xc5, 0x85, 0x73, 0x76, 0x42, 0x6a, 0x88, 0xd0, 0xf5, 0xce, 0x67, 0x93, 0xa9, 0x5b,
-	0xe4, 0x0c, 0x1c, 0xc2, 0xe0, 0xd5, 0x33, 0xef, 0xe4, 0x74, 0xea, 0x4f, 0xa6, 0xaf, 0x67, 0xce,
-	0xd4, 0x3f, 0x7f, 0xfe, 0xed, 0xec, 0x99, 0xff, 0x7a, 0xea, 0xce, 0x4e, 0x7f, 0x20, 0x75, 0x6c,
-	0x82, 0xe9, 0x7d, 0xe7, 0x91, 0xad, 0x71, 0x03, 0xb6, 0xa2, 0x40, 0x06, 0x36, 0x81, 0xae, 0x22,
-	0x2e, 0x1f, 0xa4, 0x68, 0x1f, 0x43, 0x6f, 0x23, 0x23, 0x38, 0x7e, 0xba, 0x3e, 0x72, 0x89, 0x7e,
-	0xab, 0x7c, 0xe4, 0xe2, 0x98, 0xfa, 0x1a, 0xbe, 0x81, 0x9e, 0xc7, 0x16, 0x6f, 0xe8, 0xba, 0xed,
-	0x43, 0x6c, 0x1e, 0x42, 0x23, 0xa5, 0x62, 0xb9, 0x90, 0xb9, 0xec, 0xf2, 0xc8, 0x46, 0x20, 0x9b,
-	0x1d, 0x04, 0xb7, 0x3f, 0x83, 0xee, 0x29, 0x95, 0xe1, 0xd5, 0x4b, 0xd7, 0x61, 0x11, 0x55, 0x4d,
-	0x2b, 0xd2, 0x34, 0xee, 0x48, 0xf3, 0x6b, 0xd8, 0x7f, 0xb9, 0xa4, 0xe9, 0x4d, 0x06, 0xf1, 0x64,
-	0x20, 0x97, 0x42, 0x01, 0x09, 0x98, 0x22, 0xbe, 0xd4, 0x00, 0xcb, 0x55, 0x7f, 0x4b, 0xfb, 0xab,
-	0x97, 0x55, 0xf2, 0x7b, 0x1d, 0x7a, 0x19, 0x58, 0x2b, 0x45, 0xd3, 0xf1, 0x14, 0xb6, 0x85, 0x0c,
-	0x24, 0xd5, 0xf0, 0xee, 0xe8, 0xb1, 0xe6, 0xa1, 0x52, 0x54, 0x8e, 0xd5, 0x58, 0xea, 0x66, 0x18,
-	0xfc, 0x00, 0x40, 0x5f, 0xaf, 0xaf, 0xe8, 0xd7, 0xb3, 0x2c, 0xb7, 0xad, 0x33, 0x93, 0x40, 0x06,
-	0xab, 0x8d, 0x99, 0xc5, 0xc6, 0xec, 0xdf, 0x0c, 0x20, 0xd5, 0x66, 0xd8, 0x81, 0xe6, 0xab, 0xe4,
-	0xe7, 0x84, 0xbd, 0x4d, 0x48, 0x0d, 0xf7, 0x57, 0x05, 0x33, 0xd5, 0x46, 0x53, 0x44, 0x0c, 0xec,
-	0xc3, 0x7e, 0x96, 0xfd, 0x3e, 0x88, 0x65, 0x9c, 0x5c, 0x9e, 0xb2, 0xd4, 0x0b, 0x83, 0x84, 0xd4,
-	0xf1, 0x11, 0xbc, 0x57, 0x5d, 0x71, 0x58, 0xf2, 0x53, 0x9c, 0x5e, 0x13, 0x13, 0x77, 0x61, 0x27,
-	0x5b, 0xbc, 0x88, 0xaf, 0x29, 0x5b, 0x4a, 0xb2, 0x85, 0x7b, 0x2b, 0x0a, 0xf2, 0x2a, 0x1a, 0x91,
-	0x6d, 0xa5, 0xbe, 0x3c, 0x19, 0x24, 0x21, 0x5d, 0xd0, 0x88, 0x34, 0x46, 0x7f, 0x99, 0xd0, 0x39,
-	0x93, 0x92, 0x7b, 0x34, 0x55, 0x37, 0x80, 0x23, 0x68, 0x17, 0xc6, 0x80, 0xbb, 0x99, 0x5c, 0x4a,
-	0x66, 0x34, 0xc0, 0x6a, 0x4a, 0x70, 0x85, 0x29, 0x4c, 0x21, 0xc7, 0x94, 0xbd, 0x24, 0xc7, 0x6c,
-	0xf8, 0x06, 0x7e, 0x02, 0xcd, 0xdc, 0x29, 0xb0, 0xa7, 0x97, 0xd7, 0x2e, 0x32, 0x20, 0x9b, 0x09,
-	0xc1, 0xf1, 0x2b, 0xd8, 0xd9, 0x78, 0xf8, 0x78, 0xb0, 0xf2, 0x91, 0x0d, 0xdf, 0x18, 0x1c, 0xde,
-	0x97, 0x16, 0x1c, 0xbf, 0xc8, 0x7c, 0x69, 0x65, 0x13, 0x7b, 0xc5, 0x80, 0xb5, 0xda, 0x07, 0xfb,
-	0x77, 0x93, 0x5a, 0x38, 0x56, 0x59, 0xd4, 0x98, 0x55, 0x55, 0x5e, 0xca, 0xe0, 0xe0, 0x9e, 0x6c,
-	0x36, 0xb6, 0xa4, 0xfe, 0x7c, 0xec, 0xe6, 0x7b, 0xc8, 0xc7, 0x56, 0xf5, 0x3a, 0x81, 0xdd, 0x3b,
-	0x8f, 0x00, 0xdf, 0xcf, 0x4a, 0xef, 0x79, 0x1c, 0xf7, 0x77, 0x19, 0x93, 0x3f, 0x6e, 0x87, 0xc6,
-	0x9f, 0xb7, 0x43, 0xe3, 0xef, 0xdb, 0xa1, 0xf1, 0xeb, 0x3f, 0xc3, 0xda, 0xbc, 0xa1, 0x3f, 0x51,
-	0x9f, 0xff, 0x17, 0x00, 0x00, 0xff, 0xff, 0xeb, 0xad, 0xf6, 0xf4, 0xb4, 0x06, 0x00, 0x00,
+	// 793 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x55, 0x5d, 0x6f, 0xe3, 0x44,
+	0x14, 0x8d, 0xe3, 0x36, 0x1f, 0xd7, 0x69, 0x32, 0xbd, 0x4d, 0x4b, 0xc8, 0x42, 0x88, 0x8c, 0x56,
+	0x0a, 0x08, 0x55, 0x22, 0xbc, 0x20, 0x21, 0xb1, 0x34, 0x4e, 0x4a, 0x23, 0x95, 0xfd, 0x18, 0x77,
+	0x17, 0x21, 0x1e, 0x2c, 0xc7, 0x1e, 0x5a, 0x8b, 0xd4, 0x63, 0x3c, 0x93, 0x5d, 0xe5, 0x9f, 0xf0,
+	0xc8, 0x23, 0xe2, 0x97, 0xf0, 0xc8, 0x33, 0x4f, 0xa8, 0xfc, 0x03, 0x7e, 0x01, 0xf2, 0xd8, 0xce,
+	0x3a, 0x6e, 0x0a, 0x4f, 0xc9, 0x3d, 0x73, 0xce, 0xbd, 0x33, 0x67, 0xce, 0xc8, 0xd0, 0xbe, 0x91,
+	0x32, 0x72, 0x7c, 0xc9, 0x4f, 0xa3, 0x98, 0x4b, 0x8e, 0xba, 0x2f, 0xb9, 0xf9, 0x67, 0x15, 0xf4,
+	0x09, 0x97, 0x78, 0x0c, 0xb5, 0x05, 0x97, 0x4e, 0xe0, 0xf7, 0xb4, 0xa1, 0x36, 0xd2, 0xe9, 0xfe,
+	0x82, 0xcb, 0xb9, 0x8f, 0x8f, 0xa0, 0x19, 0x08, 0x87, 0x87, 0xcb, 0x20, 0x64, 0xbd, 0xea, 0x50,
+	0x1b, 0x35, 0x68, 0x23, 0x10, 0xcf, 0x54, 0x8d, 0x1f, 0x43, 0xdd, 0x73, 0x23, 0xe9, 0xdd, 0xb8,
+	0x3d, 0x7d, 0xa8, 0x8d, 0x8c, 0x31, 0x39, 0x4d, 0xba, 0x4f, 0xb8, 0x3c, 0xb5, 0x52, 0x9c, 0xe6,
+	0x84, 0xfe, 0x3f, 0x1a, 0xd4, 0x33, 0xf0, 0xa1, 0x59, 0x4f, 0xa0, 0x95, 0xb1, 0x1d, 0xb9, 0x8e,
+	0xd2, 0x71, 0xed, 0xf1, 0x7b, 0xe5, 0x9e, 0xf9, 0xef, 0xd5, 0x3a, 0x62, 0xd4, 0xf0, 0xde, 0x16,
+	0x88, 0xa0, 0xaf, 0xe2, 0xa5, 0xda, 0x4b, 0xf3, 0xa2, 0x42, 0x93, 0x02, 0x4f, 0x60, 0x3f, 0xb8,
+	0x75, 0xaf, 0x59, 0x6f, 0x6f, 0xa8, 0x8d, 0x5a, 0x17, 0x15, 0x9a, 0x96, 0xe6, 0xf7, 0x60, 0x14,
+	0xfa, 0x60, 0x07, 0x8c, 0xe7, 0x73, 0xcb, 0xb1, 0xce, 0x9e, 0x5f, 0x59, 0x17, 0x67, 0xa4, 0x82,
+	0x08, 0x6d, 0xfb, 0x72, 0x3e, 0x9d, 0xd1, 0x0d, 0xa6, 0xe1, 0x00, 0xfa, 0x2f, 0x9f, 0xda, 0x67,
+	0xe7, 0x33, 0x67, 0x3a, 0x7b, 0x35, 0xb7, 0x66, 0xce, 0xe5, 0xb3, 0xaf, 0xe7, 0x4f, 0x9d, 0x57,
+	0x33, 0x3a, 0x3f, 0xff, 0x8e, 0x54, 0xb1, 0x0e, 0xba, 0xfd, 0x8d, 0x4d, 0xf6, 0x26, 0x35, 0xd8,
+	0xf3, 0x5d, 0xe9, 0x9a, 0x0b, 0x68, 0x59, 0x31, 0x73, 0x25, 0x9b, 0x70, 0x49, 0xd9, 0x4f, 0x0f,
+	0x1d, 0xbc, 0x0f, 0x8d, 0xc8, 0x15, 0xe2, 0x0d, 0x8f, 0x7d, 0x75, 0xe8, 0x26, 0xdd, 0xd4, 0xf8,
+	0x01, 0x18, 0x3e, 0x7b, 0x1d, 0x78, 0xcc, 0x11, 0x8c, 0xf9, 0xea, 0x6c, 0x3a, 0x85, 0x14, 0xb2,
+	0x19, 0xf3, 0xcd, 0x0e, 0x1c, 0x14, 0x66, 0x88, 0xc8, 0x7c, 0x0c, 0xad, 0x29, 0x5b, 0xb2, 0xff,
+	0x19, 0x9a, 0xe8, 0x0a, 0x34, 0x11, 0x99, 0x2d, 0x80, 0xcb, 0x40, 0xc8, 0x54, 0x65, 0x8e, 0xc1,
+	0xd8, 0x54, 0x22, 0xc2, 0x0f, 0xa1, 0x91, 0x34, 0x59, 0x06, 0x42, 0xf6, 0xb4, 0xa1, 0x3e, 0x32,
+	0xc6, 0x8d, 0xfc, 0x5e, 0x68, 0x7d, 0xc1, 0x65, 0xc2, 0x35, 0x3f, 0x02, 0x32, 0xe1, 0xf2, 0x92,
+	0x5f, 0x07, 0xe1, 0x99, 0x58, 0x87, 0xde, 0x7f, 0x4c, 0x3f, 0x82, 0xc3, 0x12, 0x55, 0x44, 0xe6,
+	0x57, 0xd0, 0xb1, 0xf9, 0xf2, 0x35, 0xcb, 0xc3, 0xf3, 0xb0, 0x63, 0x27, 0x50, 0x8b, 0x99, 0x58,
+	0x2d, 0x65, 0xe6, 0x57, 0x56, 0x99, 0x08, 0x64, 0xbb, 0x83, 0x88, 0xcc, 0x4f, 0xa1, 0x7d, 0xce,
+	0xa4, 0x77, 0xf3, 0x82, 0x5a, 0xdc, 0x67, 0x49, 0xd3, 0x92, 0xa7, 0xda, 0x3d, 0x4f, 0x9f, 0x40,
+	0xf7, 0xc5, 0x8a, 0xc5, 0xeb, 0x54, 0x62, 0x4b, 0x57, 0xae, 0x44, 0x22, 0x24, 0xa0, 0x8b, 0xe0,
+	0x5a, 0x09, 0x5a, 0x34, 0xf9, 0x5b, 0xd8, 0x5f, 0xb5, 0x78, 0xbc, 0xdf, 0xaa, 0xd0, 0x49, 0xc5,
+	0xea, 0x88, 0xca, 0xc2, 0x2f, 0x60, 0x5f, 0x48, 0x57, 0x32, 0x25, 0x6f, 0x8f, 0x1f, 0x2b, 0xff,
+	0x4a, 0xa4, 0x62, 0x9d, 0x8c, 0x65, 0x34, 0xd5, 0xe0, 0xfb, 0x00, 0x2a, 0xb7, 0x4e, 0x92, 0x2b,
+	0x35, 0xab, 0x45, 0x9b, 0x0a, 0x99, 0xba, 0xd2, 0xcd, 0x37, 0xa6, 0x6f, 0x36, 0x66, 0xfe, 0xaa,
+	0x01, 0x29, 0x37, 0x43, 0x03, 0xea, 0x2f, 0xc3, 0x1f, 0x43, 0xfe, 0x26, 0x24, 0x15, 0xec, 0xe6,
+	0x84, 0x79, 0xd2, 0x46, 0x59, 0x44, 0x34, 0xec, 0x41, 0x37, 0x45, 0xbf, 0x75, 0x03, 0x19, 0x84,
+	0xd7, 0xe7, 0x3c, 0xb6, 0x3d, 0x37, 0x24, 0x55, 0x7c, 0x04, 0xef, 0x94, 0x57, 0x2c, 0x1e, 0xfe,
+	0x10, 0xc4, 0xb7, 0x44, 0xc7, 0x43, 0x38, 0x48, 0x17, 0xaf, 0x82, 0x5b, 0xc6, 0x57, 0x92, 0xec,
+	0xe1, 0x51, 0x6e, 0x41, 0xc6, 0x62, 0x3e, 0xd9, 0x4f, 0x9e, 0x55, 0x06, 0xba, 0xa1, 0xc7, 0x96,
+	0xcc, 0x27, 0xb5, 0xf1, 0x2f, 0x3a, 0x18, 0x17, 0x52, 0x46, 0x36, 0x8b, 0x93, 0x1b, 0xc0, 0x31,
+	0x34, 0x37, 0x89, 0xc6, 0x43, 0x65, 0x53, 0xf1, 0x15, 0xf5, 0xb1, 0x0c, 0x89, 0x28, 0xd1, 0x6c,
+	0xd2, 0x9c, 0x69, 0x8a, 0x8f, 0x20, 0xd3, 0x6c, 0x05, 0x1e, 0x3f, 0x81, 0x7a, 0x16, 0x71, 0xec,
+	0xa8, 0xe5, 0xb7, 0xf1, 0xef, 0x93, 0x6d, 0x40, 0x44, 0xf8, 0x25, 0x1c, 0x6c, 0x25, 0x16, 0x8f,
+	0xf3, 0x07, 0xb0, 0x15, 0xf8, 0xfe, 0xc9, 0x2e, 0x58, 0x5d, 0x7f, 0xab, 0x18, 0x4d, 0xec, 0x2a,
+	0x5e, 0x29, 0xef, 0xfd, 0xe3, 0x1d, 0xa8, 0x88, 0xf0, 0x73, 0x30, 0x0a, 0x19, 0xc6, 0x23, 0xc5,
+	0xda, 0x4e, 0x75, 0xbf, 0xbb, 0x2b, 0x50, 0x38, 0x85, 0xc3, 0x7b, 0x51, 0xc6, 0x77, 0x53, 0xea,
+	0x8e, 0x88, 0xef, 0xee, 0x32, 0x21, 0xbf, 0xdf, 0x0d, 0xb4, 0x3f, 0xee, 0x06, 0xda, 0x5f, 0x77,
+	0x03, 0xed, 0xe7, 0xbf, 0x07, 0x95, 0x45, 0x4d, 0x7d, 0x43, 0x3e, 0xfb, 0x37, 0x00, 0x00, 0xff,
+	0xff, 0x82, 0x03, 0x42, 0x36, 0x55, 0x06, 0x00, 0x00,
 }
 
 func (m *Bot) Marshal() (dAtA []byte, err error) {
@@ -1069,6 +987,18 @@ func (m *Bot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if m.Captcha != nil {
+		{
+			size, err := m.Captcha.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintHttpDto(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
 	if m.IsOnline {
 		i--
 		if m.IsOnline {
@@ -1087,6 +1017,82 @@ func (m *Bot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Bot_Captcha) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Bot_Captcha) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Bot_Captcha) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Data != nil {
+		{
+			size := m.Data.Size()
+			i -= size
+			if _, err := m.Data.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	if m.CaptchaType != 0 {
+		i = encodeVarintHttpDto(dAtA, i, uint64(m.CaptchaType))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.BotId != 0 {
+		i = encodeVarintHttpDto(dAtA, i, uint64(m.BotId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Bot_Captcha_Url) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Bot_Captcha_Url) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.Url)
+	copy(dAtA[i:], m.Url)
+	i = encodeVarintHttpDto(dAtA, i, uint64(len(m.Url)))
+	i--
+	dAtA[i] = 0x1a
+	return len(dAtA) - i, nil
+}
+func (m *Bot_Captcha_Image) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Bot_Captcha_Image) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Image != nil {
+		i -= len(m.Image)
+		copy(dAtA[i:], m.Image)
+		i = encodeVarintHttpDto(dAtA, i, uint64(len(m.Image)))
+		i--
+		dAtA[i] = 0x22
+	}
+	return len(dAtA) - i, nil
+}
 func (m *CreateBotReq) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1344,150 +1350,6 @@ func (m *BotLoginAsyncResp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *Captcha) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *Captcha) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Captcha) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.Data != nil {
-		{
-			size := m.Data.Size()
-			i -= size
-			if _, err := m.Data.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-		}
-	}
-	if m.CaptchaType != 0 {
-		i = encodeVarintHttpDto(dAtA, i, uint64(m.CaptchaType))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.BotId != 0 {
-		i = encodeVarintHttpDto(dAtA, i, uint64(m.BotId))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *Captcha_Url) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Captcha_Url) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	i -= len(m.Url)
-	copy(dAtA[i:], m.Url)
-	i = encodeVarintHttpDto(dAtA, i, uint64(len(m.Url)))
-	i--
-	dAtA[i] = 0x1a
-	return len(dAtA) - i, nil
-}
-func (m *Captcha_Image) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *Captcha_Image) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Image != nil {
-		i -= len(m.Image)
-		copy(dAtA[i:], m.Image)
-		i = encodeVarintHttpDto(dAtA, i, uint64(len(m.Image)))
-		i--
-		dAtA[i] = 0x22
-	}
-	return len(dAtA) - i, nil
-}
-func (m *ListCaptchaReq) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ListCaptchaReq) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ListCaptchaReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ListCaptchaResp) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ListCaptchaResp) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ListCaptchaResp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.CaptchaList) > 0 {
-		for iNdEx := len(m.CaptchaList) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.CaptchaList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintHttpDto(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *SolveCaptchaReq) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1694,12 +1556,59 @@ func (m *Bot) Size() (n int) {
 	if m.IsOnline {
 		n += 2
 	}
+	if m.Captcha != nil {
+		l = m.Captcha.Size()
+		n += 1 + l + sovHttpDto(uint64(l))
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
 	return n
 }
 
+func (m *Bot_Captcha) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.BotId != 0 {
+		n += 1 + sovHttpDto(uint64(m.BotId))
+	}
+	if m.CaptchaType != 0 {
+		n += 1 + sovHttpDto(uint64(m.CaptchaType))
+	}
+	if m.Data != nil {
+		n += m.Data.Size()
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *Bot_Captcha_Url) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Url)
+	n += 1 + l + sovHttpDto(uint64(l))
+	return n
+}
+func (m *Bot_Captcha_Image) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Image != nil {
+		l = len(m.Image)
+		n += 1 + l + sovHttpDto(uint64(l))
+	}
+	return n
+}
 func (m *CreateBotReq) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1812,79 +1721,6 @@ func (m *BotLoginAsyncResp) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *Captcha) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.BotId != 0 {
-		n += 1 + sovHttpDto(uint64(m.BotId))
-	}
-	if m.CaptchaType != 0 {
-		n += 1 + sovHttpDto(uint64(m.CaptchaType))
-	}
-	if m.Data != nil {
-		n += m.Data.Size()
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *Captcha_Url) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Url)
-	n += 1 + l + sovHttpDto(uint64(l))
-	return n
-}
-func (m *Captcha_Image) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Image != nil {
-		l = len(m.Image)
-		n += 1 + l + sovHttpDto(uint64(l))
-	}
-	return n
-}
-func (m *ListCaptchaReq) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *ListCaptchaResp) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.CaptchaList) > 0 {
-		for _, e := range m.CaptchaList {
-			l = e.Size()
-			n += 1 + l + sovHttpDto(uint64(l))
-		}
-	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -2053,6 +1889,199 @@ func (m *Bot) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.IsOnline = bool(v != 0)
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Captcha", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHttpDto
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Captcha == nil {
+				m.Captcha = &Bot_Captcha{}
+			}
+			if err := m.Captcha.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipHttpDto(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Bot_Captcha) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowHttpDto
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Captcha: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Captcha: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BotId", wireType)
+			}
+			m.BotId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHttpDto
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BotId |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CaptchaType", wireType)
+			}
+			m.CaptchaType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHttpDto
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CaptchaType |= Bot_Captcha_CaptchaType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Url", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHttpDto
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = &Bot_Captcha_Url{string(dAtA[iNdEx:postIndex])}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Image", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHttpDto
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthHttpDto
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := make([]byte, postIndex-iNdEx)
+			copy(v, dAtA[iNdEx:postIndex])
+			m.Data = &Bot_Captcha_Image{v}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipHttpDto(dAtA[iNdEx:])
@@ -2627,305 +2656,6 @@ func (m *BotLoginAsyncResp) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: BotLoginAsyncResp: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipHttpDto(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Captcha) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowHttpDto
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Captcha: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Captcha: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BotId", wireType)
-			}
-			m.BotId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowHttpDto
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.BotId |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CaptchaType", wireType)
-			}
-			m.CaptchaType = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowHttpDto
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.CaptchaType |= Captcha_CaptchaType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Url", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowHttpDto
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Data = &Captcha_Url{string(dAtA[iNdEx:postIndex])}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Image", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowHttpDto
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := make([]byte, postIndex-iNdEx)
-			copy(v, dAtA[iNdEx:postIndex])
-			m.Data = &Captcha_Image{v}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipHttpDto(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ListCaptchaReq) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowHttpDto
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ListCaptchaReq: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ListCaptchaReq: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipHttpDto(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ListCaptchaResp) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowHttpDto
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ListCaptchaResp: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ListCaptchaResp: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CaptchaList", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowHttpDto
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthHttpDto
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.CaptchaList = append(m.CaptchaList, &Captcha{})
-			if err := m.CaptchaList[len(m.CaptchaList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipHttpDto(dAtA[iNdEx:])

@@ -134,7 +134,6 @@ func InitGin() {
 	router.POST("/bot/create/v1", handler.CreateBot)
 	router.POST("/bot/delete/v1", handler.DeleteBot)
 	router.POST("/bot/list/v1", handler.ListBot)
-	router.POST("/captcha/list/v1", handler.ListCaptcha)
 	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
 	router.POST("/qrcode/fetch/v1", handler.FetchQrCode)
 	router.POST("/qrcode/query/v1", handler.QueryQRCodeStatus)
