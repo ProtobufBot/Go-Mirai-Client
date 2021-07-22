@@ -15,6 +15,7 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/zserge/lorca"
 )
 
 var (
@@ -62,8 +63,13 @@ func main() {
 
 	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
 	InitGin()               // 初始化GIN HTTP管理
-
-	select {}
+	ui, err := lorca.New(fmt.Sprintf("http://localhost:%s/", config.Port), "", 1024, 768)
+	if err != nil {
+		util.FatalError(err)
+	}
+	defer ui.Close()
+	<-ui.Done()
+	os.Exit(0)
 }
 
 func LoadGmcConfigFile(filePath string) {
