@@ -3,7 +3,7 @@ module github.com/ProtobufBot/Go-Mirai-Client
 go 1.16
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20210718145418-bf6cfc84c5a7
+	github.com/Mrs4s/MiraiGo v0.0.0-20210722153822-4e350e6b2a67
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-playground/validator/v10 v10.7.0 // indirect
@@ -18,7 +18,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
-	github.com/zserge/lorca v0.1.10 // indirect
+	github.com/zserge/lorca v0.1.10
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/text v0.3.6 // indirect
