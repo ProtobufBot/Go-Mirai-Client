@@ -19,10 +19,10 @@ WORKDIR /build
 
 COPY ./ .
 
-COPY --from=ui_builder /build/pbbot-react-ui/build ./static/static
+COPY --from=ui_builder /build/pbbot-react-ui/build ./pkg/static/static
 
 RUN cd /build \
-  && go build -ldflags "-s -w -extldflags '-static'" -o gmc
+  && go build -ldflags "-s -w -extldflags '-static'" -o gmc ./service/gmc
 
 FROM alpine:latest
 

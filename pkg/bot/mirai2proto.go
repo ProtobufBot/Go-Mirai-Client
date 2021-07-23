@@ -3,10 +3,11 @@ package bot
 import (
 	"strconv"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
+
+	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/message"
 )
 
 func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageElement) []*onebot.Message {

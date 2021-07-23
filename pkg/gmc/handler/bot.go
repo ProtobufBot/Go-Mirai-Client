@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/device"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/plugins"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/plugins"
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/gin-gonic/gin"

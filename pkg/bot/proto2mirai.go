@@ -9,12 +9,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/cache"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
+
+	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/message"
 	log "github.com/sirupsen/logrus"
 )
 

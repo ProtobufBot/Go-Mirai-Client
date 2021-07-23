@@ -26,7 +26,7 @@ for PLATFORM in $PLATFORMS; do
   GOARCH=${PLATFORM#*/}
   BIN_FILENAME="${OUTPUT_DIR}/${NAME}-${GOOS}-${GOARCH}"
   if [[ "${GOOS}" == "windows" ]]; then BIN_FILENAME="${BIN_FILENAME}.exe"; fi
-  CMD="GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME}"
+  CMD="GOOS=${GOOS} GOARCH=${GOARCH} go build -v -ldflags \"-s -w -extldflags '-static'\" -o ${BIN_FILENAME} github.com/ProtobufBot/Go-Mirai-Client/service/gmc"
   echo $CMD
   eval $CMD || FAILURES="${FAILURES} ${PLATFORM}"
 done

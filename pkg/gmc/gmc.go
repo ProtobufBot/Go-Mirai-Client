@@ -1,4 +1,4 @@
-package main
+package gmc
 
 import (
 	"flag"
@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/handler"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/static"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
-	"github.com/ProtobufBot/Go-Mirai-Client/static"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -50,7 +50,7 @@ func init() {
 	log.SetOutput(os.Stdout)
 }
 
-func main() {
+func Start() {
 	if help {
 		flag.Usage()
 		os.Exit(0)

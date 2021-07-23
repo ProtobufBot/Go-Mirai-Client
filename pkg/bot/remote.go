@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/ProtobufBot/Go-Mirai-Client/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/safe_ws"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
+
+	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"

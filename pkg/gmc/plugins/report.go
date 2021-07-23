@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/cache"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
+
+	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/message"
 	log "github.com/sirupsen/logrus"
 )
 

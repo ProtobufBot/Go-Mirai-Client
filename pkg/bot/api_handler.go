@@ -7,10 +7,10 @@ import (
 	_ "unsafe"
 
 
-	"github.com/ProtobufBot/Go-Mirai-Client/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/cache"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"

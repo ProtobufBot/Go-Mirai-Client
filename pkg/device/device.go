@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 
 	"github.com/Mrs4s/MiraiGo/binary"

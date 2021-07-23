@@ -36,7 +36,7 @@ _testmain.go
 device.json
 Go-Mirai-Client
 device-*.json
-static/static
+pkg/static/static
 gmc-*.zip
 captcha.jpg
 /video

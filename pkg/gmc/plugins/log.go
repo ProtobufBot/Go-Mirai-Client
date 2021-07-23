@@ -1,10 +1,11 @@
 package plugins
 
 import (
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
+
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
-	"github.com/ProtobufBot/Go-Mirai-Client/service/bot"
 	log "github.com/sirupsen/logrus"
 )
 
