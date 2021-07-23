@@ -45,3 +45,4 @@ captcha.jpg
 /gmc_config.json
 cuberbot
 tmp
+dist/

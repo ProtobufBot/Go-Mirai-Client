@@ -1,0 +1,81 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - id: nowin
+    main: ./service/gmc
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - 7
+    ignore:
+      - goos: darwin
+        goarch: arm
+      - goos: darwin
+        goarch: 386
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -extldflags '-static'
+    hooks:
+      post:
+        - upx "{{ .Path }}"
+  - id: win
+    main: ./service/gmc_lorca
+    env:
+      - CGO_ENABLED=0
+      - GO111MODULE=on
+    goos:
+      - windows
+    goarch:
+      - 386
+      - amd64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -extldflags '-static' -H windowsgui
+    hooks:
+      post:
+        - upx "{{ .Path }}"
+
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+changelog:
+  skip: true
+archives:
+  - id: binary
+    builds:
+      - win
+    name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format_overrides:
+      - goos: windows
+        format: binary
+  - id: nowin
+    builds:
+      - nowin
+      - win
+    name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+nfpms:
+  - license: AGPL 3.0
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - deb
+      - rpm
+    maintainer: lz1998
