@@ -23,6 +23,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
 	github.com/ugorji/go v1.2.6 // indirect
+	github.com/zserge/lorca v0.1.10
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/text v0.3.6 // indirect
