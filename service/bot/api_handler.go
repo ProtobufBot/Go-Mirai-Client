@@ -6,13 +6,15 @@ import (
 	"strconv"
 	_ "unsafe"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/utils"
+
 	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/cache"
+
+	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Mrs4s/MiraiGo/utils"
 	log "github.com/sirupsen/logrus"
 )
 

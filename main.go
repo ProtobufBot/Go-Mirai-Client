@@ -13,6 +13,8 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/service/handler"
+	"github.com/ProtobufBot/Go-Mirai-Client/static"
+
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
@@ -130,7 +132,7 @@ func InitGin() {
 	}
 
 	router.Use(handler.CORSMiddleware())
-	router.Static("/", "./static")
+	router.StaticFS("/", http.FS(static.MustGetStatic()))
 	router.POST("/bot/create/v1", handler.CreateBot)
 	router.POST("/bot/delete/v1", handler.DeleteBot)
 	router.POST("/bot/list/v1", handler.ListBot)
