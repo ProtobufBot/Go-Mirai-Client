@@ -59,6 +59,10 @@ func CreateBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
+	if req.BotId == 0 {
+		c.String(http.StatusBadRequest, "botId is 0")
+		return
+	}
 	_, ok := bot.Clients[req.BotId]
 	if ok {
 		c.String(http.StatusInternalServerError, "botId already exists")
