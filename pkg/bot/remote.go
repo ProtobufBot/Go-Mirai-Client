@@ -19,7 +19,8 @@ import (
 )
 
 var (
-	WsServers = make(map[string]*WsServer) // TODO 线程安全？改用sync.map
+	// RemoteServers key是botId，value是map（key是serverName，value是server）
+	RemoteServers = make(map[int64]map[string]*WsServer) // TODO 线程安全？改用sync.map
 )
 
 type WsServer struct {
@@ -30,6 +31,8 @@ type WsServer struct {
 }
 
 func ConnectUniversal(cli *client.QQClient) {
+	botServers := map[string]*WsServer{}
+	RemoteServers[cli.Uin] = botServers
 	for _, group := range config.Conf.ServerGroups {
 		if group.Disabled || group.Urls == nil || len(group.Urls) < 1 {
 			continue
@@ -64,7 +67,7 @@ func ConnectUniversal(cli *client.QQClient) {
 					}()
 					closeChan <- 1
 				})
-				WsServers[serverGroup.Name] = &WsServer{
+				botServers[serverGroup.Name] = &WsServer{
 					SafeWebSocket: safeWs,
 					ServerGroup:   &serverGroup,
 					wsUrl:         serverUrl,
@@ -74,7 +77,7 @@ func ConnectUniversal(cli *client.QQClient) {
 					if regex, err := regexp.Compile(serverGroup.RegexFilter); err != nil {
 						log.Errorf("failed to compile [%s], regex_filter: %s", serverGroup.Name, serverGroup.RegexFilter)
 					} else {
-						WsServers[serverGroup.Name].regexp = regex
+						botServers[serverGroup.Name].regexp = regex
 					}
 				}
 				util.SafeGo(func() {
@@ -87,7 +90,7 @@ func ConnectUniversal(cli *client.QQClient) {
 				})
 				<-closeChan
 				close(closeChan)
-				delete(WsServers, serverGroup.Name)
+				delete(botServers, serverGroup.Name)
 				log.Warnf("Websocket 服务器 [%s](%s) 已断开，5秒后重连", serverGroup.Name, serverUrl)
 				time.Sleep(5 * time.Second)
 			}
@@ -264,8 +267,7 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		return
 	}
 
-	for _, ws := range WsServers {
-
+	for _, ws := range RemoteServers[cli.Uin] {
 		if ws.EventFilter != nil && len(ws.EventFilter) > 0 { // 有event filter
 			if !int32SliceContains(ws.EventFilter, int32(eventFrame.FrameType)) {
 				log.Debugf("EventFilter 跳过 [%s](%s)", ws.Name, ws.wsUrl)

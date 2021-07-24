@@ -102,8 +102,12 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 // ReleaseClient 断开连接并释放资源
 func ReleaseClient(cli *client.QQClient) {
 	cli.Release()
-	delete(Clients, cli.Uin)
+	delete(Clients, cli.Uin) // 必须先删Clients，影响IsClientExist
 	delete(LoginTokens, cli.Uin)
+	for _, wsServer := range RemoteServers[cli.Uin] {
+		wsServer.Close()
+	}
+	delete(RemoteServers, cli.Uin)
 }
 
 func IsClientExist(uin int64) bool {
