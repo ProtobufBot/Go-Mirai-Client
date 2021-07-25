@@ -63,7 +63,7 @@ func CreateBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "botId is 0")
 		return
 	}
-	_, ok := bot.Clients[req.BotId]
+	_, ok := bot.Clients.Load(req.BotId)
 	if ok {
 		c.String(http.StatusInternalServerError, "botId already exists")
 	}
@@ -81,7 +81,7 @@ func DeleteBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	cli, ok := bot.Clients[req.BotId]
+	cli, ok := bot.Clients.Load(req.BotId)
 	if !ok {
 		c.String(http.StatusBadRequest, "bot not exists")
 		return
@@ -101,18 +101,19 @@ func ListBot(c *gin.Context) {
 	var resp = &dto.ListBotResp{
 		BotList: []*dto.Bot{},
 	}
-	for _, cli := range bot.Clients {
+	bot.Clients.Range(func(_ int64, cli *client.QQClient) bool {
 		resp.BotList = append(resp.BotList, &dto.Bot{
 			BotId:    cli.Uin,
 			IsOnline: cli.Online,
 			Captcha: func() *dto.Bot_Captcha {
-				if waitingCaptcha, ok := bot.WaitingCaptchas[cli.Uin]; ok {
+				if waitingCaptcha, ok := bot.WaitingCaptchas.Load(cli.Uin); ok {
 					return waitingCaptcha.Captcha
 				}
 				return nil
 			}(),
 		})
-	}
+		return true
+	})
 	Return(c, resp)
 }
 
@@ -123,7 +124,7 @@ func SolveCaptcha(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	waitingCaptcha, ok := bot.WaitingCaptchas[req.BotId]
+	waitingCaptcha, ok := bot.WaitingCaptchas.Load(req.BotId)
 	if !ok {
 		c.String(http.StatusInternalServerError, "captcha not found")
 		return
@@ -208,13 +209,13 @@ func QueryQRCodeStatus(c *gin.Context) {
 				return
 			}
 			log.Infof("登录成功")
-			originCli, ok := bot.Clients[qrCodeBot.Uin]
+			originCli, ok := bot.Clients.Load(qrCodeBot.Uin)
 			// 重复登录，旧的断开
 			if ok {
 				originCli.Release()
 			}
-			bot.Clients[qrCodeBot.Uin] = qrCodeBot
-			go AfterLogin(bot.Clients[qrCodeBot.Uin])
+			bot.Clients.Store(qrCodeBot.Uin, qrCodeBot)
+			go AfterLogin(qrCodeBot)
 			qrCodeBot = nil
 		}()
 	}
@@ -261,7 +262,7 @@ func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64) {
 
 	cli := client.NewClientMd5(uin, passwordMd5)
 	cli.UseDevice(deviceInfo)
-	bot.Clients[uin] = cli
+	bot.Clients.Store(uin, cli)
 
 	log.Infof("初始化日志")
 	bot.InitLog(cli)

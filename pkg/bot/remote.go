@@ -18,9 +18,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//go:generate go run github.com/a8m/syncmap -o "gen_remote_map.go" -pkg bot -name RemoteMap "map[int64]map[string]*WsServer"
 var (
 	// RemoteServers key是botId，value是map（key是serverName，value是server）
-	RemoteServers = make(map[int64]map[string]*WsServer) // TODO 线程安全？改用sync.map
+	RemoteServers RemoteMap
 )
 
 type WsServer struct {
@@ -32,7 +33,7 @@ type WsServer struct {
 
 func ConnectUniversal(cli *client.QQClient) {
 	botServers := map[string]*WsServer{}
-	RemoteServers[cli.Uin] = botServers
+	RemoteServers.Store(cli.Uin, botServers)
 	for _, group := range config.Conf.ServerGroups {
 		if group.Disabled || group.Urls == nil || len(group.Urls) < 1 {
 			continue
@@ -267,7 +268,13 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		return
 	}
 
-	for _, ws := range RemoteServers[cli.Uin] {
+	wsServers, ok := RemoteServers.Load(cli.Uin)
+	if !ok {
+		log.Warnf("failed to load remote servers, %+v", cli.Uin)
+		return
+	}
+
+	for _, ws := range wsServers {
 		if ws.EventFilter != nil && len(ws.EventFilter) > 0 { // 有event filter
 			if !int32SliceContains(ws.EventFilter, int32(eventFrame.FrameType)) {
 				log.Debugf("EventFilter 跳过 [%s](%s)", ws.Name, ws.wsUrl)

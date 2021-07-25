@@ -20,12 +20,14 @@ type WaitingCaptcha struct {
 	Prom    *promise.Promise
 }
 
+//go:generate go run github.com/a8m/syncmap -o "gen_captcha_map.go" -pkg bot -name CaptchaMap "map[int64]*WaitingCaptcha"
+
 // TODO sync
-var WaitingCaptchas = map[int64]*WaitingCaptcha{}
+var WaitingCaptchas CaptchaMap
 
 func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, error) {
 	if rsp.Success {
-		delete(WaitingCaptchas, cli.Uin)
+		WaitingCaptchas.Delete(cli.Uin)
 		return true, nil
 	}
 	if rsp.Error == client.SMSOrVerifyNeededError {
@@ -40,15 +42,15 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 	case client.SliderNeededError:
 		log.Infof("遇到滑块验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
 		prom := promise.NewPromise()
-		WaitingCaptchas[cli.Uin] = &WaitingCaptcha{
+		WaitingCaptchas.Store(cli.Uin, &WaitingCaptcha{
 			Captcha: &dto.Bot_Captcha{
 				BotId:       cli.Uin,
 				CaptchaType: dto.Bot_Captcha_SLIDER_CAPTCHA,
 				Data:        &dto.Bot_Captcha_Url{Url: rsp.VerifyUrl},
 			},
 			Prom: prom,
-		}
-		defer delete(WaitingCaptchas, cli.Uin)
+		})
+		defer WaitingCaptchas.Delete(cli.Uin)
 		result, err := prom.Get()
 		if err != nil {
 			return false, fmt.Errorf("提交ticket错误")
@@ -63,15 +65,15 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		log.Infof("遇到图形验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
 		_ = ioutil.WriteFile("captcha.jpg", rsp.CaptchaImage, 0644)
 		prom := promise.NewPromise()
-		WaitingCaptchas[cli.Uin] = &WaitingCaptcha{
+		WaitingCaptchas.Store(cli.Uin, &WaitingCaptcha{
 			Captcha: &dto.Bot_Captcha{
 				BotId:       cli.Uin,
 				CaptchaType: dto.Bot_Captcha_PIC_CAPTCHA,
 				Data:        &dto.Bot_Captcha_Image{Image: rsp.CaptchaImage},
 			},
 			Prom: prom,
-		}
-		defer delete(WaitingCaptchas, cli.Uin)
+		})
+		defer WaitingCaptchas.Delete(cli.Uin)
 		result, err := prom.Get()
 		text := result.(string)
 		rsp, err := cli.SubmitCaptcha(strings.ReplaceAll(text, "\n", ""), rsp.CaptchaSign)
@@ -86,15 +88,15 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			return false, fmt.Errorf("请求短信验证码错误，可能是太频繁")
 		}
 		prom := promise.NewPromise()
-		WaitingCaptchas[cli.Uin] = &WaitingCaptcha{
+		WaitingCaptchas.Store(cli.Uin, &WaitingCaptcha{
 			Captcha: &dto.Bot_Captcha{
 				BotId:       cli.Uin,
 				CaptchaType: dto.Bot_Captcha_SMS,
 				Data:        &dto.Bot_Captcha_Url{Url: rsp.SMSPhone},
 			},
 			Prom: prom,
-		}
-		defer delete(WaitingCaptchas, cli.Uin)
+		})
+		WaitingCaptchas.Delete(cli.Uin)
 		result, err := prom.Get()
 		if err != nil {
 			return false, fmt.Errorf("提交短信验证码错误")
@@ -108,15 +110,15 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		log.Info("设置环境变量 SMS = 1 可优先使用短信验证码")
 
 		prom := promise.NewPromise()
-		WaitingCaptchas[cli.Uin] = &WaitingCaptcha{
+		WaitingCaptchas.Store(cli.Uin, &WaitingCaptcha{
 			Captcha: &dto.Bot_Captcha{
 				BotId:       cli.Uin,
 				CaptchaType: dto.Bot_Captcha_UNSAFE_DEVICE_LOGIN_VERIFY,
 				Data:        &dto.Bot_Captcha_Url{Url: rsp.VerifyUrl},
 			},
 			Prom: prom,
-		}
-		defer delete(WaitingCaptchas, cli.Uin)
+		})
+		defer WaitingCaptchas.Delete(cli.Uin)
 		_, err := prom.Get()
 		cli.Disconnect()
 		time.Sleep(3 * time.Second)

@@ -8,10 +8,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//go:generate go run github.com/a8m/syncmap -o "gen_client_map.go" -pkg bot -name ClientMap "map[int64]*client.QQClient"
+//go:generate go run github.com/a8m/syncmap -o "gen_token_map.go" -pkg bot -name TokenMap "map[int64][]byte"
 var (
-	// TODO sync
-	Clients     = map[int64]*client.QQClient{}
-	LoginTokens = map[int64][]byte{}
+	Clients     ClientMap
+	LoginTokens TokenMap
 )
 
 func InitLog(cli *client.QQClient) {
@@ -48,7 +49,7 @@ func Login(cli *client.QQClient) (bool, error) {
 }
 
 func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
-	LoginTokens[cli.Uin] = cli.GenToken()
+	LoginTokens.Store(cli.Uin, cli.GenToken())
 	cli.OnDisconnected(func(bot *client.QQClient, e *client.ClientDisconnectedEvent) {
 		if bot.Online {
 			return
@@ -68,14 +69,16 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 			times++
 			time.Sleep(time.Second * time.Duration(retryInterval))
 
-			// 尝试token登录
-			if err := bot.TokenLogin(LoginTokens[bot.Uin]); err != nil {
-				log.Errorf("failed to relogin with token, try to login with password, %+v", err)
-				bot.Disconnect()
-			} else {
-				LoginTokens[cli.Uin] = bot.GenToken()
-				log.Info("succeed to relogin with token")
-				return
+			if token, ok := LoginTokens.Load(bot.Uin); ok {
+				// 尝试token登录
+				if err := bot.TokenLogin(token); err != nil {
+					log.Errorf("failed to relogin with token, try to login with password, %+v", err)
+					bot.Disconnect()
+				} else {
+					LoginTokens.Store(bot.Uin, bot.GenToken())
+					log.Info("succeed to relogin with token")
+					return
+				}
 			}
 
 			time.Sleep(time.Second)
@@ -89,7 +92,7 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 				continue
 			}
 			if ok {
-				LoginTokens[bot.Uin] = bot.GenToken()
+				LoginTokens.Store(bot.Uin, bot.GenToken())
 				log.Info("重连成功")
 				return
 			}
@@ -102,15 +105,17 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 // ReleaseClient 断开连接并释放资源
 func ReleaseClient(cli *client.QQClient) {
 	cli.Release()
-	delete(Clients, cli.Uin) // 必须先删Clients，影响IsClientExist
-	delete(LoginTokens, cli.Uin)
-	for _, wsServer := range RemoteServers[cli.Uin] {
-		wsServer.Close()
+	Clients.Delete(cli.Uin) // 必须先删Clients，影响IsClientExist
+	LoginTokens.Delete(cli.Uin)
+	if wsServers, ok := RemoteServers.Load(cli.Uin); ok {
+		for _, wsServer := range wsServers {
+			wsServer.Close()
+		}
 	}
-	delete(RemoteServers, cli.Uin)
+	RemoteServers.Delete(cli.Uin)
 }
 
 func IsClientExist(uin int64) bool {
-	_, ok := Clients[uin]
+	_, ok := Clients.Load(uin)
 	return ok
 }
