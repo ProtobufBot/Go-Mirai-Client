@@ -3,8 +3,11 @@ env:
 before:
   hooks:
     - go mod tidy
+release:
+  draft: true
+  name_template: "{{.ProjectName}}-{{.Tag}}"
 builds:
-  - id: nowin
+  - id: console
     main: ./service/gmc
     env:
       - CGO_ENABLED=0
@@ -12,6 +15,7 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
     goarch:
       - 386
       - amd64
@@ -24,6 +28,10 @@ builds:
         goarch: arm
       - goos: darwin
         goarch: 386
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: arm64
     mod_timestamp: "{{ .CommitTimestamp }}"
     flags:
       - -trimpath
@@ -32,7 +40,7 @@ builds:
     hooks:
       post:
         - upx "{{ .Path }}"
-  - id: win
+  - id: lorca
     main: ./service/gmc_lorca
     env:
       - CGO_ENABLED=0
@@ -56,21 +64,20 @@ checksum:
 changelog:
   skip: true
 archives:
-  - id: binary
+  - id: lorca
     builds:
-      - win
+      - lorca
+    name_template: "{{ .ProjectName }}_lorca_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    format_overrides:
+      - goos: windows
+        format: binary
+  - id: console
+    builds:
+      - console
     name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     format_overrides:
       - goos: windows
         format: binary
-  - id: nowin
-    builds:
-      - nowin
-      - win
-    name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
-    format_overrides:
-      - goos: windows
-        format: zip
 
 nfpms:
   - license: AGPL 3.0
