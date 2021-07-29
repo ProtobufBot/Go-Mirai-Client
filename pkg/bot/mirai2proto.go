@@ -51,23 +51,37 @@ func MiraiTextToProtoText(elem *message.TextElement) *onebot.Message {
 }
 
 func MiraiFriendImageToProtoImage(elem *message.FriendImageElement) *onebot.Message {
-	return &onebot.Message{
+	msg := &onebot.Message{
 		Type: "image",
 		Data: map[string]string{
-			"file": elem.Url,
-			"url":  elem.Url,
+			"image_id": elem.ImageId,
+			"file":     elem.Url,
+			"url":      elem.Url,
 		},
 	}
+	if elem.Flash {
+		msg.Data["type"] = "flash"
+	}
+	return msg
 }
 
 func MiraiGroupImageToProtoImage(elem *message.GroupImageElement) *onebot.Message {
-	return &onebot.Message{
+	msg := &onebot.Message{
 		Type: "image",
 		Data: map[string]string{
-			"file": elem.Url,
-			"url":  elem.Url,
+			"image_id": elem.ImageId,
+			"file":     elem.Url,
+			"url":      elem.Url,
 		},
 	}
+	if elem.Flash {
+		msg.Data["type"] = "flash"
+	}
+	if elem.EffectID != 0 {
+		msg.Data["type"] = "show"
+		msg.Data["effect_id"] = strconv.FormatInt(int64(elem.EffectID), 10)
+	}
+	return msg
 }
 
 func MiraiLocalImageToProtoImage(elem *clz.LocalImageElement) *onebot.Message {

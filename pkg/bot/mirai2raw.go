@@ -19,9 +19,9 @@ func MiraiMsgToRawMsg(cli *client.QQClient, messageChain []message.IMessageEleme
 		case *message.AtElement:
 			result += fmt.Sprintf(`<at qq="%d"/>`, elem.Target)
 		case *message.FriendImageElement:
-			result += fmt.Sprintf(`<image url="%s"/>`, html.EscapeString(elem.Url))
+			result += fmt.Sprintf(`<image image_id="%s" url="%s"/>`, html.EscapeString(elem.ImageId), html.EscapeString(elem.Url))
 		case *message.GroupImageElement:
-			result += fmt.Sprintf(`<image url="%s"/>`, html.EscapeString(elem.Url))
+			result += fmt.Sprintf(`<image image_id="%s" url="%s"/>`, html.EscapeString(elem.ImageId), html.EscapeString(elem.Url))
 		case *clz.LocalImageElement:
 			result += fmt.Sprintf(`<image url="%s"/>`, html.EscapeString(elem.Url))
 		case *message.FaceElement:
