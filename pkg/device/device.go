@@ -127,7 +127,7 @@ func GetDevice(seed int64) *client.DeviceInfo {
 	log.Info("生成随机设备信息")
 	deviceInfo := RandDevice(randGen)
 
-	client.SystemDeviceInfo.IpAddress = []byte{192, 168, 1, byte(100 + seed%100)}
+	deviceInfo.IpAddress = []byte{192, 168, 1, byte(100 + seed%100)}
 
 	if util.PathExists(devicePath) {
 		log.Infof("使用 %s 内的设备信息覆盖设备信息", devicePath)
