@@ -96,7 +96,7 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			},
 			Prom: prom,
 		})
-		WaitingCaptchas.Delete(cli.Uin)
+		defer WaitingCaptchas.Delete(cli.Uin)
 		result, err := prom.Get()
 		if err != nil {
 			return false, fmt.Errorf("提交短信验证码错误")
