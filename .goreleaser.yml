@@ -37,9 +37,9 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -extldflags '-static'
-    hooks:
-      post:
-        - upx "{{ .Path }}"
+#    hooks:
+#      post:
+#        - upx "{{ .Path }}"
   - id: lorca
     main: ./service/gmc_lorca
     env:
