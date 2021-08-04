@@ -74,7 +74,9 @@ func NewSafeWebSocket(conn *websocket.Conn, OnRecvMessage func(ws *SafeWebSocket
 				}
 				continue
 			}
-			ws.OnRecvMessage(ws, messageType, data)
+			util.SafeGo(func() {
+				ws.OnRecvMessage(ws, messageType, data)
+			})
 		}
 	})
 
