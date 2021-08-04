@@ -42,6 +42,8 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			}
 		case "at":
 			messageChain = append(messageChain, ProtoAtToMiraiAt(protoMsg.Data))
+		case "poke":
+			messageChain = append(messageChain, ProtoPokeToMiraiPoke(protoMsg.Data))
 		case "image":
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
 		case "img":
@@ -164,6 +166,20 @@ func ProtoAtToMiraiAt(data map[string]string) message.IMessageElement {
 		return EmptyText()
 	}
 	return message.NewAt(userId)
+}
+
+func ProtoPokeToMiraiPoke(data map[string]string) message.IMessageElement {
+	qq, ok := data["qq"]
+	if !ok {
+		log.Warnf("pokeQQ不存在")
+		return EmptyText()
+	}
+	userId, err := strconv.ParseInt(qq, 10, 64)
+	if err != nil {
+		log.Warnf("pokeQQ不是数字")
+		return EmptyText()
+	}
+	return &clz.PokeElement{Target: userId}
 }
 
 func ProtoFaceToMiraiFace(data map[string]string) message.IMessageElement {

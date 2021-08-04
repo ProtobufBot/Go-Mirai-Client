@@ -34,3 +34,11 @@ type GiftElement struct {
 func (g *GiftElement) Type() message.ElementType {
 	return message.At
 }
+
+type PokeElement struct {
+	Target int64
+}
+
+func (g *PokeElement) Type() message.ElementType {
+	return message.At
+}

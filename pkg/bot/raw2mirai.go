@@ -47,6 +47,8 @@ func RawMsgToMiraiMsg(cli *client.QQClient, str string) []message.IMessageElemen
 			switch node.XMLName.Local {
 			case "at":
 				elemList = append(elemList, ProtoAtToMiraiAt(attrMap))
+			case "poke":
+				elemList = append(elemList, ProtoPokeToMiraiPoke(attrMap))
 			case "img":
 				elemList = append(elemList, ProtoImageToMiraiImage(attrMap)) // TODO 为了兼容我的旧代码偷偷加的
 			case "image":

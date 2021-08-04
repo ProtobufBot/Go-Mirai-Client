@@ -6,7 +6,6 @@ import (
 	"strconv"
 	_ "unsafe"
 
-
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/cache"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
@@ -44,6 +43,10 @@ func splitText(content string, limit int) []string {
 func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *message.SendingMessage) {
 	newElements := make([]message.IMessageElement, 0, len(m.Elements))
 	for _, element := range m.Elements {
+		if _, ok := element.(*clz.PokeElement); ok {
+			cli.SendFriendPoke(target)
+			continue
+		}
 		if i, ok := element.(*clz.LocalImageElement); ok {
 			img, err := cli.UploadPrivateImage(target, i.Stream)
 			if err != nil {
@@ -123,6 +126,10 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 				return strconv.FormatInt(i.Target, 10)
 			}()
 			newElements = append(newElements, i)
+			continue
+		}
+		if i, ok := element.(*clz.PokeElement); ok {
+			cli.SendGroupPoke(groupCode, i.Target)
 			continue
 		}
 		if i, ok := element.(*clz.MyVideoElement); ok {
