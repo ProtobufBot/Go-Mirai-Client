@@ -71,6 +71,10 @@ archives:
     format_overrides:
       - goos: windows
         format: binary
+      - goos: linux
+          format: zip
+      - goos: darwin
+          format: zip
   - id: console
     builds:
       - console
