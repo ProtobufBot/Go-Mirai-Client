@@ -18,6 +18,7 @@ var (
 			{
 				Name:         "default",
 				Disabled:     false,
+				Json:         false,
 				Urls:         []string{"ws://localhost:8081/ws/cq/"},
 				EventFilter:  []int32{},
 				RegexFilter:  "",
@@ -40,6 +41,7 @@ type GmcConfig struct {
 type ServerGroup struct {
 	Name         string              `json:"name"`          // 功能名称
 	Disabled     bool                `json:"disabled"`      // 不填false默认启用
+	Json         bool                `json:"json"`          // json上报
 	Urls         []string            `json:"urls"`          // 服务器列表
 	EventFilter  []int32             `json:"event_filter"`  // 事件过滤
 	RegexFilter  string              `json:"regex_filter"`  // 正则过滤

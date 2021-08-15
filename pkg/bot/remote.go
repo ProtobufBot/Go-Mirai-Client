@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"bytes"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -13,6 +14,7 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 
 	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -22,6 +24,13 @@ import (
 var (
 	// RemoteServers key是botId，value是map（key是serverName，value是server）
 	RemoteServers RemoteMap
+	jsonMarshaler = jsonpb.Marshaler{
+		OrigName:     true,
+		EmitDefaults: true,
+	}
+	jsonUnmarshaler = jsonpb.Unmarshaler{
+		AllowUnknownFields: true,
+	}
 )
 
 type WsServer struct {
@@ -114,11 +123,20 @@ func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messa
 			return
 		}
 		var apiReq onebot.Frame
-		err := proto.Unmarshal(data, &apiReq)
-		if err != nil {
-			log.Errorf("收到API buffer，解析错误 %v", err)
-			return
+		if messageType == websocket.BinaryMessage {
+			err := proto.Unmarshal(data, &apiReq)
+			if err != nil {
+				log.Errorf("收到API binary，解析错误 %v", err)
+				return
+			}
+		} else if messageType == websocket.TextMessage {
+			err := jsonUnmarshaler.Unmarshal(bytes.NewReader(data), &apiReq)
+			if err != nil {
+				log.Errorf("收到API text，解析错误 %v", err)
+				return
+			}
 		}
+
 		log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
 
 		apiResp := handleApiFrame(cli, &apiReq)
@@ -304,13 +322,24 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		}
 
 		if report {
-			sendingBytes, err := eventFrame.Marshal() // 使用正则修改后的eventFrame
-			if err != nil {
-				log.Errorf("event 序列化错误 %v", err)
-				continue
+			if ws.Json {
+				// 使用json上报
+				sendingString, err := jsonMarshaler.MarshalToString(eventFrame)
+				if err != nil {
+					log.Errorf("event 序列化错误 %v", err)
+					continue
+				}
+				_ = ws.Send(websocket.TextMessage, []byte(sendingString))
+			} else {
+				// 使用protobuf上报
+				sendingBytes, err := eventFrame.Marshal() // 使用正则修改后的eventFrame
+				if err != nil {
+					log.Errorf("event 序列化错误 %v", err)
+					continue
+				}
+				log.Debugf("上报 event 给 [%s](%s)", ws.Name, ws.wsUrl)
+				_ = ws.Send(websocket.BinaryMessage, sendingBytes)
 			}
-			log.Debugf("上报 event 给 [%s](%s)", ws.Name, ws.wsUrl)
-			_ = ws.Send(websocket.BinaryMessage, sendingBytes)
 		}
 	}
 }
