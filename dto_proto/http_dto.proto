@@ -45,12 +45,12 @@ message ListBotResp{
     repeated Bot bot_list = 1;
 }
 
-// 机器人登陆 /bot/login/v1/
-message BotLoginAsyncReq{
-    int64 bot_id = 1;
-}
-message BotLoginAsyncResp{
-}
+//// 机器人登陆 /bot/login/v1/
+//message BotLoginAsyncReq{
+//    int64 bot_id = 1;
+//}
+//message BotLoginAsyncResp{
+//}
 
 // 处理验证码 /captcha/solve/v1/
 message SolveCaptchaReq{
@@ -90,7 +90,7 @@ service HttpService{
     rpc CreateBot(CreateBotReq)returns (CreateBotResp);
     rpc DeleteBot(DeleteBotReq)returns (DeleteBotResp);
     rpc ListBot(ListBotReq)returns (ListBotResp);
-    rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
+//    rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
     rpc SolveCaptcha(SolveCaptchaReq)returns (SolveCaptchaResp);
     rpc FetchQRCode(FetchQRCodeReq)returns (QRCodeLoginResp);
     rpc QueryQRCodeStatus(QueryQRCodeStatusReq)returns (QRCodeLoginResp);
