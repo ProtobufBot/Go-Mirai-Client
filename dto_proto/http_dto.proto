@@ -31,7 +31,7 @@ message CreateBotReq{
 message CreateBotResp{
 }
 
-// 创建机器人 /bot/delete/v1/
+// 删除机器人 /bot/delete/v1/
 message DeleteBotReq{
     int64 bot_id = 1;
 }
