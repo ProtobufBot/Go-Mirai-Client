@@ -71,10 +71,6 @@ archives:
     format_overrides:
       - goos: windows
         format: binary
-      - goos: linux
-          format: zip
-      - goos: darwin
-          format: zip
   - id: console
     builds:
       - console
@@ -82,6 +78,10 @@ archives:
     format_overrides:
       - goos: windows
         format: binary
+#      - goos: linux
+#        format: zip
+#      - goos: darwin
+#        format: zip
 
 nfpms:
   - license: AGPL 3.0
