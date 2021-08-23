@@ -66,6 +66,7 @@ func CreateBot(c *gin.Context) {
 	_, ok := bot.Clients.Load(req.BotId)
 	if ok {
 		c.String(http.StatusInternalServerError, "botId already exists")
+		return
 	}
 	go func() {
 		CreateBotImpl(req.BotId, req.Password, req.DeviceSeed)
