@@ -1,9 +1,9 @@
 module github.com/ProtobufBot/Go-Mirai-Client
 
-go 1.16
+go 1.17
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20210813074820-b8399fa706dc
+	github.com/Mrs4s/MiraiGo v0.0.0-20210819142722-38916542a3eb
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-playground/validator/v10 v10.8.0 // indirect
@@ -21,12 +21,24 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
-	github.com/ugorji/go v1.2.6 // indirect
 	github.com/zserge/lorca v0.1.10
 	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+)
+
+require (
+	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/go-playground/locales v0.13.0 // indirect
+	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/ugorji/go/codec v1.2.6 // indirect
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/text v0.3.6 // indirect
 )
 
 //replace github.com/Mrs4s/MiraiGo => ../../Mrs4s/MiraiGo
