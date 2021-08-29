@@ -235,18 +235,22 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 }
 
 func HandleDeleteMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.DeleteMsgResp {
-	eventInterface, ok := cache.GroupMessageLru.Get(req.MessageId)
-	if !ok {
-		return nil
+	if eventInterface, ok := cache.PrivateMessageLru.Get(req.MessageId); ok {
+		if event, ok := eventInterface.(*message.PrivateMessage); ok {
+			if err := cli.RecallPrivateMessage(event.Target, int64(event.Time), event.Id, event.InternalId); err == nil {
+				return &onebot.DeleteMsgResp{}
+			}
+		}
 	}
-	event, ok := eventInterface.(*message.GroupMessage)
-	if !ok {
-		return nil
+
+	if eventInterface, ok := cache.GroupMessageLru.Get(req.MessageId); ok {
+		if event, ok := eventInterface.(*message.GroupMessage); ok {
+			if err := cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId); err != nil {
+				return &onebot.DeleteMsgResp{}
+			}
+		}
 	}
-	if err := cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId); err != nil {
-		return nil
-	}
-	return &onebot.DeleteMsgResp{}
+	return nil
 }
 
 func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgResp {
