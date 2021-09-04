@@ -123,13 +123,14 @@ func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messa
 			return
 		}
 		var apiReq onebot.Frame
-		if messageType == websocket.BinaryMessage {
+		switch messageType {
+		case websocket.BinaryMessage:
 			err := proto.Unmarshal(data, &apiReq)
 			if err != nil {
 				log.Errorf("收到API binary，解析错误 %v", err)
 				return
 			}
-		} else if messageType == websocket.TextMessage {
+		case websocket.TextMessage:
 			err := jsonUnmarshaler.Unmarshal(bytes.NewReader(data), &apiReq)
 			if err != nil {
 				log.Errorf("收到API text，解析错误 %v", err)
@@ -140,12 +141,25 @@ func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messa
 		log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
 
 		apiResp := handleApiFrame(cli, &apiReq)
-		respBytes, err := apiResp.Marshal()
-		if err != nil {
-			log.Errorf("failed to marshal api resp, %+v", err)
+		var (
+			respBytes []byte
+			err       error
+		)
+		switch messageType {
+		case websocket.BinaryMessage:
+			respBytes, err = apiResp.Marshal()
+			if err != nil {
+				log.Errorf("failed to marshal api resp, %+v", err)
+			}
+		case websocket.TextMessage:
+			respStr, err := jsonMarshaler.MarshalToString(apiResp)
+			if err != nil {
+				log.Errorf("failed to marshal api resp, %+v", err)
+			}
+			respBytes = []byte(respStr)
 		}
 		log.Debugf("发送 apiResp 信息, %+v", util.MustMarshal(apiResp))
-		_ = ws.Send(websocket.BinaryMessage, respBytes)
+		_ = ws.Send(messageType, respBytes)
 	}
 }
 
