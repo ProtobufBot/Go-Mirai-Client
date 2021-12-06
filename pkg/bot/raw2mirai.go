@@ -47,6 +47,8 @@ func RawMsgToMiraiMsg(cli *client.QQClient, str string) []message.IMessageElemen
 			switch node.XMLName.Local {
 			case "at":
 				elemList = append(elemList, ProtoAtToMiraiAt(attrMap))
+			case "dice":
+				elemList = append(elemList, ProtoDiceToMiraiDice(attrMap))
 			case "poke":
 				elemList = append(elemList, ProtoPokeToMiraiPoke(attrMap))
 			case "img":

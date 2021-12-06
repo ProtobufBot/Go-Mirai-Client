@@ -3,6 +3,7 @@ package bot
 import (
 	"bytes"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"strconv"
@@ -42,6 +43,8 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			}
 		case "at":
 			messageChain = append(messageChain, ProtoAtToMiraiAt(protoMsg.Data))
+		case "dice":
+			messageChain = append(messageChain, ProtoDiceToMiraiDice(protoMsg.Data))
 		case "poke":
 			messageChain = append(messageChain, ProtoPokeToMiraiPoke(protoMsg.Data))
 		case "image":
@@ -166,6 +169,18 @@ func ProtoAtToMiraiAt(data map[string]string) message.IMessageElement {
 		return EmptyText()
 	}
 	return message.NewAt(userId)
+}
+
+func ProtoDiceToMiraiDice(data map[string]string) message.IMessageElement {
+	value := int32(rand.Intn(6) + 1)
+	valueStr, ok := data["value"]
+	if ok {
+		v, err := strconv.ParseInt(valueStr, 10, 64)
+		if err == nil && v >= 1 && v <= 6 {
+			value = int32(v)
+		}
+	}
+	return message.NewDice(value)
 }
 
 func ProtoPokeToMiraiPoke(data map[string]string) message.IMessageElement {
