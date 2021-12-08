@@ -80,8 +80,6 @@ func RawMsgToMiraiMsg(cli *client.QQClient, str string) []message.IMessageElemen
 				elemList = append(elemList, ProtoTtsToMiraiTts(cli, attrMap))
 			case "video":
 				elemList = append(elemList, ProtoVideoToMiraiVideo(cli, attrMap))
-			case "gift":
-				elemList = append(elemList, ProtoGiftToMiraiGift(cli, attrMap))
 			default:
 				log.Warnf("不支持的类型 %s", code)
 				elemList = append(elemList, message.NewText(code))

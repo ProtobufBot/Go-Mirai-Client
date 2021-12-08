@@ -26,15 +26,6 @@ func (m *LocalImageElement) Type() message.ElementType {
 	return message.Image
 }
 
-type GiftElement struct {
-	Target int64
-	GiftId message.GroupGift
-}
-
-func (g *GiftElement) Type() message.ElementType {
-	return message.At
-}
-
 type PokeElement struct {
 	Target int64
 }

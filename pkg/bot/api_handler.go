@@ -141,10 +141,6 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			newElements = append(newElements, gm)
 			continue
 		}
-		if i, ok := element.(*clz.GiftElement); ok {
-			cli.SendGroupGift(uint64(groupCode), uint64(i.Target), i.GiftId)
-			continue
-		}
 		newElements = append(newElements, element)
 	}
 	m.Elements = newElements
