@@ -118,7 +118,7 @@ func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messa
 		if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
 			return
 		}
-		if !cli.Online {
+		if !cli.Online.Load() {
 			log.Warnf("bot is not online, ignore API, %+v", cli.Uin)
 			return
 		}

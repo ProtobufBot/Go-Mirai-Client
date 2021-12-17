@@ -69,7 +69,7 @@ func CreateBot(c *gin.Context) {
 		return
 	}
 	go func() {
-		CreateBotImpl(req.BotId, req.Password, req.DeviceSeed)
+		CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, req.ClientProtocol)
 	}()
 	resp := &dto.CreateBotResp{}
 	Return(c, resp)
@@ -105,7 +105,7 @@ func ListBot(c *gin.Context) {
 	bot.Clients.Range(func(_ int64, cli *client.QQClient) bool {
 		resp.BotList = append(resp.BotList, &dto.Bot{
 			BotId:    cli.Uin,
-			IsOnline: cli.Online,
+			IsOnline: cli.Online.Load(),
 			Captcha: func() *dto.Bot_Captcha {
 				if waitingCaptcha, ok := bot.WaitingCaptchas.Load(cli.Uin); ok {
 					return waitingCaptcha.Captcha
@@ -152,7 +152,7 @@ func FetchQrCode(c *gin.Context) {
 		qrCodeBot.Release()
 	}
 	qrCodeBot = client.NewClientEmpty()
-	deviceInfo := device.GetDevice(req.DeviceSeed)
+	deviceInfo := device.GetDevice(req.DeviceSeed, req.ClientProtocol)
 	qrCodeBot.UseDevice(deviceInfo)
 
 	log.Infof("初始化日志")
@@ -185,7 +185,7 @@ func QueryQRCodeStatus(c *gin.Context) {
 		return
 	}
 
-	if qrCodeBot.Online {
+	if qrCodeBot.Online.Load() {
 		c.String(http.StatusBadRequest, "already online")
 		return
 	}
@@ -247,15 +247,15 @@ func Return(c *gin.Context, resp proto.Message) {
 	c.Data(http.StatusOK, c.ContentType(), data)
 }
 
-func CreateBotImpl(uin int64, password string, deviceRandSeed int64) {
-	CreateBotImplMd5(uin, md5.Sum([]byte(password)), deviceRandSeed)
+func CreateBotImpl(uin int64, password string, deviceRandSeed int64, clientProtocol int32) {
+	CreateBotImplMd5(uin, md5.Sum([]byte(password)), deviceRandSeed, clientProtocol)
 }
 
-func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64) {
+func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, clientProtocol int32) {
 	log.Infof("开始初始化设备信息")
-	deviceInfo := device.GetDevice(uin)
+	deviceInfo := device.GetDevice(uin, clientProtocol)
 	if deviceRandSeed != 0 {
-		deviceInfo = device.GetDevice(deviceRandSeed)
+		deviceInfo = device.GetDevice(deviceRandSeed, clientProtocol)
 	}
 	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 
@@ -286,7 +286,7 @@ func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64) {
 func AfterLogin(cli *client.QQClient) {
 	for {
 		time.Sleep(5 * time.Second)
-		if cli.Online {
+		if cli.Online.Load() {
 			break
 		}
 		log.Warnf("机器人不在线，可能在等待输入验证码，或出错了。如果出错请重启。")

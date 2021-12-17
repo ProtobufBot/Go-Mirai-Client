@@ -51,13 +51,13 @@ func Login(cli *client.QQClient) (bool, error) {
 func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 	LoginTokens.Store(cli.Uin, cli.GenToken())
 	cli.OnDisconnected(func(bot *client.QQClient, e *client.ClientDisconnectedEvent) {
-		if bot.Online {
+		if bot.Online.Load() {
 			return
 		}
 		bot.Disconnect()
 		var times = 1
 		for IsClientExist(bot.Uin) {
-			if bot.Online {
+			if bot.Online.Load() {
 				log.Warn("Bot已登录")
 				return
 			}

@@ -103,7 +103,7 @@ func GenNewTgtgtKey(randGen *rand.Rand, info *client.DeviceInfo) {
 // 使用种子生成随机设备信息
 // 如果已有设备文件，使用已有设备信息覆盖
 // 存储设备信息到文件
-func GetDevice(seed int64) *client.DeviceInfo {
+func GetDevice(seed int64, clientProtocol int32) *client.DeviceInfo {
 	randGen := rand.New(rand.NewSource(seed))
 	if seed == 0 {
 		randGen = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -134,6 +134,10 @@ func GetDevice(seed int64) *client.DeviceInfo {
 		if err := deviceInfo.ReadJson([]byte(util.ReadAllText(devicePath))); err != nil {
 			util.FatalError(fmt.Errorf("failed to load device info, err: %+v", err))
 		}
+	}
+
+	if clientProtocol > 0 && clientProtocol < 6 {
+		deviceInfo.Protocol = client.ClientProtocol(clientProtocol)
 	}
 
 	GenNewGuid(deviceInfo)

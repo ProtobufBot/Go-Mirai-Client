@@ -27,6 +27,7 @@ message CreateBotReq{
     int64 bot_id = 1;
     string password = 2;
     int64 device_seed = 3; // 设备信息随机种子
+    int32 client_protocol = 4; // 协议类型
 }
 message CreateBotResp{
 }
@@ -63,6 +64,7 @@ message SolveCaptchaResp{
 // 获取二维码 /qrcode/fetch/v1/
 message FetchQRCodeReq{
     int64 device_seed = 1;
+    int32 client_protocol = 2; // 协议类型
 }
 // 查询二维码状态 /qrcode/query/v1/
 message QueryQRCodeStatusReq{
@@ -90,7 +92,7 @@ service HttpService{
     rpc CreateBot(CreateBotReq)returns (CreateBotResp);
     rpc DeleteBot(DeleteBotReq)returns (DeleteBotResp);
     rpc ListBot(ListBotReq)returns (ListBotResp);
-//    rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
+    //    rpc BotLoginAsync(BotLoginAsyncReq)returns (BotLoginAsyncResp);
     rpc SolveCaptcha(SolveCaptchaReq)returns (SolveCaptchaResp);
     rpc FetchQRCode(FetchQRCodeReq)returns (QRCodeLoginResp);
     rpc QueryQRCodeStatus(QueryQRCodeStatusReq)returns (QRCodeLoginResp);
