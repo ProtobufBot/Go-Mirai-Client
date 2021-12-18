@@ -1,45 +1,39 @@
 package config
 
-import (
-	"encoding/json"
-
-	"github.com/pkg/errors"
-)
-
+//go:generate go run github.com/a8m/syncmap -o "gen_plugin_map.go" -pkg config -name PluginMap "map[string]*Plugin"
 var (
 	Fragment = false // 是否分片
 	Port     = "9000"
 	SMS      = false
 	Device   = ""
-	Conf     = &GmcConfig{
-		//SMS:  false,
-		//Port: "9000",
-		ServerGroups: []*ServerGroup{
-			{
-				Name:         "default",
-				Disabled:     false,
-				Json:         false,
-				Urls:         []string{"ws://localhost:8081/ws/cq/"},
-				EventFilter:  []int32{},
-				RegexFilter:  "",
-				RegexReplace: "",
-				ExtraHeader: map[string][]string{
-					"User-Agent": {"GMC"},
-				},
-			},
-		},
-	}
+	Plugins  = &PluginMap{}
 	HttpAuth = map[string]string{}
 )
 
-type GmcConfig struct {
-	//Port         string         `json:"port"`          // 管理端口
-	//SMS          bool           `json:"sms"`           // 设备锁是否优先使用短信认证
-	ServerGroups []*ServerGroup `json:"server_groups"` // 服务器组
+func init() {
+	Plugins.Store("default", &Plugin{
+		Name:         "default",
+		Disabled:     false,
+		Json:         false,
+		Urls:         []string{"ws://localhost:8081/ws/cq/"},
+		EventFilter:  []int32{},
+		RegexFilter:  "",
+		RegexReplace: "",
+		ExtraHeader: map[string][]string{
+			"User-Agent": {"GMC"},
+		},
+	})
 }
 
-type ServerGroup struct {
-	Name         string              `json:"name"`          // 功能名称
+func ClearPlugins(pluginMap *PluginMap) {
+	pluginMap.Range(func(key string, value *Plugin) bool {
+		pluginMap.Delete(key)
+		return true
+	})
+}
+
+type Plugin struct {
+	Name         string              `json:"-"`             // 功能名称
 	Disabled     bool                `json:"disabled"`      // 不填false默认启用
 	Json         bool                `json:"json"`          // json上报
 	Urls         []string            `json:"urls"`          // 服务器列表
@@ -48,18 +42,4 @@ type ServerGroup struct {
 	RegexReplace string              `json:"regex_replace"` // 正则替换
 	ExtraHeader  map[string][]string `json:"extra_header"`  // 自定义请求头
 	// TODO event filter, msg filter, regex filter, prefix filter, suffix filter
-}
-
-func (g *GmcConfig) ReadJson(d []byte) error {
-	var fileConfig GmcConfig
-	if err := json.Unmarshal(d, &fileConfig); err != nil {
-		return errors.Wrap(err, "failed to unmarshal json GmcConfig")
-	}
-	*g = fileConfig
-	return nil
-}
-
-func (g *GmcConfig) ToJson() []byte {
-	b, _ := json.MarshalIndent(g, "", "    ")
-	return b
 }

@@ -35,7 +35,7 @@ var (
 
 type WsServer struct {
 	*safe_ws.SafeWebSocket        // 线程安全的ws
-	*config.ServerGroup           // 服务器组配置
+	*config.Plugin                // 服务器组配置
 	wsUrl                  string // 随机抽中的url
 	regexp                 *regexp.Regexp
 }
@@ -43,7 +43,14 @@ type WsServer struct {
 func ConnectUniversal(cli *client.QQClient) {
 	botServers := map[string]*WsServer{}
 	RemoteServers.Store(cli.Uin, botServers)
-	for _, group := range config.Conf.ServerGroups {
+
+	plugins := make([]*config.Plugin, 0)
+	config.Plugins.Range(func(key string, value *config.Plugin) bool {
+		plugins = append(plugins, value)
+		return true
+	})
+
+	for _, group := range plugins {
 		if group.Disabled || group.Urls == nil || len(group.Urls) < 1 {
 			continue
 		}
@@ -79,7 +86,7 @@ func ConnectUniversal(cli *client.QQClient) {
 				})
 				botServers[serverGroup.Name] = &WsServer{
 					SafeWebSocket: safeWs,
-					ServerGroup:   &serverGroup,
+					Plugin:        &serverGroup,
 					wsUrl:         serverUrl,
 					regexp:        nil,
 				}

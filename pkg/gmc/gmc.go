@@ -1,6 +1,8 @@
 package gmc
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -90,22 +92,77 @@ func Start() {
 		os.Exit(0)
 	}
 
-	gmcConfigPath := "gmc_config.json"
-	LoadGmcConfigFile(gmcConfigPath)  // 如果文件存在，从文件读取gmc config
-	LoadParamConfig()                 // 如果环境变量存在，从环境变量读取gmc config，并覆盖
-	WriteGmcConfigFile(gmcConfigPath) // 内存中的gmc config写到文件
-	log.Infof("gmc config: %+v", util.MustMarshal(config.Conf))
+	pluginPath := "plugins"
+	LoadPlugins(pluginPath)  // 如果文件存在，从文件读取gmc config
+	LoadParamConfig()        // 如果参数存在，从参数读取gmc config，并覆盖
+	WritePlugins(pluginPath) // 内存中的gmc config写到文件
+	config.Plugins.Range(func(key string, value *config.Plugin) bool {
+		log.Infof("Plugin(%s): %s", value.Name, util.MustMarshal(value))
+		return true
+	})
 
 	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
 	InitGin()               // 初始化GIN HTTP管理
 }
 
-func LoadGmcConfigFile(filePath string) {
-	if util.PathExists(filePath) {
-		if err := config.Conf.ReadJson([]byte(util.ReadAllText(filePath))); err != nil {
-			log.Errorf("failed to read gmc config file %s, %+v", filePath, err)
+func LoadPlugins(pluginPath string) {
+	if !util.PathExists(pluginPath) {
+		return
+	}
+	files, err := ioutil.ReadDir(pluginPath)
+	if err != nil {
+		log.Warnf("failed to read plugin dir: %s", err)
+		return
+	}
+
+	if len(files) == 0 {
+		log.Warnf("plugin dir is empty")
+		return
+	}
+
+	config.ClearPlugins(config.Plugins)
+	for _, file := range files {
+		if !strings.HasSuffix(file.Name(), ".json") {
+			continue
+		}
+		pluginName := strings.TrimSuffix(file.Name(), ".json")
+		filepath := path.Join(pluginPath, file.Name())
+		b, err := os.ReadFile(filepath)
+		if err != nil {
+			log.Warnf("failed to read plugin file: %s %s", filepath, err)
+			continue
+		}
+		plugin := &config.Plugin{}
+		if err := json.NewDecoder(bytes.NewReader(b)).Decode(plugin); err != nil {
+			log.Warnf("failed to decode plugin file: %s %s", filepath, err)
+			continue
+		}
+		plugin.Name = pluginName
+		config.Plugins.Store(plugin.Name, plugin)
+	}
+}
+
+func WritePlugins(pluginPath string) {
+	if !util.PathExists(pluginPath) {
+		if err := os.MkdirAll(pluginPath, 0777); err != nil {
+			log.Warnf("failed to mkdir")
+			return
 		}
 	}
+	config.Plugins.Range(func(key string, plugin *config.Plugin) bool {
+		pluginFilename := fmt.Sprintf("%s.json", plugin.Name)
+		filepath := path.Join(pluginPath, pluginFilename)
+		b, err := json.MarshalIndent(plugin, "", "    ")
+		if err != nil {
+			log.Warnf("failed to marshal plugin, %s", plugin.Name)
+			return true
+		}
+		if err := os.WriteFile(filepath, b, 0777); err != nil {
+			log.Warnf("failed to write file, %s", pluginFilename)
+			return true
+		}
+		return true
+	})
 }
 
 func LoadParamConfig() {
@@ -116,9 +173,10 @@ func LoadParamConfig() {
 
 	if wsUrls != "" {
 		wsUrlList := strings.Split(wsUrls, ",")
-		config.Conf.ServerGroups = []*config.ServerGroup{}
+		config.ClearPlugins(config.Plugins)
 		for i, wsUrl := range wsUrlList {
-			config.Conf.ServerGroups = append(config.Conf.ServerGroups, &config.ServerGroup{Name: strconv.Itoa(i), Urls: []string{wsUrl}})
+			plugin := &config.Plugin{Name: strconv.Itoa(i), Urls: []string{wsUrl}}
+			config.Plugins.Store(plugin.Name, plugin)
 		}
 	}
 
@@ -137,12 +195,6 @@ func LoadParamConfig() {
 		} else {
 			log.Warnf("auth 参数错误，正确格式: 'username,password'")
 		}
-	}
-}
-
-func WriteGmcConfigFile(filePath string) {
-	if err := ioutil.WriteFile(filePath, config.Conf.ToJson(), 0644); err != nil {
-		log.Warnf("failed to write gmc config file %s, %+v", filePath, err)
 	}
 }
 
