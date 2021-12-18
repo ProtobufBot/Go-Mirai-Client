@@ -46,7 +46,7 @@ func RandDevice(randGen *rand.Rand) *client.DeviceInfo {
 			Incremental: []byte("5891938"),
 			Release:     []byte("10"),
 			CodeName:    []byte("REL"),
-			Sdk:         29,
+			SDK:         29,
 		},
 	}
 	device.WifiBSSID = device.MacAddress

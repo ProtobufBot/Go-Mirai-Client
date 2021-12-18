@@ -78,7 +78,7 @@ func ConnectUniversal(cli *client.QQClient) {
 				}
 				log.Infof("连接Websocket服务器成功 [%s](%s)", serverGroup.Name, serverUrl)
 				closeChan := make(chan int, 1)
-				safeWs := safe_ws.NewSafeWebSocket(conn, OnWsRecvMessage(cli), func() {
+				safeWs := safe_ws.NewSafeWebSocket(conn, OnWsRecvMessage(cli, &serverGroup), func() {
 					defer func() {
 						_ = recover() // 可能多次触发
 					}()
@@ -116,7 +116,18 @@ func ConnectUniversal(cli *client.QQClient) {
 	}
 }
 
-func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+	apiFilter := map[onebot.Frame_FrameType]bool{}
+	for _, apiType := range plugin.ApiFilter {
+		apiFilter[onebot.Frame_FrameType(apiType)] = true
+	}
+	isApiAllow := func(frameType onebot.Frame_FrameType) bool {
+		if len(apiFilter) == 0 {
+			return true
+		}
+		return apiFilter[frameType]
+	}
+
 	return func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
 		if !IsClientExist(cli.Uin) {
 			ws.Close()
@@ -147,7 +158,7 @@ func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messa
 
 		log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
 
-		apiResp := handleApiFrame(cli, &apiReq)
+		apiResp := handleApiFrame(cli, &apiReq, isApiAllow)
 		var (
 			respBytes []byte
 			err       error
@@ -170,8 +181,8 @@ func OnWsRecvMessage(cli *client.QQClient) func(ws *safe_ws.SafeWebSocket, messa
 	}
 }
 
-func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
-	var resp = &onebot.Frame{
+func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(onebot.Frame_FrameType) bool) (resp *onebot.Frame) {
+	resp = &onebot.Frame{
 		BotId: cli.Uin,
 		Echo:  req.Echo,
 		Ok:    true,
@@ -179,116 +190,185 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame) *onebot.Frame {
 	switch data := req.Data.(type) {
 	case *onebot.Frame_SendPrivateMsgReq:
 		resp.FrameType = onebot.Frame_TSendPrivateMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendPrivateMsgReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SendPrivateMsgResp{
 			SendPrivateMsgResp: HandleSendPrivateMsg(cli, data.SendPrivateMsgReq),
 		}
 	case *onebot.Frame_SendGroupMsgReq:
 		resp.FrameType = onebot.Frame_TSendGroupMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupMsgReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SendGroupMsgResp{
 			SendGroupMsgResp: HandleSendGroupMsg(cli, data.SendGroupMsgReq),
 		}
 	case *onebot.Frame_SendMsgReq:
 		resp.FrameType = onebot.Frame_TSendMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendMsgReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SendMsgResp{
 			SendMsgResp: HandleSendMsg(cli, data.SendMsgReq),
 		}
 	case *onebot.Frame_DeleteMsgReq:
 		resp.FrameType = onebot.Frame_TDeleteMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TDeleteMsgReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_DeleteMsgResp{
 			DeleteMsgResp: HandleDeleteMsg(cli, data.DeleteMsgReq),
 		}
 	case *onebot.Frame_GetMsgReq:
 		resp.FrameType = onebot.Frame_TGetMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetMsgReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetMsgResp{
 			GetMsgResp: HandleGetMsg(cli, data.GetMsgReq),
 		}
 	case *onebot.Frame_SetGroupKickReq:
 		resp.FrameType = onebot.Frame_TSetGroupKickResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupKickReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupKickResp{
 			SetGroupKickResp: HandleSetGroupKick(cli, data.SetGroupKickReq),
 		}
 	case *onebot.Frame_SetGroupBanReq:
 		resp.FrameType = onebot.Frame_TSetGroupBanResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupBanReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupBanResp{
 			SetGroupBanResp: HandleSetGroupBan(cli, data.SetGroupBanReq),
 		}
 	case *onebot.Frame_SetGroupWholeBanReq:
 		resp.FrameType = onebot.Frame_TSetGroupWholeBanResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupWholeBanReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupWholeBanResp{
 			SetGroupWholeBanResp: HandleSetGroupWholeBan(cli, data.SetGroupWholeBanReq),
 		}
 	case *onebot.Frame_SetGroupCardReq:
 		resp.FrameType = onebot.Frame_TSetGroupCardResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupCardReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupCardResp{
 			SetGroupCardResp: HandleSetGroupCard(cli, data.SetGroupCardReq),
 		}
 	case *onebot.Frame_SetGroupNameReq:
 		resp.FrameType = onebot.Frame_TSetGroupNameResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupNameReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupNameResp{
 			SetGroupNameResp: HandleSetGroupName(cli, data.SetGroupNameReq),
 		}
 	case *onebot.Frame_SetGroupLeaveReq:
 		resp.FrameType = onebot.Frame_TSetGroupLeaveResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupLeaveReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupLeaveResp{
 			SetGroupLeaveResp: HandleSetGroupLeave(cli, data.SetGroupLeaveReq),
 		}
 	case *onebot.Frame_SetGroupSpecialTitleReq:
 		resp.FrameType = onebot.Frame_TSetGroupSpecialTitleResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSpecialTitleReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupSpecialTitleResp{
 			SetGroupSpecialTitleResp: HandleSetGroupSpecialTitle(cli, data.SetGroupSpecialTitleReq),
 		}
 	case *onebot.Frame_SetFriendAddRequestReq:
 		resp.FrameType = onebot.Frame_TSetFriendAddRequestResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetFriendAddRequestReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetFriendAddRequestResp{
 			SetFriendAddRequestResp: HandleSetFriendAddRequest(cli, data.SetFriendAddRequestReq),
 		}
 	case *onebot.Frame_SetGroupAddRequestReq:
 		resp.FrameType = onebot.Frame_TSetGroupAddRequestResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupAddRequestReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_SetGroupAddRequestResp{
 			SetGroupAddRequestResp: HandleSetGroupAddRequest(cli, data.SetGroupAddRequestReq),
 		}
 	case *onebot.Frame_GetLoginInfoReq:
 		resp.FrameType = onebot.Frame_TGetLoginInfoResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetLoginInfoReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetLoginInfoResp{
 			GetLoginInfoResp: HandleGetLoginInfo(cli, data.GetLoginInfoReq),
 		}
 	case *onebot.Frame_GetFriendListReq:
 		resp.FrameType = onebot.Frame_TGetFriendListResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetFriendListReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetFriendListResp{
 			GetFriendListResp: HandleGetFriendList(cli, data.GetFriendListReq),
 		}
 	case *onebot.Frame_GetGroupInfoReq:
 		resp.FrameType = onebot.Frame_TGetGroupInfoResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupInfoReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetGroupInfoResp{
 			GetGroupInfoResp: HandleGetGroupInfo(cli, data.GetGroupInfoReq),
 		}
 	case *onebot.Frame_GetGroupListReq:
 		resp.FrameType = onebot.Frame_TGetGroupListResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupListReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetGroupListResp{
 			GetGroupListResp: HandleGetGroupList(cli, data.GetGroupListReq),
 		}
 	case *onebot.Frame_GetGroupMemberInfoReq:
 		resp.FrameType = onebot.Frame_TGetGroupMemberInfoResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupMemberInfoReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetGroupMemberInfoResp{
 			GetGroupMemberInfoResp: HandleGetGroupMemberInfo(cli, data.GetGroupMemberInfoReq),
 		}
 	case *onebot.Frame_GetGroupMemberListReq:
 		resp.FrameType = onebot.Frame_TGetGroupMemberListResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupMemberListReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetGroupMemberListResp{
 			GetGroupMemberListResp: HandleGetGroupMemberList(cli, data.GetGroupMemberListReq),
 		}
 	case *onebot.Frame_GetStrangerInfoReq:
 		resp.FrameType = onebot.Frame_TGetStrangerInfoResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetStrangerInfoReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetStrangerInfoResp{
 			GetStrangerInfoResp: HandleGetStrangerInfo(cli, data.GetStrangerInfoReq),
 		}
 	case *onebot.Frame_GetCookiesReq:
 		resp.FrameType = onebot.Frame_TGetCookiesResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetCookiesReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetCookiesResp{
 			GetCookiesResp: HandleGetCookies(cli, data.GetCookiesReq),
 		}
 	case *onebot.Frame_GetCsrfTokenReq:
 		resp.FrameType = onebot.Frame_TGetCsrfTokenResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetCsrfTokenReq); !resp.Ok {
+			return
+		}
 		resp.Data = &onebot.Frame_GetCsrfTokenResp{
 			GetCsrfTokenResp: HandleGetCSRFToken(cli, data.GetCsrfTokenReq),
 		}

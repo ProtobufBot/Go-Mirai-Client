@@ -17,6 +17,7 @@ func init() {
 		Json:         false,
 		Urls:         []string{"ws://localhost:8081/ws/cq/"},
 		EventFilter:  []int32{},
+		ApiFilter:    []int32{},
 		RegexFilter:  "",
 		RegexReplace: "",
 		ExtraHeader: map[string][]string{
@@ -38,6 +39,7 @@ type Plugin struct {
 	Json         bool                `json:"json"`          // json上报
 	Urls         []string            `json:"urls"`          // 服务器列表
 	EventFilter  []int32             `json:"event_filter"`  // 事件过滤
+	ApiFilter    []int32             `json:"api_filter"`    // API过滤
 	RegexFilter  string              `json:"regex_filter"`  // 正则过滤
 	RegexReplace string              `json:"regex_replace"` // 正则替换
 	ExtraHeader  map[string][]string `json:"extra_header"`  // 自定义请求头
