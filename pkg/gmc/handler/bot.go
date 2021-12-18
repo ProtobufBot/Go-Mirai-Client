@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/device"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/plugins"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
@@ -226,6 +227,98 @@ func QueryQRCodeStatus(c *gin.Context) {
 		ImageData: queryQRCodeStatusResp.ImageData,
 		Sig:       queryQRCodeStatusResp.Sig,
 	}
+	Return(c, resp)
+}
+
+func ListPlugin(c *gin.Context) {
+	req := &dto.ListPluginReq{}
+	err := c.Bind(req)
+	if err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+		return
+	}
+	var resp = &dto.ListPluginResp{
+		Plugins: []*dto.Plugin{},
+	}
+	config.Plugins.Range(func(key string, p *config.Plugin) bool {
+		resp.Plugins = append(resp.Plugins, &dto.Plugin{
+			Name:         p.Name,
+			Disabled:     p.Disabled,
+			Json:         p.Json,
+			Urls:         p.Urls,
+			EventFilter:  p.EventFilter,
+			ApiFilter:    p.ApiFilter,
+			RegexFilter:  p.RegexFilter,
+			RegexReplace: p.RegexReplace,
+			ExtraHeader: func() []*dto.Plugin_Header {
+				headers := make([]*dto.Plugin_Header, 0)
+				for k, v := range p.ExtraHeader {
+					headers = append(headers, &dto.Plugin_Header{
+						Key:   k,
+						Value: v,
+					})
+				}
+				return headers
+			}(),
+		})
+		return true
+	})
+	Return(c, resp)
+}
+
+func SavePlugin(c *gin.Context) {
+	req := &dto.SavePluginReq{}
+	err := c.Bind(req)
+	if err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+		return
+	}
+	if req.Plugin == nil {
+		c.String(http.StatusBadRequest, "plugin is nil")
+		return
+	}
+	p := req.Plugin
+	if p.ApiFilter == nil {
+		p.ApiFilter = []int32{}
+	}
+	if p.EventFilter == nil {
+		p.EventFilter = []int32{}
+	}
+	if p.Urls == nil {
+		p.Urls = []string{}
+	}
+	config.Plugins.Store(p.Name, &config.Plugin{
+		Name:         p.Name,
+		Disabled:     p.Disabled,
+		Json:         p.Json,
+		Urls:         p.Urls,
+		EventFilter:  p.EventFilter,
+		ApiFilter:    p.ApiFilter,
+		RegexFilter:  p.RegexFilter,
+		RegexReplace: p.RegexReplace,
+		ExtraHeader: func() map[string][]string {
+			headers := map[string][]string{}
+			for _, h := range p.ExtraHeader {
+				headers[h.Key] = h.Value
+			}
+			return headers
+		}(),
+	})
+	config.WritePlugins()
+	resp := &dto.SavePluginResp{}
+	Return(c, resp)
+}
+
+func DeletePlugin(c *gin.Context) {
+	req := &dto.DeletePluginReq{}
+	err := c.Bind(req)
+	if err != nil {
+		c.String(http.StatusBadRequest, "bad request")
+		return
+	}
+	config.Plugins.Delete(req.Name)
+	config.WritePlugins()
+	resp := &dto.DeletePluginResp{}
 	Return(c, resp)
 }
 

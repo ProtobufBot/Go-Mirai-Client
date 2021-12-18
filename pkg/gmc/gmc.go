@@ -1,11 +1,8 @@
 package gmc
 
 import (
-	"bytes"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -92,10 +89,9 @@ func Start() {
 		os.Exit(0)
 	}
 
-	pluginPath := "plugins"
-	LoadPlugins(pluginPath)  // 如果文件存在，从文件读取gmc config
-	LoadParamConfig()        // 如果参数存在，从参数读取gmc config，并覆盖
-	WritePlugins(pluginPath) // 内存中的gmc config写到文件
+	config.LoadPlugins()  // 如果文件存在，从文件读取gmc config
+	LoadParamConfig()     // 如果参数存在，从参数读取gmc config，并覆盖
+	config.WritePlugins() // 内存中的gmc config写到文件
 	config.Plugins.Range(func(key string, value *config.Plugin) bool {
 		log.Infof("Plugin(%s): %s", value.Name, util.MustMarshal(value))
 		return true
@@ -103,66 +99,6 @@ func Start() {
 
 	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
 	InitGin()               // 初始化GIN HTTP管理
-}
-
-func LoadPlugins(pluginPath string) {
-	if !util.PathExists(pluginPath) {
-		return
-	}
-	files, err := ioutil.ReadDir(pluginPath)
-	if err != nil {
-		log.Warnf("failed to read plugin dir: %s", err)
-		return
-	}
-
-	if len(files) == 0 {
-		log.Warnf("plugin dir is empty")
-		return
-	}
-
-	config.ClearPlugins(config.Plugins)
-	for _, file := range files {
-		if !strings.HasSuffix(file.Name(), ".json") {
-			continue
-		}
-		pluginName := strings.TrimSuffix(file.Name(), ".json")
-		filepath := path.Join(pluginPath, file.Name())
-		b, err := os.ReadFile(filepath)
-		if err != nil {
-			log.Warnf("failed to read plugin file: %s %s", filepath, err)
-			continue
-		}
-		plugin := &config.Plugin{}
-		if err := json.NewDecoder(bytes.NewReader(b)).Decode(plugin); err != nil {
-			log.Warnf("failed to decode plugin file: %s %s", filepath, err)
-			continue
-		}
-		plugin.Name = pluginName
-		config.Plugins.Store(plugin.Name, plugin)
-	}
-}
-
-func WritePlugins(pluginPath string) {
-	if !util.PathExists(pluginPath) {
-		if err := os.MkdirAll(pluginPath, 0777); err != nil {
-			log.Warnf("failed to mkdir")
-			return
-		}
-	}
-	config.Plugins.Range(func(key string, plugin *config.Plugin) bool {
-		pluginFilename := fmt.Sprintf("%s.json", plugin.Name)
-		filepath := path.Join(pluginPath, pluginFilename)
-		b, err := json.MarshalIndent(plugin, "", "    ")
-		if err != nil {
-			log.Warnf("failed to marshal plugin, %s", plugin.Name)
-			return true
-		}
-		if err := os.WriteFile(filepath, b, 0777); err != nil {
-			log.Warnf("failed to write file, %s", pluginFilename)
-			return true
-		}
-		return true
-	})
 }
 
 func LoadParamConfig() {
@@ -223,6 +159,9 @@ func InitGin() {
 	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
 	router.POST("/qrcode/fetch/v1", handler.FetchQrCode)
 	router.POST("/qrcode/query/v1", handler.QueryQRCodeStatus)
+	router.POST("/plugin/list/v1", handler.ListPlugin)
+	router.POST("/plugin/save/v1", handler.SavePlugin)
+	router.POST("/plugin/delete/v1", handler.DeletePlugin)
 	realPort, err := RunGin(router, ":"+config.Port)
 	if err != nil {
 		util.FatalError(fmt.Errorf("failed to run gin, err: %+v", err))
