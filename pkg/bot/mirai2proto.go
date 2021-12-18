@@ -20,6 +20,8 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 			msgList = append(msgList, MiraiAtToProtoAt(elem))
 		case *message.DiceElement:
 			msgList = append(msgList, MiraiDiceToProtoDice(elem))
+		case *message.FingerGuessingElement:
+			msgList = append(msgList, MiraiFingerGuessingToProtoFingerGuessing(elem))
 		case *message.FriendImageElement:
 			msgList = append(msgList, MiraiFriendImageToProtoImage(elem))
 		case *message.GroupImageElement:
@@ -115,6 +117,16 @@ func MiraiDiceToProtoDice(elem *message.DiceElement) *onebot.Message {
 		Type: "dice",
 		Data: map[string]string{
 			"value": strconv.FormatInt(int64(elem.Value), 10),
+		},
+	}
+}
+
+func MiraiFingerGuessingToProtoFingerGuessing(elem *message.FingerGuessingElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "finger_guessing",
+		Data: map[string]string{
+			"value": strconv.FormatInt(int64(elem.Value), 10),
+			"name":  elem.Name,
 		},
 	}
 }

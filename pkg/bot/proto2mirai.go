@@ -45,6 +45,8 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			messageChain = append(messageChain, ProtoAtToMiraiAt(protoMsg.Data))
 		case "dice":
 			messageChain = append(messageChain, ProtoDiceToMiraiDice(protoMsg.Data))
+		case "finger_guessing":
+			messageChain = append(messageChain, ProtoFingerGuessingToMiraiFingerGuessing(protoMsg.Data))
 		case "poke":
 			messageChain = append(messageChain, ProtoPokeToMiraiPoke(protoMsg.Data))
 		case "image":
@@ -179,6 +181,18 @@ func ProtoDiceToMiraiDice(data map[string]string) message.IMessageElement {
 		}
 	}
 	return message.NewDice(value)
+}
+
+func ProtoFingerGuessingToMiraiFingerGuessing(data map[string]string) message.IMessageElement {
+	value := int32(rand.Intn(2))
+	valueStr, ok := data["value"]
+	if ok {
+		v, err := strconv.ParseInt(valueStr, 10, 64)
+		if err == nil && v >= 0 && v <= 2 {
+			value = int32(v)
+		}
+	}
+	return message.NewFingerGuessing(value)
 }
 
 func ProtoPokeToMiraiPoke(data map[string]string) message.IMessageElement {

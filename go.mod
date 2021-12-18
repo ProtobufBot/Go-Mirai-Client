@@ -3,7 +3,7 @@ module github.com/ProtobufBot/Go-Mirai-Client
 go 1.17
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20211218073652-950567e4b77a
+	github.com/Mrs4s/MiraiGo v0.0.0-20211218093950-72ffc08b72ac
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-playground/validator/v10 v10.8.0 // indirect
