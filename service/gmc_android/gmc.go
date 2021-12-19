@@ -2,6 +2,7 @@ package gmc_android
 
 import (
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/device"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc"
 
 	log "github.com/sirupsen/logrus"
@@ -23,6 +24,11 @@ func SetSms(sms bool) {
 // SetLogPath 设置日志目录
 func SetLogPath(logPath string) {
 	gmc.LogPath = logPath
+}
+
+// SetDevicePath 设置设备信息路径
+func SetDevicePath(devicePath string) {
+	device.Path = devicePath
 }
 
 // Start 启动主程序

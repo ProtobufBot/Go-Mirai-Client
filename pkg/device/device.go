@@ -19,6 +19,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var Path = "device"
+
 func RandDevice(randGen *rand.Rand) *client.DeviceInfo {
 	device := &client.DeviceInfo{
 		AndroidId:    []byte("MIRAI.123456.001"),
@@ -109,7 +111,7 @@ func GetDevice(seed int64, clientProtocol int32) *client.DeviceInfo {
 		randGen = rand.New(rand.NewSource(time.Now().UnixNano()))
 	}
 	// 默认 device/device-qq.json
-	devicePath := path.Join("device", fmt.Sprintf("device-%d.json", seed))
+	devicePath := path.Join(Path, fmt.Sprintf("device-%d.json", seed))
 
 	// 优先使用参数目录
 	if config.Device != "" {
