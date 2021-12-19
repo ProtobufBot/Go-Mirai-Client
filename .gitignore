@@ -47,3 +47,5 @@ cuberbot
 tmp
 dist/
 plugins/
+gmc_android.aar
+gmc_android-sources.jar

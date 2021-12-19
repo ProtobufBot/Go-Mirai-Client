@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
+
+	log "github.com/sirupsen/logrus"
 )
 
 //go:generate go run github.com/a8m/syncmap -o "gen_plugin_map.go" -pkg config -name PluginMap "map[string]*Plugin"
@@ -58,13 +60,13 @@ type Plugin struct {
 	// TODO event filter, msg filter, regex filter, prefix filter, suffix filter
 }
 
-const pluginPath = "plugins"
+var PluginPath = "plugins"
 
 func LoadPlugins() {
-	if !util.PathExists(pluginPath) {
+	if !util.PathExists(PluginPath) {
 		return
 	}
-	files, err := ioutil.ReadDir(pluginPath)
+	files, err := ioutil.ReadDir(PluginPath)
 	if err != nil {
 		log.Warnf("failed to read plugin dir: %s", err)
 		return
@@ -81,7 +83,7 @@ func LoadPlugins() {
 			continue
 		}
 		pluginName := strings.TrimSuffix(file.Name(), ".json")
-		filepath := path.Join(pluginPath, file.Name())
+		filepath := path.Join(PluginPath, file.Name())
 		b, err := os.ReadFile(filepath)
 		if err != nil {
 			log.Warnf("failed to read plugin file: %s %s", filepath, err)
@@ -98,8 +100,8 @@ func LoadPlugins() {
 }
 
 func WritePlugins() {
-	if !util.PathExists(pluginPath) {
-		if err := os.MkdirAll(pluginPath, 0777); err != nil {
+	if !util.PathExists(PluginPath) {
+		if err := os.MkdirAll(PluginPath, 0777); err != nil {
 			log.Warnf("failed to mkdir")
 			return
 		}
@@ -107,7 +109,7 @@ func WritePlugins() {
 	DeletePluginFiles()
 	Plugins.Range(func(key string, plugin *Plugin) bool {
 		pluginFilename := fmt.Sprintf("%s.json", plugin.Name)
-		filepath := path.Join(pluginPath, pluginFilename)
+		filepath := path.Join(PluginPath, pluginFilename)
 		b, err := json.MarshalIndent(plugin, "", "    ")
 		if err != nil {
 			log.Warnf("failed to marshal plugin, %s", plugin.Name)
@@ -122,7 +124,7 @@ func WritePlugins() {
 }
 
 func DeletePluginFiles() {
-	files, err := ioutil.ReadDir(pluginPath)
+	files, err := ioutil.ReadDir(PluginPath)
 	if err != nil {
 		log.Warnf("failed to read plugin dir: %s", err)
 	}
@@ -130,7 +132,7 @@ func DeletePluginFiles() {
 		if !strings.HasSuffix(file.Name(), ".json") {
 			continue
 		}
-		filepath := path.Join(pluginPath, file.Name())
+		filepath := path.Join(PluginPath, file.Name())
 		if err := os.Remove(filepath); err != nil {
 			log.Warnf("failed to remove plugin file: %s", filepath)
 			continue
