@@ -1,8 +1,9 @@
 package gmc_android
 
 import (
+	"os"
+
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/device"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc"
 
 	log "github.com/sirupsen/logrus"
@@ -11,24 +12,13 @@ import (
 
 var logger AndroidLogger
 
-// SetPluginPath 设置插件配置路径
-func SetPluginPath(pluginPath string) {
-	config.PluginPath = pluginPath
-}
-
 // SetSms 设置是否短信优先
 func SetSms(sms bool) {
 	config.SMS = sms
 }
 
-// SetLogPath 设置日志目录
-func SetLogPath(logPath string) {
-	gmc.LogPath = logPath
-}
-
-// SetDevicePath 设置设备信息路径
-func SetDevicePath(devicePath string) {
-	device.Path = devicePath
+func Chdir(dir string) {
+	_ = os.Chdir(dir)
 }
 
 // Start 启动主程序
