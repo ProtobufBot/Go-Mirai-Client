@@ -45,8 +45,6 @@ func init() {
 	flag.BoolVar(&help, "help", false, "this help")
 	flag.StringVar(&auth, "auth", "", "http basic auth: 'username,password'")
 	flag.Parse()
-
-	InitLog()
 }
 
 func InitLog() {
@@ -90,6 +88,7 @@ func Start() {
 		os.Exit(0)
 	}
 
+	InitLog()             // 初始化日志
 	config.LoadPlugins()  // 如果文件存在，从文件读取gmc config
 	LoadParamConfig()     // 如果参数存在，从参数读取gmc config，并覆盖
 	config.WritePlugins() // 内存中的gmc config写到文件
