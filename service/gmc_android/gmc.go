@@ -20,6 +20,11 @@ func SetSms(sms bool) {
 	config.SMS = sms
 }
 
+// SetLogPath 设置日志目录
+func SetLogPath(logPath string) {
+	gmc.LogPath = logPath
+}
+
 // Start 启动主程序
 func Start() {
 	gmc.Start()

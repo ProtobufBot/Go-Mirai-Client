@@ -24,14 +24,15 @@ import (
 )
 
 var (
-	sms          = false // 参数优先使用短信验证
-	wsUrls       = ""    // websocket url
-	port         = 9000  // 端口号
-	uin    int64 = 0     // qq
-	pass         = ""    //password
-	device       = ""    // device file path
-	help         = false // help
-	auth         = ""
+	sms           = false // 参数优先使用短信验证
+	wsUrls        = ""    // websocket url
+	port          = 9000  // 端口号
+	uin     int64 = 0     // qq
+	pass          = ""    //password
+	device        = ""    // device file path
+	help          = false // help
+	auth          = ""
+	LogPath       = "logs"
 )
 
 func init() {
@@ -59,10 +60,10 @@ func InitLog() {
 	log.SetOutput(os.Stdout)
 
 	// 输出到文件
-	rotateLogs, err := rotatelogs.New(path.Join("logs", "%Y-%m-%d.log"),
-		rotatelogs.WithLinkName(path.Join("logs", "latest.log")), // 最新日志软链接
-		rotatelogs.WithRotationTime(time.Hour*24),                // 每天一个新文件
-		rotatelogs.WithMaxAge(time.Hour*24*3),                    // 日志保留3天
+	rotateLogs, err := rotatelogs.New(path.Join(LogPath, "%Y-%m-%d.log"),
+		rotatelogs.WithLinkName(path.Join(LogPath, "latest.log")), // 最新日志软链接
+		rotatelogs.WithRotationTime(time.Hour*24),                 // 每天一个新文件
+		rotatelogs.WithMaxAge(time.Hour*24*3),                     // 日志保留3天
 	)
 	if err != nil {
 		util.FatalError(err)
