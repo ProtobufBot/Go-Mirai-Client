@@ -2,6 +2,8 @@ package bot
 
 import (
 	"bytes"
+	"fmt"
+
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -17,7 +19,9 @@ import (
 
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Mrs4s/MiraiGo/utils"
 	log "github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
 )
 
 func EmptyText() *message.TextElement {
@@ -74,6 +78,8 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			messageChain = append(messageChain, ProtoTtsToMiraiTts(cli, protoMsg.Data))
 		case "video":
 			messageChain = append(messageChain, ProtoVideoToMiraiVideo(cli, protoMsg.Data))
+		case "music":
+			messageChain = append(messageChain, ProtoMusicToMiraiMusic(cli, protoMsg.Data))
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -373,7 +379,7 @@ func ProtoTtsToMiraiTts(cli *client.QQClient, data map[string]string) (m message
 	return &message.VoiceElement{Data: b}
 }
 
-func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m message.IMessageElement) {
+func ProtoVideoToMiraiVideo(_ *client.QQClient, data map[string]string) (m message.IMessageElement) {
 	elem := &clz.MyVideoElement{}
 	coverUrl, ok := data["cover"]
 	if !ok {
@@ -438,4 +444,97 @@ func ProtoVideoToMiraiVideo(cli *client.QQClient, data map[string]string) (m mes
 	elem.Url = url           // 仅用于发送日志展示
 	elem.CoverUrl = coverUrl // 仅用于发送日志展示
 	return elem
+}
+
+func ProtoMusicToMiraiMusic(_ *client.QQClient, data map[string]string) (m message.IMessageElement) {
+	if data["type"] == "qq" {
+		info, err := util.QQMusicSongInfo(data["id"])
+		if err != nil {
+			log.Warnf("failed to get qq music song info, %+v", data["id"])
+			return EmptyText()
+		}
+		if !info.Get("track_info").Exists() {
+			log.Warnf("music track_info not found, %+v", info.String())
+			return EmptyText()
+		}
+		name := info.Get("track_info.name").Str
+		mid := info.Get("track_info.mid").Str
+		albumMid := info.Get("track_info.album.mid").Str
+		pinfo, _ := util.GetBytes("http://u.y.qq.com/cgi-bin/musicu.fcg?g_tk=2034008533&uin=0&format=json&data={\"comm\":{\"ct\":23,\"cv\":0},\"url_mid\":{\"module\":\"vkey.GetVkeyServer\",\"method\":\"CgiGetVkey\",\"param\":{\"guid\":\"4311206557\",\"songmid\":[\"" + mid + "\"],\"songtype\":[0],\"uin\":\"0\",\"loginflag\":1,\"platform\":\"23\"}}}&_=1599039471576")
+		jumpURL := "https://i.y.qq.com/v8/playsong.html?platform=11&appshare=android_qq&appversion=10030010&hosteuin=oKnlNenz7i-s7c**&songmid=" + mid + "&type=0&appsongtype=1&_wv=1&source=qq&ADTAG=qfshare"
+		purl := gjson.ParseBytes(pinfo).Get("url_mid.data.midurlinfo.0.purl").Str
+		preview := "http://y.gtimg.cn/music/photo_new/T002R180x180M000" + albumMid + ".jpg"
+		content := info.Get("track_info.singer.0.name").Str
+		if data["content"] != "" {
+			content = data["content"]
+		}
+		return &message.MusicShareElement{
+			MusicType:  message.QQMusic,
+			Title:      name,
+			Summary:    content,
+			Url:        jumpURL,
+			PictureUrl: preview,
+			MusicUrl:   purl,
+		}
+	}
+	if data["type"] == "163" {
+		info, err := util.NeteaseMusicSongInfo(data["id"])
+		if err != nil {
+			log.Warnf("failed to get qq music song info, %+v", data["id"])
+			return EmptyText()
+		}
+		if !info.Exists() {
+			log.Warnf("netease song not fount")
+			return EmptyText()
+		}
+		name := info.Get("name").Str
+		jumpURL := "https://y.music.163.com/m/song/" + data["id"]
+		musicURL := "http://music.163.com/song/media/outer/url?id=" + data["id"]
+		picURL := info.Get("album.picUrl").Str
+		artistName := ""
+		if info.Get("artists.0").Exists() {
+			artistName = info.Get("artists.0.name").Str
+		}
+		return &message.MusicShareElement{
+			MusicType:  message.CloudMusic,
+			Title:      name,
+			Summary:    artistName,
+			Url:        jumpURL,
+			PictureUrl: picURL,
+			MusicUrl:   musicURL,
+		}
+	}
+	if data["type"] == "custom" {
+		if data["subtype"] != "" {
+			var subType int
+			switch data["subtype"] {
+			default:
+				subType = message.QQMusic
+			case "163":
+				subType = message.CloudMusic
+			case "migu":
+				subType = message.MiguMusic
+			case "kugou":
+				subType = message.KugouMusic
+			case "kuwo":
+				subType = message.KuwoMusic
+			}
+			return &message.MusicShareElement{
+				MusicType:  subType,
+				Title:      data["title"],
+				Summary:    data["content"],
+				Url:        data["url"],
+				PictureUrl: data["image"],
+				MusicUrl:   data["audio"],
+			}
+		}
+		xml := fmt.Sprintf(`<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><msg serviceID="2" templateID="1" action="web" brief="[分享] %s" sourceMsgId="0" url="%s" flag="0" adverSign="0" multiMsgFlag="0"><item layout="2"><audio cover="%s" src="%s"/><title>%s</title><summary>%s</summary></item><source name="音乐" icon="https://i.gtimg.cn/open/app_icon/01/07/98/56/1101079856_100_m.png" url="http://web.p.qq.com/qqmpmobile/aio/app.html?id=1101079856" action="app" a_actionData="com.tencent.qqmusic" i_actionData="tencent1101079856://" appid="1101079856" /></msg>`,
+			utils.XmlEscape(data["title"]), data["url"], data["image"], data["audio"], utils.XmlEscape(data["title"]), utils.XmlEscape(data["content"]))
+		return &message.ServiceElement{
+			Id:      60,
+			Content: xml,
+			SubType: "music",
+		}
+	}
+	return EmptyText()
 }

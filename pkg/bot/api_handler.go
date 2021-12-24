@@ -141,6 +141,15 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			newElements = append(newElements, gm)
 			continue
 		}
+		if i, ok := element.(*message.MusicShareElement); ok {
+			// TODO 撤回？
+			_, err := cli.SendGroupMusicShare(groupCode, i)
+			if err != nil {
+				log.Errorf("failed to send music, %+v", err)
+				continue
+			}
+			continue
+		}
 		newElements = append(newElements, element)
 	}
 	m.Elements = newElements
