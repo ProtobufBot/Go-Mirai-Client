@@ -2,6 +2,9 @@ package bot
 
 import (
 	"bytes"
+	_ "image/gif" // 用于解决发不出图片的问题
+	_ "image/jpeg"
+	_ "image/png"
 	"math"
 	"strconv"
 	_ "unsafe"
