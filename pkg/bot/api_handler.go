@@ -80,6 +80,11 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 			newElements = append(newElements, gm)
 			continue
 		}
+		if i, ok := element.(*message.MusicShareElement); ok {
+			// TODO 撤回？
+			cli.SendFriendMusicShare(target, i)
+			continue
+		}
 		newElements = append(newElements, element)
 	}
 	m.Elements = newElements
