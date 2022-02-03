@@ -1,6 +1,6 @@
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/Mrs4s/MiraiGo v0.0.0-20211228140953-ab72f3dc28da h1:uqY6vOKvcCBKlIDaZA6/YiDNuDP5VuACmWe2mntIwfc=
-github.com/Mrs4s/MiraiGo v0.0.0-20211228140953-ab72f3dc28da/go.mod h1:VrmhZC9o+uKB9AKRy5bZZxE5EJwJhAmo7Xn/c2tzkZI=
+github.com/Mrs4s/MiraiGo v0.0.0-20220117165008-3b461554b747 h1:i9IcyQOVc3eYHXAXgTAMsEdAcGkxpbjBEvVb87z50ZA=
+github.com/Mrs4s/MiraiGo v0.0.0-20220117165008-3b461554b747/go.mod h1:rtKLkhMEi2YjsrXaNztT4uagUOPBxf6a+TNREkG097I=
 github.com/RomiChan/protobuf v0.0.0-20211223055824-048df49a8956 h1:hnaAkKz4t+xpSNVp5mnuloRMd3Rj2Lfg5biZ3emv//c=
 github.com/RomiChan/protobuf v0.0.0-20211223055824-048df49a8956/go.mod h1:CKKOWC7mBxd36zxsCB1V8DTrwlTNRQvkSVbYqyUiGEE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -8,6 +8,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72 h1:0eU/faU2oDIB2BkQVM02hgRLJjGzzUuRf19HUhp0394=
 github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72/go.mod h1:PjfxuH4FZdUyfMdtBio2lsRr1AKEaVPwelzuHuh8Lqc=
+github.com/fumiama/imgsz v0.0.2 h1:fAkC0FnIscdKOXwAxlyw3EUba5NzxZdSxGaq3Uyfxak=
+github.com/fumiama/imgsz v0.0.2/go.mod h1:dR71mI3I2O5u6+PCpd47M9TZptzP+39tRBcbdIkoqM4=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
 github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm+fLHvGI=
 github.com/gin-gonic/gin v1.7.2 h1:Tg03T9yM2xa8j6I3Z3oqLaQRSmKvxPd6g/2HJ6zICFA=
