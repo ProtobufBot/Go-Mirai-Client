@@ -57,7 +57,7 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 		}
 		bot.Disconnect()
 		var times = 1
-		for IsClientExist(bot.Uin) && !FrozenClient[cli.Uin] {
+		for IsClientExist(bot.Uin) && !FrozenClient[bot.Uin] {
 			if bot.Online.Load() {
 				log.Warn("Bot已登录")
 				return
