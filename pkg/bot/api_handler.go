@@ -63,7 +63,7 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 			continue
 		}
 		if i, ok := element.(*message.VoiceElement); ok {
-			gm, err := cli.UploadPrivatePtt(target, bytes.NewReader(i.Data))
+			gm, err := cli.UploadVoice(message.Source{SourceType: message.SourcePrivate, PrimaryID: target}, bytes.NewReader(i.Data))
 			if err != nil {
 				log.Errorf("failed to upload private ptt, %+v", err)
 				continue
@@ -72,7 +72,7 @@ func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *mess
 			continue
 		}
 		if i, ok := element.(*clz.MyVideoElement); ok {
-			gm, err := cli.UploadGroupShortVideo(target, i.UploadingVideo, i.UploadingCover)
+			gm, err := cli.UploadShortVideo(message.Source{SourceType: message.SourcePrivate, PrimaryID: target}, i.UploadingVideo, i.UploadingCover, 1)
 			if err != nil {
 				log.Errorf("failed to upload private video, %+v", err)
 				continue
@@ -103,21 +103,23 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			continue
 		}
 		if i, ok := element.(*clz.LocalImageElement); ok {
-			img, err := cli.UploadGroupImage(groupCode, i.Stream)
+			img, err := cli.UploadImage(message.Source{SourceType: message.SourceGroup, PrimaryID: groupCode}, i.Stream)
 			if err != nil {
 				log.Errorf("failed to upload group image, %+v", err)
 				continue
 			}
-			if i.Tp == "flash" {
-				img.Flash = true
-			} else if i.Tp == "show" {
-				img.EffectID = i.EffectId
+			if img, ok := img.(*message.GroupImageElement); ok {
+				if i.Tp == "flash" {
+					img.Flash = true
+				} else if i.Tp == "show" {
+					img.EffectID = i.EffectId
+				}
 			}
 			newElements = append(newElements, img)
 			continue
 		}
 		if i, ok := element.(*message.VoiceElement); ok {
-			gm, err := cli.UploadGroupPtt(groupCode, bytes.NewReader(i.Data))
+			gm, err := cli.UploadVoice(message.Source{SourceType: message.SourceGroup, PrimaryID: groupCode}, bytes.NewReader(i.Data))
 			if err != nil {
 				log.Errorf("failed to upload group ptt, %+v", err)
 				continue
@@ -141,7 +143,7 @@ func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *mes
 			continue
 		}
 		if i, ok := element.(*clz.MyVideoElement); ok {
-			gm, err := cli.UploadGroupShortVideo(groupCode, i.UploadingVideo, i.UploadingCover)
+			gm, err := cli.UploadShortVideo(message.Source{SourceType: message.SourceGroup, PrimaryID: groupCode}, i.UploadingVideo, i.UploadingCover, 1)
 			if err != nil {
 				log.Errorf("failed to upload group video, %+v", err)
 				continue
