@@ -1,9 +1,9 @@
 module github.com/ProtobufBot/Go-Mirai-Client
 
-go 1.17
+go 1.18
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20220301053927-15a746802b1e
+	github.com/Mrs4s/MiraiGo v0.0.0-20220318145114-35f774b86afa
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-playground/validator/v10 v10.8.0 // indirect
@@ -31,12 +31,11 @@ require (
 )
 
 require (
-	github.com/RomiChan/protobuf v0.0.0-20220227114948-643565fff248 // indirect
+	github.com/RomiChan/protobuf v0.0.0-20220318113238-d8a99598f896 // indirect
 	github.com/fumiama/imgsz v0.0.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
-	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.11 // indirect

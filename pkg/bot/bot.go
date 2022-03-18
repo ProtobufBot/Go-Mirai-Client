@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"runtime/debug"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/client"
@@ -15,18 +14,26 @@ var (
 	LoginTokens TokenMap
 )
 
+type Logger struct {
+}
+
+func (l *Logger) Info(format string, args ...any) {
+	log.Infof(format, args)
+}
+func (l *Logger) Warning(format string, args ...any) {
+	log.Warnf(format, args)
+}
+func (l *Logger) Error(format string, args ...any) {
+	log.Errorf(format, args)
+}
+func (l *Logger) Debug(format string, args ...any) {
+	log.Debugf(format, args)
+}
+func (l *Logger) Dump(dumped []byte, format string, args ...any) {
+}
+
 func InitLog(cli *client.QQClient) {
-	cli.OnLog(func(c *client.QQClient, e *client.LogEvent) {
-		switch e.Type {
-		case "INFO":
-			log.Info("MiraiGo -> " + e.Message)
-		case "ERROR":
-			log.Error("MiraiGo -> " + e.Message)
-			log.Debugf("%+v", string(debug.Stack()))
-		case "DEBUG":
-			log.Debug("MiraiGo -> " + e.Message)
-		}
-	})
+	cli.SetLogger(&Logger{})
 
 	cli.OnServerUpdated(func(bot *client.QQClient, e *client.ServerUpdatedEvent) bool {
 		log.Infof("收到服务器地址更新通知, 将在下一次重连时应用. ")
@@ -50,7 +57,7 @@ func Login(cli *client.QQClient) (bool, error) {
 
 func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 	LoginTokens.Store(cli.Uin, cli.GenToken())
-	cli.OnDisconnected(func(bot *client.QQClient, e *client.ClientDisconnectedEvent) {
+	cli.DisconnectedEvent.Subscribe(func(bot *client.QQClient, e *client.ClientDisconnectedEvent) {
 		if bot.Online.Load() {
 			return
 		}
