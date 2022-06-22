@@ -190,7 +190,7 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 		log.Warnf("发送消息内容为空")
 		return nil
 	}
-	ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.Fragment)
+	ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
 	if ret == nil || ret.Id == -1 {
 		config.Fragment = !config.Fragment
 		log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，Fragment: %+v", config.Fragment)
@@ -225,7 +225,7 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 			return nil
 		}
 		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
-		ret := cli.SendGroupMessage(req.GroupId, sendingMessage, config.Fragment)
+		ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
 		if ret == nil || ret.Id == -1 {
 			config.Fragment = !config.Fragment
 			log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，Fragment: %+v", config.Fragment)
@@ -491,8 +491,8 @@ func HandleGetGroupMemberInfo(cli *client.QQClient, req *onebot.GetGroupMemberIn
 						return "member"
 					}
 				}(),
-				Title:           member.SpecialTitle,
-				TitleExpireTime: member.SpecialTitleExpireTime,
+				Title: member.SpecialTitle,
+				//TitleExpireTime: member.SpecialTitleExpireTime,
 			}
 		}
 	}
@@ -526,8 +526,8 @@ func HandleGetGroupMemberList(cli *client.QQClient, req *onebot.GetGroupMemberLi
 						return "member"
 					}
 				}(),
-				Title:           member.SpecialTitle,
-				TitleExpireTime: member.SpecialTitleExpireTime,
+				Title: member.SpecialTitle,
+				//TitleExpireTime: member.SpecialTitleExpireTime,
 			})
 		}
 		return &onebot.GetGroupMemberListResp{
