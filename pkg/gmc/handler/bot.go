@@ -55,7 +55,7 @@ func init() {
 
 func CreateBot(c *gin.Context) {
 	req := &dto.CreateBotReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
@@ -78,7 +78,7 @@ func CreateBot(c *gin.Context) {
 
 func DeleteBot(c *gin.Context) {
 	req := &dto.DeleteBotReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
@@ -95,7 +95,7 @@ func DeleteBot(c *gin.Context) {
 
 func ListBot(c *gin.Context) {
 	req := &dto.ListBotReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
@@ -121,7 +121,7 @@ func ListBot(c *gin.Context) {
 
 func SolveCaptcha(c *gin.Context) {
 	req := &dto.SolveCaptchaReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
@@ -144,7 +144,7 @@ func SolveCaptcha(c *gin.Context) {
 
 func FetchQrCode(c *gin.Context) {
 	req := &dto.FetchQRCodeReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
@@ -175,7 +175,7 @@ func QueryQRCodeStatus(c *gin.Context) {
 	queryQRCodeMutex.Lock()
 	defer queryQRCodeMutex.Unlock()
 	req := &dto.QueryQRCodeStatusReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("failed to bind, %+v", err))
 		return
@@ -232,7 +232,7 @@ func QueryQRCodeStatus(c *gin.Context) {
 
 func ListPlugin(c *gin.Context) {
 	req := &dto.ListPluginReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request")
 		return
@@ -268,7 +268,7 @@ func ListPlugin(c *gin.Context) {
 
 func SavePlugin(c *gin.Context) {
 	req := &dto.SavePluginReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request")
 		return
@@ -311,7 +311,7 @@ func SavePlugin(c *gin.Context) {
 
 func DeletePlugin(c *gin.Context) {
 	req := &dto.DeletePluginReq{}
-	err := c.Bind(req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request")
 		return

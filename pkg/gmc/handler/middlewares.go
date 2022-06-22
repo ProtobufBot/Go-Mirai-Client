@@ -1,6 +1,12 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"errors"
+	"io/ioutil"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang/protobuf/proto"
+)
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -16,4 +22,19 @@ func CORSMiddleware() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func Bind(c *gin.Context, req any) error {
+	buf, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		return err
+	}
+	if r, ok := req.(proto.Message); ok {
+		if err := proto.Unmarshal(buf, r); err != nil {
+			return err
+		}
+	} else {
+		return errors.New("obj is not ProtoMessage")
+	}
+	return nil
 }
