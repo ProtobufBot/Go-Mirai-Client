@@ -573,3 +573,10 @@ func HandleGetCSRFToken(cli *client.QQClient, req *onebot.GetCsrfTokenReq) *oneb
 		Token: int32(GetCSRFToken(cli)),
 	}
 }
+
+func HandleSetGroupSignIn(cli *client.QQClient, req *onebot.SetGroupSignInReq) *onebot.SetGroupSignInResp {
+	if group := cli.FindGroup(req.GroupId); group != nil {
+		cli.SendGroupSign(group.Code)
+	}
+	return nil
+}

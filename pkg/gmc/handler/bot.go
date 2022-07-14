@@ -33,6 +33,7 @@ func init() {
 
 	//log.Infof("加载测试插件 Hello")
 	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
+	//plugin.AddGroupMessagePlugin(plugins.SignIn)
 
 	//log.Infof("加载上报插件 Report")
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)

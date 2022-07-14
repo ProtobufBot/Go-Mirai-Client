@@ -122,7 +122,7 @@ func CheckGroupFile(cli *client.QQClient, event *message.GroupMessage) bool {
 					Id:    file.Path,
 					Name:  file.Name,
 					Busid: int64(file.Busid),
-					Size_: file.Size,
+					Size: file.Size,
 					Url:   cli.GetGroupFileUrl(event.GroupCode, file.Path, file.Busid),
 				},
 			}
