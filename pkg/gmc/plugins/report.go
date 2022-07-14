@@ -28,7 +28,9 @@ func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) i
 			PostType:    "message",
 			MessageType: "private",
 			SubType:     "normal",
-			MessageId:   event.Id,
+			MessageId:   &onebot.MessageReceipt{
+				Seqs: []int32{event.Id},
+			},
 			UserId:      event.Sender.Uin,
 			Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
 			RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Elements),
@@ -56,7 +58,9 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		PostType:    "message",
 		MessageType: "group",
 		SubType:     "normal",
-		MessageId:   event.Id,
+		MessageId:   &onebot.MessageReceipt{
+			Seqs: []int32{event.Id},
+		},
 		GroupId:     event.GroupCode,
 		UserId:      event.Sender.Uin,
 		Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
@@ -122,7 +126,7 @@ func CheckGroupFile(cli *client.QQClient, event *message.GroupMessage) bool {
 					Id:    file.Path,
 					Name:  file.Name,
 					Busid: int64(file.Busid),
-					Size_: file.Size,
+					Size: file.Size,
 					Url:   cli.GetGroupFileUrl(event.GroupCode, file.Path, file.Busid),
 				},
 			}
@@ -148,7 +152,9 @@ func ReportTempMessage(cli *client.QQClient, event *client.TempMessageEvent) int
 			PostType:    "message",
 			MessageType: "private",
 			SubType:     "group",
-			MessageId:   event.Message.Id,
+			MessageId:   &onebot.MessageReceipt{
+				Seqs: []int32{event.Message.Id},
+			},
 			UserId:      event.Message.Sender.Uin,
 			Message:     bot.MiraiMsgToProtoMsg(cli, event.Message.Elements),
 			RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Message.Elements),
@@ -394,7 +400,9 @@ func ReportGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessage
 			GroupId:    event.GroupCode,
 			UserId:     event.AuthorUin,
 			OperatorId: event.OperatorUin,
-			MessageId:  event.MessageId,
+			MessageId:  &onebot.MessageReceipt{
+				Seqs: []int32{event.MessageId},
+			},
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
@@ -412,7 +420,9 @@ func ReportFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessa
 			PostType:   "notice",
 			NoticeType: "friend_recall",
 			UserId:     event.FriendUin,
-			MessageId:  event.MessageId,
+			MessageId:  &onebot.MessageReceipt{
+				Seqs: []int32{event.MessageId},
+			},
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
@@ -448,7 +458,9 @@ func ReportOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) int
 			PostType:    "message",
 			MessageType: "private",
 			SubType:     "normal",
-			MessageId:   0,
+			MessageId:   &onebot.MessageReceipt{
+				Seqs: []int32{0},
+			},
 			UserId:      event.Sender,
 			Message: []*onebot.Message{
 				{
