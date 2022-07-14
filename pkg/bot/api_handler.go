@@ -590,3 +590,21 @@ func HandleSetGroupSignIn(cli *client.QQClient, req *onebot.SetGroupSignInReq) *
 	}
 	return nil
 }
+
+func HandleSetGroupPoke(cli *client.QQClient, req *onebot.SetGroupPokeReq) *onebot.SetGroupPokeResp {
+	if group := cli.FindGroup(req.GroupId); group != nil {
+		if member := group.FindMember(req.ToUin); member != nil {
+			cli.SendGroupPoke(group.Code, member.Uin)
+		}
+	}
+	return nil
+}
+
+func HandleSetFriendPoke(cli *client.QQClient, req *onebot.SetFriendPokeReq) *onebot.SetFriendPokeResp {
+	for _, friend := range cli.FriendList {
+		if friend.Uin == req.ToUin && friend.Uin != cli.Uin {
+			cli.SendFriendPoke(friend.Uin)
+		}
+	}
+	return nil
+}

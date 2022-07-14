@@ -380,6 +380,22 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_SetGroupSignInResp{
 			SetGroupSignInResp: HandleSetGroupSignIn(cli, data.SetGroupSignInReq),
 		}
+	case *onebot.Frame_SetGroupPokeReq:
+		resp.FrameType = onebot.Frame_TSetGroupPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupPokeReq); !resp.Ok{
+			return
+		}
+		resp.Data = &onebot.Frame_SetGroupPokeResp{
+			SetGroupPokeResp: HandleSetGroupPoke(cli, data.SetGroupPokeReq),
+		}
+	case *onebot.Frame_SetFriendPokeReq:
+		resp.FrameType = onebot.Frame_TSetFriendPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetFriendPokeReq); !resp.Ok{
+			return
+		}
+		resp.Data = &onebot.Frame_SetFriendPokeResp{
+			SetFriendPokeResp: HandleSetFriendPoke(cli, data.SetFriendPokeReq),
+		}
 	default:
 		return resp
 	}

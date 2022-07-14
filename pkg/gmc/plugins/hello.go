@@ -3,8 +3,6 @@ package plugins
 import (
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
-	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
-
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 )
@@ -21,14 +19,5 @@ func HelloPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) in
 			&message.TextElement{Content: "hello"},
 		},
 	})
-	return plugin.MessageIgnore
-}
-
-func SignIn(cli *client.QQClient, event *message.GroupMessage) int32 {
-	if bot.MiraiMsgToRawMsg(cli, event.Elements) == "打卡" {
-		bot.HandleSetGroupSignIn(cli, &onebot.SetGroupSignInReq{
-			GroupId: event.GroupCode,
-		})
-	}
 	return plugin.MessageIgnore
 }

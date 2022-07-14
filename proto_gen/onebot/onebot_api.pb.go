@@ -4096,6 +4096,192 @@ func (*SetGroupSignInResp) Descriptor() ([]byte, []int) {
 	return file_onebot_api_proto_rawDescGZIP(), []int{77}
 }
 
+type SetGroupPokeReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ToUin   int64 `protobuf:"varint,1,opt,name=to_uin,json=toUin,proto3" json:"to_uin,omitempty"`
+	GroupId int64 `protobuf:"varint,2,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+}
+
+func (x *SetGroupPokeReq) Reset() {
+	*x = SetGroupPokeReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_onebot_api_proto_msgTypes[78]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SetGroupPokeReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetGroupPokeReq) ProtoMessage() {}
+
+func (x *SetGroupPokeReq) ProtoReflect() protoreflect.Message {
+	mi := &file_onebot_api_proto_msgTypes[78]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetGroupPokeReq.ProtoReflect.Descriptor instead.
+func (*SetGroupPokeReq) Descriptor() ([]byte, []int) {
+	return file_onebot_api_proto_rawDescGZIP(), []int{78}
+}
+
+func (x *SetGroupPokeReq) GetToUin() int64 {
+	if x != nil {
+		return x.ToUin
+	}
+	return 0
+}
+
+func (x *SetGroupPokeReq) GetGroupId() int64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+type SetGroupPokeResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SetGroupPokeResp) Reset() {
+	*x = SetGroupPokeResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_onebot_api_proto_msgTypes[79]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SetGroupPokeResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetGroupPokeResp) ProtoMessage() {}
+
+func (x *SetGroupPokeResp) ProtoReflect() protoreflect.Message {
+	mi := &file_onebot_api_proto_msgTypes[79]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetGroupPokeResp.ProtoReflect.Descriptor instead.
+func (*SetGroupPokeResp) Descriptor() ([]byte, []int) {
+	return file_onebot_api_proto_rawDescGZIP(), []int{79}
+}
+
+type SetFriendPokeReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ToUin  int64 `protobuf:"varint,1,opt,name=to_uin,json=toUin,proto3" json:"to_uin,omitempty"`
+	AioUin int64 `protobuf:"varint,2,opt,name=aio_uin,json=aioUin,proto3" json:"aio_uin,omitempty"`
+}
+
+func (x *SetFriendPokeReq) Reset() {
+	*x = SetFriendPokeReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_onebot_api_proto_msgTypes[80]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SetFriendPokeReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFriendPokeReq) ProtoMessage() {}
+
+func (x *SetFriendPokeReq) ProtoReflect() protoreflect.Message {
+	mi := &file_onebot_api_proto_msgTypes[80]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFriendPokeReq.ProtoReflect.Descriptor instead.
+func (*SetFriendPokeReq) Descriptor() ([]byte, []int) {
+	return file_onebot_api_proto_rawDescGZIP(), []int{80}
+}
+
+func (x *SetFriendPokeReq) GetToUin() int64 {
+	if x != nil {
+		return x.ToUin
+	}
+	return 0
+}
+
+func (x *SetFriendPokeReq) GetAioUin() int64 {
+	if x != nil {
+		return x.AioUin
+	}
+	return 0
+}
+
+type SetFriendPokeResp struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SetFriendPokeResp) Reset() {
+	*x = SetFriendPokeResp{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_onebot_api_proto_msgTypes[81]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SetFriendPokeResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFriendPokeResp) ProtoMessage() {}
+
+func (x *SetFriendPokeResp) ProtoReflect() protoreflect.Message {
+	mi := &file_onebot_api_proto_msgTypes[81]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFriendPokeResp.ProtoReflect.Descriptor instead.
+func (*SetFriendPokeResp) Descriptor() ([]byte, []int) {
+	return file_onebot_api_proto_rawDescGZIP(), []int{81}
+}
+
 type GetMsgResp_Sender struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -4115,7 +4301,7 @@ type GetMsgResp_Sender struct {
 func (x *GetMsgResp_Sender) Reset() {
 	*x = GetMsgResp_Sender{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_onebot_api_proto_msgTypes[78]
+		mi := &file_onebot_api_proto_msgTypes[82]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4128,7 +4314,7 @@ func (x *GetMsgResp_Sender) String() string {
 func (*GetMsgResp_Sender) ProtoMessage() {}
 
 func (x *GetMsgResp_Sender) ProtoReflect() protoreflect.Message {
-	mi := &file_onebot_api_proto_msgTypes[78]
+	mi := &file_onebot_api_proto_msgTypes[82]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4220,7 +4406,7 @@ type SetGroupAnonymousBanReq_Anonymous struct {
 func (x *SetGroupAnonymousBanReq_Anonymous) Reset() {
 	*x = SetGroupAnonymousBanReq_Anonymous{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_onebot_api_proto_msgTypes[79]
+		mi := &file_onebot_api_proto_msgTypes[83]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4233,7 +4419,7 @@ func (x *SetGroupAnonymousBanReq_Anonymous) String() string {
 func (*SetGroupAnonymousBanReq_Anonymous) ProtoMessage() {}
 
 func (x *SetGroupAnonymousBanReq_Anonymous) ProtoReflect() protoreflect.Message {
-	mi := &file_onebot_api_proto_msgTypes[79]
+	mi := &file_onebot_api_proto_msgTypes[83]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4283,7 +4469,7 @@ type GetFriendListResp_Friend struct {
 func (x *GetFriendListResp_Friend) Reset() {
 	*x = GetFriendListResp_Friend{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_onebot_api_proto_msgTypes[80]
+		mi := &file_onebot_api_proto_msgTypes[84]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4296,7 +4482,7 @@ func (x *GetFriendListResp_Friend) String() string {
 func (*GetFriendListResp_Friend) ProtoMessage() {}
 
 func (x *GetFriendListResp_Friend) ProtoReflect() protoreflect.Message {
-	mi := &file_onebot_api_proto_msgTypes[80]
+	mi := &file_onebot_api_proto_msgTypes[84]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4347,7 +4533,7 @@ type GetGroupListResp_Group struct {
 func (x *GetGroupListResp_Group) Reset() {
 	*x = GetGroupListResp_Group{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_onebot_api_proto_msgTypes[81]
+		mi := &file_onebot_api_proto_msgTypes[85]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4360,7 +4546,7 @@ func (x *GetGroupListResp_Group) String() string {
 func (*GetGroupListResp_Group) ProtoMessage() {}
 
 func (x *GetGroupListResp_Group) ProtoReflect() protoreflect.Message {
-	mi := &file_onebot_api_proto_msgTypes[81]
+	mi := &file_onebot_api_proto_msgTypes[85]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4429,7 +4615,7 @@ type GetGroupMemberListResp_GroupMember struct {
 func (x *GetGroupMemberListResp_GroupMember) Reset() {
 	*x = GetGroupMemberListResp_GroupMember{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_onebot_api_proto_msgTypes[82]
+		mi := &file_onebot_api_proto_msgTypes[86]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4442,7 +4628,7 @@ func (x *GetGroupMemberListResp_GroupMember) String() string {
 func (*GetGroupMemberListResp_GroupMember) ProtoMessage() {}
 
 func (x *GetGroupMemberListResp_GroupMember) ProtoReflect() protoreflect.Message {
-	mi := &file_onebot_api_proto_msgTypes[82]
+	mi := &file_onebot_api_proto_msgTypes[86]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4577,7 +4763,7 @@ type GetGroupHonorInfoResp_CurrentTalkative struct {
 func (x *GetGroupHonorInfoResp_CurrentTalkative) Reset() {
 	*x = GetGroupHonorInfoResp_CurrentTalkative{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_onebot_api_proto_msgTypes[83]
+		mi := &file_onebot_api_proto_msgTypes[87]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4590,7 +4776,7 @@ func (x *GetGroupHonorInfoResp_CurrentTalkative) String() string {
 func (*GetGroupHonorInfoResp_CurrentTalkative) ProtoMessage() {}
 
 func (x *GetGroupHonorInfoResp_CurrentTalkative) ProtoReflect() protoreflect.Message {
-	mi := &file_onebot_api_proto_msgTypes[83]
+	mi := &file_onebot_api_proto_msgTypes[87]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4648,7 +4834,7 @@ type GetGroupHonorInfoResp_Honor struct {
 func (x *GetGroupHonorInfoResp_Honor) Reset() {
 	*x = GetGroupHonorInfoResp_Honor{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_onebot_api_proto_msgTypes[84]
+		mi := &file_onebot_api_proto_msgTypes[88]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -4661,7 +4847,7 @@ func (x *GetGroupHonorInfoResp_Honor) String() string {
 func (*GetGroupHonorInfoResp_Honor) ProtoMessage() {}
 
 func (x *GetGroupHonorInfoResp_Honor) ProtoReflect() protoreflect.Message {
-	mi := &file_onebot_api_proto_msgTypes[84]
+	mi := &file_onebot_api_proto_msgTypes[88]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5148,9 +5334,20 @@ var file_onebot_api_proto_rawDesc = []byte{
 	0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x52, 0x65, 0x71, 0x12, 0x19,
 	0x0a, 0x08, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03,
 	0x52, 0x07, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x49, 0x64, 0x22, 0x14, 0x0a, 0x12, 0x53, 0x65, 0x74,
-	0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x42,
-	0x0a, 0x5a, 0x08, 0x2e, 0x2f, 0x6f, 0x6e, 0x65, 0x62, 0x6f, 0x74, 0x62, 0x06, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x33,
+	0x47, 0x72, 0x6f, 0x75, 0x70, 0x53, 0x69, 0x67, 0x6e, 0x49, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x22,
+	0x43, 0x0a, 0x0f, 0x53, 0x65, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x50, 0x6f, 0x6b, 0x65, 0x52,
+	0x65, 0x71, 0x12, 0x15, 0x0a, 0x06, 0x74, 0x6f, 0x5f, 0x75, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x55, 0x69, 0x6e, 0x12, 0x19, 0x0a, 0x08, 0x67, 0x72, 0x6f,
+	0x75, 0x70, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x67, 0x72, 0x6f,
+	0x75, 0x70, 0x49, 0x64, 0x22, 0x12, 0x0a, 0x10, 0x53, 0x65, 0x74, 0x47, 0x72, 0x6f, 0x75, 0x70,
+	0x50, 0x6f, 0x6b, 0x65, 0x52, 0x65, 0x73, 0x70, 0x22, 0x42, 0x0a, 0x10, 0x53, 0x65, 0x74, 0x46,
+	0x72, 0x69, 0x65, 0x6e, 0x64, 0x50, 0x6f, 0x6b, 0x65, 0x52, 0x65, 0x71, 0x12, 0x15, 0x0a, 0x06,
+	0x74, 0x6f, 0x5f, 0x75, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f,
+	0x55, 0x69, 0x6e, 0x12, 0x17, 0x0a, 0x07, 0x61, 0x69, 0x6f, 0x5f, 0x75, 0x69, 0x6e, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x61, 0x69, 0x6f, 0x55, 0x69, 0x6e, 0x22, 0x13, 0x0a, 0x11,
+	0x53, 0x65, 0x74, 0x46, 0x72, 0x69, 0x65, 0x6e, 0x64, 0x50, 0x6f, 0x6b, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x42, 0x0a, 0x5a, 0x08, 0x2e, 0x2f, 0x6f, 0x6e, 0x65, 0x62, 0x6f, 0x74, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -5165,7 +5362,7 @@ func file_onebot_api_proto_rawDescGZIP() []byte {
 	return file_onebot_api_proto_rawDescData
 }
 
-var file_onebot_api_proto_msgTypes = make([]protoimpl.MessageInfo, 86)
+var file_onebot_api_proto_msgTypes = make([]protoimpl.MessageInfo, 90)
 var file_onebot_api_proto_goTypes = []interface{}{
 	(*SendPrivateMsgReq)(nil),                      // 0: onebot.SendPrivateMsgReq
 	(*SendPrivateMsgResp)(nil),                     // 1: onebot.SendPrivateMsgResp
@@ -5245,38 +5442,42 @@ var file_onebot_api_proto_goTypes = []interface{}{
 	(*CleanCacheResp)(nil),                         // 75: onebot.CleanCacheResp
 	(*SetGroupSignInReq)(nil),                      // 76: onebot.SetGroupSignInReq
 	(*SetGroupSignInResp)(nil),                     // 77: onebot.SetGroupSignInResp
-	(*GetMsgResp_Sender)(nil),                      // 78: onebot.GetMsgResp.Sender
-	(*SetGroupAnonymousBanReq_Anonymous)(nil),      // 79: onebot.SetGroupAnonymousBanReq.Anonymous
-	(*GetFriendListResp_Friend)(nil),               // 80: onebot.GetFriendListResp.Friend
-	(*GetGroupListResp_Group)(nil),                 // 81: onebot.GetGroupListResp.Group
-	(*GetGroupMemberListResp_GroupMember)(nil),     // 82: onebot.GetGroupMemberListResp.GroupMember
-	(*GetGroupHonorInfoResp_CurrentTalkative)(nil), // 83: onebot.GetGroupHonorInfoResp.CurrentTalkative
-	(*GetGroupHonorInfoResp_Honor)(nil),            // 84: onebot.GetGroupHonorInfoResp.Honor
-	nil,                                            // 85: onebot.GetVersionInfoResp.ExtraEntry
-	(*Message)(nil),                                // 86: onebot.Message
-	(*MessageReceipt)(nil),                         // 87: onebot.MessageReceipt
+	(*SetGroupPokeReq)(nil),                        // 78: onebot.SetGroupPokeReq
+	(*SetGroupPokeResp)(nil),                       // 79: onebot.SetGroupPokeResp
+	(*SetFriendPokeReq)(nil),                       // 80: onebot.SetFriendPokeReq
+	(*SetFriendPokeResp)(nil),                      // 81: onebot.SetFriendPokeResp
+	(*GetMsgResp_Sender)(nil),                      // 82: onebot.GetMsgResp.Sender
+	(*SetGroupAnonymousBanReq_Anonymous)(nil),      // 83: onebot.SetGroupAnonymousBanReq.Anonymous
+	(*GetFriendListResp_Friend)(nil),               // 84: onebot.GetFriendListResp.Friend
+	(*GetGroupListResp_Group)(nil),                 // 85: onebot.GetGroupListResp.Group
+	(*GetGroupMemberListResp_GroupMember)(nil),     // 86: onebot.GetGroupMemberListResp.GroupMember
+	(*GetGroupHonorInfoResp_CurrentTalkative)(nil), // 87: onebot.GetGroupHonorInfoResp.CurrentTalkative
+	(*GetGroupHonorInfoResp_Honor)(nil),            // 88: onebot.GetGroupHonorInfoResp.Honor
+	nil,                                            // 89: onebot.GetVersionInfoResp.ExtraEntry
+	(*Message)(nil),                                // 90: onebot.Message
+	(*MessageReceipt)(nil),                         // 91: onebot.MessageReceipt
 }
 var file_onebot_api_proto_depIdxs = []int32{
-	86, // 0: onebot.SendPrivateMsgReq.message:type_name -> onebot.Message
-	87, // 1: onebot.SendPrivateMsgResp.message_id:type_name -> onebot.MessageReceipt
-	86, // 2: onebot.SendGroupMsgReq.message:type_name -> onebot.Message
-	87, // 3: onebot.SendGroupMsgResp.message_id:type_name -> onebot.MessageReceipt
-	86, // 4: onebot.SendMsgReq.message:type_name -> onebot.Message
-	87, // 5: onebot.SendMsgResp.message_id:type_name -> onebot.MessageReceipt
-	87, // 6: onebot.DeleteMsgReq.message_id:type_name -> onebot.MessageReceipt
-	78, // 7: onebot.GetMsgResp.sender:type_name -> onebot.GetMsgResp.Sender
-	86, // 8: onebot.GetMsgResp.message:type_name -> onebot.Message
-	79, // 9: onebot.SetGroupAnonymousBanReq.anonymous:type_name -> onebot.SetGroupAnonymousBanReq.Anonymous
-	80, // 10: onebot.GetFriendListResp.friend:type_name -> onebot.GetFriendListResp.Friend
-	81, // 11: onebot.GetGroupListResp.group:type_name -> onebot.GetGroupListResp.Group
-	82, // 12: onebot.GetGroupMemberListResp.group_member:type_name -> onebot.GetGroupMemberListResp.GroupMember
-	83, // 13: onebot.GetGroupHonorInfoResp.current_talkative:type_name -> onebot.GetGroupHonorInfoResp.CurrentTalkative
-	84, // 14: onebot.GetGroupHonorInfoResp.talkative:type_name -> onebot.GetGroupHonorInfoResp.Honor
-	84, // 15: onebot.GetGroupHonorInfoResp.performer:type_name -> onebot.GetGroupHonorInfoResp.Honor
-	84, // 16: onebot.GetGroupHonorInfoResp.legend:type_name -> onebot.GetGroupHonorInfoResp.Honor
-	84, // 17: onebot.GetGroupHonorInfoResp.strong_newbie:type_name -> onebot.GetGroupHonorInfoResp.Honor
-	84, // 18: onebot.GetGroupHonorInfoResp.emotion:type_name -> onebot.GetGroupHonorInfoResp.Honor
-	85, // 19: onebot.GetVersionInfoResp.extra:type_name -> onebot.GetVersionInfoResp.ExtraEntry
+	90, // 0: onebot.SendPrivateMsgReq.message:type_name -> onebot.Message
+	91, // 1: onebot.SendPrivateMsgResp.message_id:type_name -> onebot.MessageReceipt
+	90, // 2: onebot.SendGroupMsgReq.message:type_name -> onebot.Message
+	91, // 3: onebot.SendGroupMsgResp.message_id:type_name -> onebot.MessageReceipt
+	90, // 4: onebot.SendMsgReq.message:type_name -> onebot.Message
+	91, // 5: onebot.SendMsgResp.message_id:type_name -> onebot.MessageReceipt
+	91, // 6: onebot.DeleteMsgReq.message_id:type_name -> onebot.MessageReceipt
+	82, // 7: onebot.GetMsgResp.sender:type_name -> onebot.GetMsgResp.Sender
+	90, // 8: onebot.GetMsgResp.message:type_name -> onebot.Message
+	83, // 9: onebot.SetGroupAnonymousBanReq.anonymous:type_name -> onebot.SetGroupAnonymousBanReq.Anonymous
+	84, // 10: onebot.GetFriendListResp.friend:type_name -> onebot.GetFriendListResp.Friend
+	85, // 11: onebot.GetGroupListResp.group:type_name -> onebot.GetGroupListResp.Group
+	86, // 12: onebot.GetGroupMemberListResp.group_member:type_name -> onebot.GetGroupMemberListResp.GroupMember
+	87, // 13: onebot.GetGroupHonorInfoResp.current_talkative:type_name -> onebot.GetGroupHonorInfoResp.CurrentTalkative
+	88, // 14: onebot.GetGroupHonorInfoResp.talkative:type_name -> onebot.GetGroupHonorInfoResp.Honor
+	88, // 15: onebot.GetGroupHonorInfoResp.performer:type_name -> onebot.GetGroupHonorInfoResp.Honor
+	88, // 16: onebot.GetGroupHonorInfoResp.legend:type_name -> onebot.GetGroupHonorInfoResp.Honor
+	88, // 17: onebot.GetGroupHonorInfoResp.strong_newbie:type_name -> onebot.GetGroupHonorInfoResp.Honor
+	88, // 18: onebot.GetGroupHonorInfoResp.emotion:type_name -> onebot.GetGroupHonorInfoResp.Honor
+	89, // 19: onebot.GetVersionInfoResp.extra:type_name -> onebot.GetVersionInfoResp.ExtraEntry
 	20, // [20:20] is the sub-list for method output_type
 	20, // [20:20] is the sub-list for method input_type
 	20, // [20:20] is the sub-list for extension type_name
@@ -6228,7 +6429,7 @@ func file_onebot_api_proto_init() {
 			}
 		}
 		file_onebot_api_proto_msgTypes[78].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetMsgResp_Sender); i {
+			switch v := v.(*SetGroupPokeReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6240,7 +6441,7 @@ func file_onebot_api_proto_init() {
 			}
 		}
 		file_onebot_api_proto_msgTypes[79].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*SetGroupAnonymousBanReq_Anonymous); i {
+			switch v := v.(*SetGroupPokeResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6252,7 +6453,7 @@ func file_onebot_api_proto_init() {
 			}
 		}
 		file_onebot_api_proto_msgTypes[80].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetFriendListResp_Friend); i {
+			switch v := v.(*SetFriendPokeReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6264,7 +6465,7 @@ func file_onebot_api_proto_init() {
 			}
 		}
 		file_onebot_api_proto_msgTypes[81].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetGroupListResp_Group); i {
+			switch v := v.(*SetFriendPokeResp); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6276,7 +6477,7 @@ func file_onebot_api_proto_init() {
 			}
 		}
 		file_onebot_api_proto_msgTypes[82].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetGroupMemberListResp_GroupMember); i {
+			switch v := v.(*GetMsgResp_Sender); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6288,7 +6489,7 @@ func file_onebot_api_proto_init() {
 			}
 		}
 		file_onebot_api_proto_msgTypes[83].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetGroupHonorInfoResp_CurrentTalkative); i {
+			switch v := v.(*SetGroupAnonymousBanReq_Anonymous); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -6300,6 +6501,54 @@ func file_onebot_api_proto_init() {
 			}
 		}
 		file_onebot_api_proto_msgTypes[84].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetFriendListResp_Friend); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_onebot_api_proto_msgTypes[85].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetGroupListResp_Group); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_onebot_api_proto_msgTypes[86].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetGroupMemberListResp_GroupMember); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_onebot_api_proto_msgTypes[87].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetGroupHonorInfoResp_CurrentTalkative); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_onebot_api_proto_msgTypes[88].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GetGroupHonorInfoResp_Honor); i {
 			case 0:
 				return &v.state
@@ -6318,7 +6567,7 @@ func file_onebot_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_onebot_api_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   86,
+			NumMessages:   90,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

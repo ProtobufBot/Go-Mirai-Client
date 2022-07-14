@@ -23,7 +23,6 @@ type (
 	OfflineFilePlugin             = func(*client.QQClient, *client.OfflineFileEvent) int32
 	GroupMutePlugin               = func(*client.QQClient, *client.GroupMuteEvent) int32
 	MemberPermissionChangedPlugin = func(*client.QQClient, *client.MemberPermissionChangedEvent) int32
-	GroupSignInPlugin             = func(*client.QQClient, *message.GroupMessage) int32
 )
 
 const (
@@ -50,7 +49,6 @@ var NewFriendAddedPluginList = make([]NewFriendAddedPlugin, 0)
 var OfflineFilePluginList = make([]OfflineFilePlugin, 0)
 var GroupMutePluginList = make([]GroupMutePlugin, 0)
 var MemberPermissionChangedPluginList = make([]MemberPermissionChangedPlugin, 0)
-var GroupSignInPluginList = make([]GroupSignInPlugin, 0)
 
 func Serve(cli *client.QQClient) {
 	cli.PrivateMessageEvent.Subscribe(handlePrivateMessage)
@@ -69,7 +67,6 @@ func Serve(cli *client.QQClient) {
 	cli.OfflineFileEvent.Subscribe(handleOfflineFile)
 	cli.GroupMuteEvent.Subscribe(handleGroupMute)
 	cli.GroupMemberPermissionChangedEvent.Subscribe(handleMemberPermissionChanged)
-	cli.GroupMessageEvent.Subscribe(handleGroupSignIn)
 }
 
 // 添加私聊消息插件
@@ -150,11 +147,6 @@ func AddGroupMutePlugin(plugin GroupMutePlugin) {
 // 添加群成员权限变动插件
 func AddMemberPermissionChangedPlugin(plugin MemberPermissionChangedPlugin) {
 	MemberPermissionChangedPluginList = append(MemberPermissionChangedPluginList, plugin)
-}
-
-// 添加群打卡插件
-func AddGroupSignIn(plugin GroupSignInPlugin) {
-	GroupSignInPluginList = append(GroupSignInPluginList, plugin)
 }
 
 func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
@@ -310,16 +302,6 @@ func handleGroupMute(cli *client.QQClient, event *client.GroupMuteEvent) {
 func handleMemberPermissionChanged(cli *client.QQClient, event *client.MemberPermissionChangedEvent) {
 	util.SafeGo(func() {
 		for _, plugin := range MemberPermissionChangedPluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleGroupSignIn(cli *client.QQClient, event *message.GroupMessage) {
-	util.SafeGo(func() {
-		for _, plugin := range GroupSignInPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}
