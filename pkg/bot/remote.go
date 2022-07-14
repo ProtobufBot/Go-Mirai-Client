@@ -165,7 +165,7 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 		)
 		switch messageType {
 		case websocket.BinaryMessage:
-			respBytes, err = apiResp.Marshal()
+			respBytes, err = proto.Marshal(apiResp)
 			if err != nil {
 				log.Errorf("failed to marshal api resp, %+v", err)
 			}
@@ -372,6 +372,30 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_GetCsrfTokenResp{
 			GetCsrfTokenResp: HandleGetCSRFToken(cli, data.GetCsrfTokenReq),
 		}
+	case *onebot.Frame_SetGroupSignInReq:
+		resp.FrameType = onebot.Frame_TSetGroupSignInResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSignInReq); !resp.Ok{
+			return
+		}
+		resp.Data = &onebot.Frame_SetGroupSignInResp{
+			SetGroupSignInResp: HandleSetGroupSignIn(cli, data.SetGroupSignInReq),
+		}
+	case *onebot.Frame_SetGroupPokeReq:
+		resp.FrameType = onebot.Frame_TSetGroupPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupPokeReq); !resp.Ok{
+			return
+		}
+		resp.Data = &onebot.Frame_SetGroupPokeResp{
+			SetGroupPokeResp: HandleSetGroupPoke(cli, data.SetGroupPokeReq),
+		}
+	case *onebot.Frame_SetFriendPokeReq:
+		resp.FrameType = onebot.Frame_TSetFriendPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetFriendPokeReq); !resp.Ok{
+			return
+		}
+		resp.Data = &onebot.Frame_SetFriendPokeResp{
+			SetFriendPokeResp: HandleSetFriendPoke(cli, data.SetFriendPokeReq),
+		}
 	default:
 		return resp
 	}
@@ -381,7 +405,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 	eventFrame.Ok = true
 	eventFrame.BotId = cli.Uin
-	eventBytes, err := eventFrame.Marshal() // 原消息
+	eventBytes, err := proto.Marshal(eventFrame)
 	if err != nil {
 		log.Errorf("event 序列化错误 %v", err)
 		return
@@ -433,7 +457,7 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 				_ = ws.Send(websocket.TextMessage, []byte(sendingString))
 			} else {
 				// 使用protobuf上报
-				sendingBytes, err := eventFrame.Marshal() // 使用正则修改后的eventFrame
+				sendingBytes, err := proto.Marshal(eventFrame) // 使用正则修改后的eventFrame
 				if err != nil {
 					log.Errorf("event 序列化错误 %v", err)
 					continue
