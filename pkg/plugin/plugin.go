@@ -30,6 +30,9 @@ const (
 	MessageBlock  = 1
 )
 
+var groupId int64
+var userId int64
+
 var PrivateMessagePluginList = make([]PrivateMessagePlugin, 0)
 var GroupMessagePluginList = make([]GroupMessagePlugin, 0)
 var TempMessagePluginList = make([]TempMessagePlugin, 0)

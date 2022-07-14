@@ -173,7 +173,9 @@ func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *
 	ret := cli.SendPrivateMessage(req.UserId, sendingMessage)
 	cache.PrivateMessageLru.Add(ret.Id, ret)
 	return &onebot.SendPrivateMsgResp{
-		MessageId: ret.Id,
+		MessageId: &onebot.MessageReceipt{
+			Seqs: []int32{ret.Id},
+		},
 	}
 }
 
@@ -198,7 +200,9 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	}
 	cache.GroupMessageLru.Add(ret.Id, ret)
 	return &onebot.SendGroupMsgResp{
-		MessageId: ret.Id,
+		MessageId: &onebot.MessageReceipt{
+			Seqs: []int32{ret.Id},
+		},
 	}
 }
 
@@ -215,7 +219,9 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		ret := cli.SendGroupTempMessage(req.GroupId, req.UserId, sendingMessage)
 		cache.PrivateMessageLru.Add(ret.Id, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Id,
+			MessageId: &onebot.MessageReceipt{
+				Seqs: []int32{ret.Id},
+			},
 		}
 	}
 
@@ -233,7 +239,9 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		}
 		cache.GroupMessageLru.Add(ret.Id, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Id,
+			MessageId: &onebot.MessageReceipt{
+				Seqs: []int32{ret.Id},
+			},
 		}
 	}
 
@@ -242,7 +250,9 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		ret := cli.SendPrivateMessage(req.UserId, sendingMessage)
 		cache.PrivateMessageLru.Add(ret.Id, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Id,
+			MessageId: &onebot.MessageReceipt{
+				Seqs: []int32{ret.Id},
+			},
 		}
 	}
 	log.Warnf("failed to send msg")
@@ -250,7 +260,7 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 }
 
 func HandleDeleteMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.DeleteMsgResp {
-	if eventInterface, ok := cache.PrivateMessageLru.Get(req.MessageId); ok {
+	if eventInterface, ok := cache.PrivateMessageLru.Get(req.MessageId.Seqs[len(req.MessageId.Seqs)-1]); ok {
 		if event, ok := eventInterface.(*message.PrivateMessage); ok {
 			if err := cli.RecallPrivateMessage(event.Target, int64(event.Time), event.Id, event.InternalId); err == nil {
 				return &onebot.DeleteMsgResp{}
@@ -258,7 +268,7 @@ func HandleDeleteMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.Del
 		}
 	}
 
-	if eventInterface, ok := cache.GroupMessageLru.Get(req.MessageId); ok {
+	if eventInterface, ok := cache.GroupMessageLru.Get(req.MessageId.Seqs[len(req.MessageId.Seqs)-1]); ok {
 		if event, ok := eventInterface.(*message.GroupMessage); ok {
 			if err := cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId); err != nil {
 				return &onebot.DeleteMsgResp{}
@@ -572,4 +582,29 @@ func HandleGetCSRFToken(cli *client.QQClient, req *onebot.GetCsrfTokenReq) *oneb
 	return &onebot.GetCsrfTokenResp{
 		Token: int32(GetCSRFToken(cli)),
 	}
+}
+
+func HandleSetGroupSignIn(cli *client.QQClient, req *onebot.SetGroupSignInReq) *onebot.SetGroupSignInResp {
+	if group := cli.FindGroup(req.GroupId); group != nil {
+		cli.SendGroupSign(group.Code)
+	}
+	return nil
+}
+
+func HandleSetGroupPoke(cli *client.QQClient, req *onebot.SetGroupPokeReq) *onebot.SetGroupPokeResp {
+	if group := cli.FindGroup(req.GroupId); group != nil {
+		if member := group.FindMember(req.ToUin); member != nil {
+			cli.SendGroupPoke(group.Code, member.Uin)
+		}
+	}
+	return nil
+}
+
+func HandleSetFriendPoke(cli *client.QQClient, req *onebot.SetFriendPokeReq) *onebot.SetFriendPokeResp {
+	for _, friend := range cli.FriendList {
+		if friend.Uin == req.ToUin && friend.Uin != cli.Uin {
+			cli.SendFriendPoke(friend.Uin)
+		}
+	}
+	return nil
 }
