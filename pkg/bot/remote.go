@@ -374,27 +374,27 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		}
 	case *onebot.Frame_SetGroupSignInReq:
 		resp.FrameType = onebot.Frame_TSetGroupSignInResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSignInReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSignInReq); !resp.Ok {
 			return
 		}
 		resp.Data = &onebot.Frame_SetGroupSignInResp{
 			SetGroupSignInResp: HandleSetGroupSignIn(cli, data.SetGroupSignInReq),
 		}
-	case *onebot.Frame_SetGroupPokeReq:
-		resp.FrameType = onebot.Frame_TSetGroupPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupPokeReq); !resp.Ok{
+	case *onebot.Frame_SendGroupPokeReq:
+		resp.FrameType = onebot.Frame_TSendGroupPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SetGroupPokeResp{
-			SetGroupPokeResp: HandleSetGroupPoke(cli, data.SetGroupPokeReq),
+		resp.Data = &onebot.Frame_SendGroupPokeResp{
+			SendGroupPokeResp: HandleSendGroupPoke(cli, data.SendGroupPokeReq),
 		}
-	case *onebot.Frame_SetFriendPokeReq:
-		resp.FrameType = onebot.Frame_TSetFriendPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetFriendPokeReq); !resp.Ok{
+	case *onebot.Frame_SendFriendPokeReq:
+		resp.FrameType = onebot.Frame_TSendFriendPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendFriendPokeReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SetFriendPokeResp{
-			SetFriendPokeResp: HandleSetFriendPoke(cli, data.SetFriendPokeReq),
+		resp.Data = &onebot.Frame_SendFriendPokeResp{
+			SendFriendPokeResp: HandleSendFriendPoke(cli, data.SendFriendPokeReq),
 		}
 	default:
 		return resp

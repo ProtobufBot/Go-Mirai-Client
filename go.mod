@@ -3,7 +3,7 @@ module github.com/ProtobufBot/Go-Mirai-Client
 go 1.18
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20220630160133-a39b3fdd962f
+	github.com/Mrs4s/MiraiGo v0.0.0-20220720124026-5c0e2c5773de
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.8.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
@@ -17,7 +17,6 @@ require (
 	github.com/tidwall/gjson v1.14.1
 	github.com/zserge/lorca v0.1.10
 	golang.org/x/mobile v0.0.0-20220518205345-8578da9835fd
-	google.golang.org/protobuf v1.28.0
 )
 
 require (
@@ -51,5 +50,6 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	golang.org/x/tools v0.1.8-0.20211022200916-316ba0b74098 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

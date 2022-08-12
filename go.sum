@@ -1,6 +1,6 @@
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/Mrs4s/MiraiGo v0.0.0-20220630160133-a39b3fdd962f h1:PHOwN3/cEL/zoBpcJJXwx1mJ1NL901zrt2mvlQUO5BA=
-github.com/Mrs4s/MiraiGo v0.0.0-20220630160133-a39b3fdd962f/go.mod h1:Ow7nlaVS5FztyjrTlTRSG7HLpTNmgINMluHRCgKunDI=
+github.com/Mrs4s/MiraiGo v0.0.0-20220720124026-5c0e2c5773de h1:cCEsQlZsem2DJlvtWI+CNI+lyz9zRuioBQFuBO94/MU=
+github.com/Mrs4s/MiraiGo v0.0.0-20220720124026-5c0e2c5773de/go.mod h1:Ow7nlaVS5FztyjrTlTRSG7HLpTNmgINMluHRCgKunDI=
 github.com/RomiChan/protobuf v0.1.1-0.20220624030127-3310cba9dbc0 h1:+UGPBYVjssFsdahLJIiNPwpmmwgl/OaVdv1oc5NonC0=
 github.com/RomiChan/protobuf v0.1.1-0.20220624030127-3310cba9dbc0/go.mod h1:2Ie+hdBFQpQFDHfeklgxoFmQRCE7O+KwFpISeXq7OwA=
 github.com/RomiChan/syncx v0.0.0-20220404072119-d7ea0ae15a4c h1:cNPOdTNiVwxLpROLjXCgbIPvdkE+BwvxDvgmdYmWx6Q=

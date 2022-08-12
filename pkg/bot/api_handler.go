@@ -591,20 +591,26 @@ func HandleSetGroupSignIn(cli *client.QQClient, req *onebot.SetGroupSignInReq) *
 	return nil
 }
 
-func HandleSetGroupPoke(cli *client.QQClient, req *onebot.SetGroupPokeReq) *onebot.SetGroupPokeResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		if member := group.FindMember(req.ToUin); member != nil {
-			cli.SendGroupPoke(group.Code, member.Uin)
-		}
+func HandleSendGroupPoke(cli *client.QQClient, req *onebot.SendGroupPokeReq) *onebot.SendGroupPokeResp {
+	group := cli.FindGroup(req.GroupId)
+	if group == nil {
+		return nil
 	}
-	return nil
+	member := group.FindMember(req.UserId)
+	if member == nil {
+		return nil
+	}
+	cli.SendGroupPoke(group.Code, member.Uin)
+	return &onebot.SendGroupPokeResp{}
 }
 
-func HandleSetFriendPoke(cli *client.QQClient, req *onebot.SetFriendPokeReq) *onebot.SetFriendPokeResp {
-	for _, friend := range cli.FriendList {
-		if friend.Uin == req.ToUin && friend.Uin != cli.Uin {
-			cli.SendFriendPoke(friend.Uin)
-		}
+func HandleSendFriendPoke(cli *client.QQClient, req *onebot.SendFriendPokeReq) *onebot.SendFriendPokeResp {
+	if cli.FindFriend(req.UserId) == nil {
+		return nil
 	}
-	return nil
+	if cli.Uin == req.UserId {
+		return nil
+	}
+	cli.SendFriendPoke(req.UserId)
+	return &onebot.SendFriendPokeResp{}
 }
