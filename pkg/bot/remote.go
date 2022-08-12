@@ -380,6 +380,14 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_SetGroupSignInResp{
 			SetGroupSignInResp: HandleSetGroupSignIn(cli, data.SetGroupSignInReq),
 		}
+	case *onebot.Frame_SendMusicReq:
+		resp.FrameType = onebot.Frame_TSendMusicResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendMusicReq); !resp.Ok {
+			return
+		}
+		resp.Data = &onebot.Frame_SendMusicResp{
+			SendMusicResp: HandleSendMusic(cli, data.SendMusicReq),
+		}
 	case *onebot.Frame_SendGroupPokeReq:
 		resp.FrameType = onebot.Frame_TSendGroupPokeResp
 		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok {

@@ -591,6 +591,36 @@ func HandleSetGroupSignIn(cli *client.QQClient, req *onebot.SetGroupSignInReq) *
 	return nil
 }
 
+func HandleSendMusic(cli *client.QQClient, req *onebot.SendMusicReq) *onebot.SendMusicResp {
+	musicType := map[string]int{
+		"qq":    message.QQMusic,
+		"163":   message.CloudMusic,
+		"migu":  message.MiguMusic,
+		"kugou": message.KugouMusic,
+		"kuwo":  message.KuwoMusic,
+	}
+	music := &message.MusicShareElement{
+		MusicType:  musicType[req.Type],
+		Title:      req.Title,
+		Brief:      req.Brief,
+		Summary:    req.Summary,
+		Url:        req.Url,
+		PictureUrl: req.PictureUrl,
+		MusicUrl:   req.MusicUrl,
+	}
+	if req.GroupId != 0 {
+		if _, err := cli.SendGroupMusicShare(req.GroupId, music); err != nil {
+			return nil
+		}
+		return &onebot.SendMusicResp{}
+	}
+	if req.UserId != 0 {
+		cli.SendFriendMusicShare(req.UserId, music)
+		return &onebot.SendMusicResp{}
+	}
+	return nil
+}
+
 func HandleSendGroupPoke(cli *client.QQClient, req *onebot.SendGroupPokeReq) *onebot.SendGroupPokeResp {
 	group := cli.FindGroup(req.GroupId)
 	if group == nil {
