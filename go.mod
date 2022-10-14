@@ -1,9 +1,9 @@
 module github.com/ProtobufBot/Go-Mirai-Client
 
-go 1.18
+go 1.19
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20220720124026-5c0e2c5773de
+	github.com/Mrs4s/MiraiGo v0.0.0-20220925082653-d3b8c5f700af
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.8.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
@@ -14,7 +14,7 @@ require (
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.9.0
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
-	github.com/tidwall/gjson v1.14.2
+	github.com/tidwall/gjson v1.14.3
 	github.com/zserge/lorca v0.1.10
 	golang.org/x/mobile v0.0.0-20220722155234-aaac322e2105
 )
@@ -36,16 +36,15 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
-	github.com/pierrec/lz4/v4 v4.1.11 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/smartystreets/goconvey v1.7.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	golang.org/x/tools v0.1.8-0.20211022200916-316ba0b74098 // indirect
