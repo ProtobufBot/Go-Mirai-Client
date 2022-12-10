@@ -3,7 +3,7 @@ module github.com/ProtobufBot/Go-Mirai-Client
 go 1.19
 
 require (
-	github.com/Mrs4s/MiraiGo v0.0.0-20220925082653-d3b8c5f700af
+	github.com/Mrs4s/MiraiGo v0.0.0-20221206193101-cf66e2864798
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.8.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
