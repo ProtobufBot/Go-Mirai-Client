@@ -374,11 +374,19 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		}
 	case *onebot.Frame_SetGroupSignInReq:
 		resp.FrameType = onebot.Frame_TSetGroupSignInResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSignInReq); !resp.Ok {
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSignInReq); !resp.Ok{
 			return
 		}
 		resp.Data = &onebot.Frame_SetGroupSignInResp{
 			SetGroupSignInResp: HandleSetGroupSignIn(cli, data.SetGroupSignInReq),
+		}
+	case *onebot.Frame_SendGroupPokeReq:
+		resp.FrameType = onebot.Frame_TSendGroupPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok{
+			return
+		}
+		resp.Data = &onebot.Frame_SendGroupPokeResp{
+			SendGroupPokeResp: HandleSendGroupPoke(cli, data.SendGroupPokeReq),
 		}
 	case *onebot.Frame_SendMusicReq:
 		resp.FrameType = onebot.Frame_TSendMusicResp
@@ -388,21 +396,21 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_SendMusicResp{
 			SendMusicResp: HandleSendMusic(cli, data.SendMusicReq),
 		}
-	case *onebot.Frame_SendGroupPokeReq:
-		resp.FrameType = onebot.Frame_TSendGroupPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_SendGroupPokeResp{
-			SendGroupPokeResp: HandleSendGroupPoke(cli, data.SendGroupPokeReq),
-		}
 	case *onebot.Frame_SendFriendPokeReq:
 		resp.FrameType = onebot.Frame_TSendFriendPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSendFriendPokeReq); !resp.Ok {
+		if resp.Ok = isApiAllow(onebot.Frame_TSendFriendPokeReq); !resp.Ok{
 			return
 		}
 		resp.Data = &onebot.Frame_SendFriendPokeResp{
 			SendFriendPokeResp: HandleSendFriendPoke(cli, data.SendFriendPokeReq),
+		}
+	case *onebot.Frame_SendChannelMsgReq:
+		resp.FrameType = onebot.Frame_TSendChannelMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TCanSendImageReq); !resp.Ok {
+			return
+		}
+		resp.Data = &onebot.Frame_SendChannelMsgResp{
+			SendChannelMsgResp: HandleSendChannelMsg(cli, data.SendChannelMsgReq),
 		}
 	default:
 		return resp

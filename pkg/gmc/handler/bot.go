@@ -30,13 +30,14 @@ func init() {
 	//log.Infof("加载日志插件 Log")
 	plugin.AddPrivateMessagePlugin(plugins.LogPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.LogGroupMessage)
-
+	plugin.AddChannelMessagePlugin(plugins.LogChannelMessage)
 	//log.Infof("加载测试插件 Hello")
 	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
-
 	//log.Infof("加载上报插件 Report")
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
+	plugin.AddGroupNotifyEventPlugin(plugins.ReportGroupNotify)
+	plugin.AddChannelMessagePlugin(plugins.ReportChannelMessage)
 	plugin.AddTempMessagePlugin(plugins.ReportTempMessage)
 	plugin.AddMemberPermissionChangedPlugin(plugins.ReportMemberPermissionChanged)
 	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
@@ -153,7 +154,9 @@ func FetchQrCode(c *gin.Context) {
 		qrCodeBot.Release()
 	}
 	qrCodeBot = client.NewClientEmpty()
-	deviceInfo := device.GetDevice(req.DeviceSeed, req.ClientProtocol)
+	//deviceInfo := device.GetDevice(req.DeviceSeed, req.ClientProtocol)
+	deviceInfo := device.GetDevice(req.DeviceSeed, 2)
+	fmt.Println(req.DeviceSeed, req.ClientProtocol)
 	qrCodeBot.UseDevice(deviceInfo)
 
 	log.Infof("初始化日志")

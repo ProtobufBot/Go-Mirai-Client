@@ -53,6 +53,10 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			messageChain = append(messageChain, ProtoFingerGuessingToMiraiFingerGuessing(protoMsg.Data))
 		case "poke":
 			messageChain = append(messageChain, ProtoPokeToMiraiPoke(protoMsg.Data))
+		case "sign_in":
+			messageChain = append(messageChain, ProtoSignInToMiraiSignIn(protoMsg.Data))
+		case "guild_image":
+			messageChain = append(messageChain, ProtoGuildImageToMiraiGuildImage(protoMsg.Data))
 		case "image":
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
 		case "img":
@@ -126,8 +130,8 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 		elem.Stream = bytes.NewReader(imageBytes)
 	}
 
-	elem.Tp = data["type"] // show或flash
-	if elem.Tp == "show" {
+	elem.LocalImageType = data["type"] // show或flash
+	if elem.LocalImageType == "show" {
 		effectIdStr := data["effect_id"]
 		effectId, err := strconv.Atoi(effectIdStr)
 		if err != nil || effectId < 40000 || effectId > 40005 {
@@ -136,6 +140,38 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 		elem.EffectId = int32(effectId)
 	}
 
+	return elem
+}
+
+func ProtoGuildImageToMiraiGuildImage(data map[string]string) message.IMessageElement {
+	elem := &clz.LocalImageElement{}
+	url, ok := data["url"]
+	if !ok {
+		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
+		if !ok {
+			url, ok = data["file"]
+		}
+	}
+	if !ok {
+		log.Warnf("imageUrl不存在")
+		return EmptyText()
+	}
+	elem.Url = url
+	if strings.Contains(url, "http://") || strings.Contains(url, "https://") {
+		b, err := util.GetBytes(url)
+		if err != nil {
+			log.Errorf("failed to download image, %+v", err)
+			return EmptyText()
+		}
+		elem.Stream = bytes.NewReader(b)
+	} else {
+		imageBytes, err := ioutil.ReadFile(url)
+		if err != nil {
+			log.Errorf("failed to open local image, %+v", err)
+			return EmptyText()
+		}
+		elem.Stream = bytes.NewReader(imageBytes)
+	}
 	return elem
 }
 
@@ -213,6 +249,10 @@ func ProtoPokeToMiraiPoke(data map[string]string) message.IMessageElement {
 		return EmptyText()
 	}
 	return &clz.PokeElement{Target: userId}
+}
+
+func ProtoSignInToMiraiSignIn(data map[string]string) message.IMessageElement {
+	return &clz.SignInElement{}
 }
 
 func ProtoFaceToMiraiFace(data map[string]string) message.IMessageElement {

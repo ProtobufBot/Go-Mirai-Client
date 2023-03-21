@@ -35,6 +35,9 @@ var PrivateMessageLru = NewLruCache(512)
 // int:GroupMessage
 var GroupMessageLru = NewLruCache(2048)
 
+// int:ChannelMessage
+var ChannelMessageLru = NewLruCache(2048)
+
 // string:
 var FriendRequestLru = NewLruCache(128)
 
@@ -43,3 +46,7 @@ var GroupRequestLru = NewLruCache(128)
 
 // string:
 var GroupInvitedRequestLru = NewLruCache(16)
+
+var GuildAdminLru = NewLruCache(2048)
+
+var GetGuildAdminTimeLru = NewLruCache(100)

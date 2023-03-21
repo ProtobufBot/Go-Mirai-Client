@@ -4,11 +4,17 @@
 
 用于收发QQ消息，并通过 websocket + protobuf 上报给 server 进行处理。
 
-支持的开发语言：[Java/Kotlin](https://github.com/protobufbot/spring-mirai-server) , [JavaScript](https://github.com/ProtobufBot/js-pbbot/blob/master/example/src/index.js) , [Python](https://github.com/PHIKN1GHT/pypbbot/tree/main/pypbbot_examples) , [Golang](https://github.com/ProtobufBot/go-pbbot/blob/master/test/bot_test.go) , [C/C++](https://github.com/ProtobufBot/cpp-pbbot/blob/main/src/event_handler/event_handler.cpp) , [易语言](https://github.com/protobufbot/pbbot_e_sdk) 。详情查看 [Protobufbot](https://github.com/ProtobufBot/ProtobufBot) 。
+支持的开发语言：[Java/Kotlin](https://github.com/protobufbot/spring-mirai-server) , [JavaScript](https://github.com/2mf8/TSPbBot) , [TypeScript](https://github.com/2mf8/TSPbBot/blob/master/src/demo/index.ts) , [Python](https://github.com/PHIKN1GHT/pypbbot/tree/main/pypbbot_examples) , [Golang](https://github.com/2mf8/GoPbBot/blob/master/test/bot_test.go) , [C/C++](https://github.com/ProtobufBot/cpp-pbbot/blob/main/src/event_handler/event_handler.cpp) , [易语言](https://github.com/protobufbot/pbbot_e_sdk) 。详情查看 [Protobufbot](https://github.com/ProtobufBot/ProtobufBot) 。
 
 可以使用其他任意语言编写websocket server实现通信，协议：[onebot_idl](https://github.com/lz1998/onebot_idl)
 
 有问题发issue，或者进QQ群335783090
+
+## 频道API使用条件
+
+必须是AndroidPhone协议且子频道通知开启（关闭通知将无法接收消息）【订不订阅无所谓】
+
+已支持频道API的SDK有 [JavaScript](https://github.com/2mf8/TSPbBot) , [TypeScript](https://github.com/2mf8/TSPbBot/blob/master/src/demo/index.ts) , [Golang](https://github.com/2mf8/GoPbBot/blob/master/test/bot_test.go) 
 
 ## 使用说明
 
@@ -121,5 +127,7 @@ lz1998/gmc:0.1.19
 - AndroidWatch: 2
 - MacOS: 3
 - 企点: 4
+- IPad: 5
+- AndroidPad: 6
 
 输入其他数字默认表示IPad

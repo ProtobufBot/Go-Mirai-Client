@@ -28,8 +28,11 @@ func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) i
 			PostType:    "message",
 			MessageType: "private",
 			SubType:     "normal",
-			MessageId: &onebot.MessageReceipt{
-				Seqs: []int32{event.Id},
+			MessageId:   event.Id,
+			MessageReceipt: &onebot.MessageReceipt{
+				SenderId: event.Sender.Uin,
+				Time:     time.Now().Unix(),
+				Seqs:     []int32{event.Id},
 			},
 			UserId:     event.Sender.Uin,
 			Message:    bot.MiraiMsgToProtoMsg(cli, event.Elements),
@@ -58,8 +61,12 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		PostType:    "message",
 		MessageType: "group",
 		SubType:     "normal",
-		MessageId: &onebot.MessageReceipt{
-			Seqs: []int32{event.Id},
+		MessageId:   event.Id,
+		MessageReceipt: &onebot.MessageReceipt{
+			SenderId: event.Sender.Uin,
+			Time:     time.Now().Unix(),
+			Seqs:     []int32{event.Id},
+			GroupId:  event.GroupCode,
 		},
 		GroupId:    event.GroupCode,
 		UserId:     event.Sender.Uin,
@@ -109,6 +116,59 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 	return plugin.MessageIgnore
 }
 
+func ReportChannelMessage(cli *client.QQClient, event *message.GuildChannelMessage) int32 {
+	cache.ChannelMessageLru.Add(event.Id, event)
+	v, ok := cache.GetGuildAdminTimeLru.Get(event.GuildId)
+	gtime, _ := strconv.ParseInt(fmt.Sprintf("%v", v), 10, 64)
+	if !ok || time.Now().Unix() > gtime {
+		log.Println("缓存频道管理员更新")
+		cache.GetGuildAdminTimeLru.Remove(event.GuildId)
+		users, _ := cli.GuildService.FetchGuildMemberListWithRole(event.GuildId, event.ChannelId, 0, 2, "")
+		for _, v := range users.Members {
+			// log.Println(v.Nickname, v.Role, v.RoleName, v.TinyId, v.Title, v.LastSpeakTime)
+			if v.Role == 2 {
+				cache.GuildAdminLru.Remove(v.TinyId)
+				cache.GuildAdminLru.Add(v.TinyId, v)
+			} else {
+				break
+			}
+		}
+		cache.GetGuildAdminTimeLru.Add(event.GuildId, time.Now().Add(time.Minute*10).Unix())
+	}
+
+	role, _ := cache.GuildAdminLru.Get(event.Sender.TinyId)
+	eventProto := &onebot.Frame{
+		FrameType: onebot.Frame_TChannelMessageEvent,
+	}
+	channelMessageEvent := &onebot.ChannelMessageEvent{
+		Id:          event.Id,
+		InternalId:  event.InternalId,
+		GuildId:     event.GuildId,
+		ChannelId:   event.ChannelId,
+		Time:        event.Time,
+		SelfId:      int64(cli.GuildService.TinyId),
+		PostType:    "message",
+		MessageType: "channel",
+		SubType:     "normal",
+		Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
+		RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Elements),
+		Sender: &onebot.ChannelMessageEvent_Sender{
+			TinyId:   event.Sender.TinyId,
+			Nickname: event.Sender.Nickname,
+		},
+		MessageId: event.Id,
+	}
+	if role != nil {
+		channelMessageEvent.Sender.Roles = append(channelMessageEvent.Sender.Roles, 2)
+		channelMessageEvent.Sender.RoleNames = append(channelMessageEvent.Sender.RoleNames, "管理员")
+	}
+	eventProto.Data = &onebot.Frame_ChannelMessageEvent{
+		ChannelMessageEvent: channelMessageEvent,
+	}
+	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
+
 func CheckGroupFile(cli *client.QQClient, event *message.GroupMessage) bool {
 	for _, elem := range event.Elements {
 		if file, ok := elem.(*message.GroupFileElement); ok {
@@ -126,7 +186,7 @@ func CheckGroupFile(cli *client.QQClient, event *message.GroupMessage) bool {
 					Id:    file.Path,
 					Name:  file.Name,
 					Busid: int64(file.Busid),
-					Size_: file.Size,
+					Size:  file.Size,
 					Url:   cli.GetGroupFileUrl(event.GroupCode, file.Path, file.Busid),
 				},
 			}
@@ -141,6 +201,7 @@ func CheckGroupFile(cli *client.QQClient, event *message.GroupMessage) bool {
 }
 
 func ReportTempMessage(cli *client.QQClient, event *client.TempMessageEvent) int32 {
+	// TODO 撤回？
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupTempMessageEvent,
 	}
@@ -150,13 +211,19 @@ func ReportTempMessage(cli *client.QQClient, event *client.TempMessageEvent) int
 			SelfId:      cli.Uin,
 			PostType:    "message",
 			MessageType: "group_temp",
-			MessageId: &onebot.MessageReceipt{
-				Seqs: []int32{event.Message.Id},
+			MessageId:   event.Message.Id,
+			MessageReceipt: &onebot.MessageReceipt{
+				SenderId: event.Message.Sender.Uin,
+				Time:     time.Now().Unix(),
+				Seqs:     []int32{event.Message.Id},
+				GroupId:  event.Message.GroupCode,
 			},
-			GroupId:    event.Message.GroupCode,
 			UserId:     event.Message.Sender.Uin,
 			Message:    bot.MiraiMsgToProtoMsg(cli, event.Message.Elements),
 			RawMessage: bot.MiraiMsgToRawMsg(cli, event.Message.Elements),
+			Extra: map[string]string{
+				"group_id": strconv.FormatInt(event.Message.GroupCode, 10),
+			},
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
@@ -335,15 +402,21 @@ func ReportUserJoinGroupRequest(cli *client.QQClient, event *client.UserJoinGrou
 	}
 	eventProto.Data = &onebot.Frame_GroupRequestEvent{
 		GroupRequestEvent: &onebot.GroupRequestEvent{
-			Time:        time.Now().Unix(),
-			SelfId:      cli.Uin,
-			PostType:    "request",
-			RequestType: "group",
-			SubType:     "add",
-			GroupId:     event.GroupCode,
-			UserId:      event.RequesterUin,
-			Comment:     event.Message,
-			Flag:        flag,
+			Time:          time.Now().Unix(),
+			SelfId:        cli.Uin,
+			PostType:      "request",
+			RequestType:   "group",
+			SubType:       "add",
+			GroupId:       event.GroupCode,
+			UserId:        event.RequesterUin,
+			Comment:       event.Message,
+			Flag:          flag,
+			RequestId:     event.RequestId,
+			UserNick:      event.RequesterNick,
+			ActionUinNick: event.ActionUinNick,
+			ActionUin:     event.ActionUin,
+			Check:         event.Checked,
+			Suspicious:    event.Suspicious,
 			Extra: map[string]string{
 				"actor_id": strconv.FormatInt(event.Actor, 10),
 			},
@@ -380,6 +453,11 @@ func ReportGroupInvitedRequest(cli *client.QQClient, event *client.GroupInvitedR
 }
 
 func ReportGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessageRecalledEvent) int32 {
+	if event.AuthorUin == event.OperatorUin {
+		log.Infof("群 %v 内 %v 撤回了一条消息, 消息Id为 %v", event.GroupCode, event.AuthorUin, event.MessageId)
+	} else {
+		log.Infof("群 %v 内 %v 撤回了 %v 的一条消息, 消息Id为 %v", event.GroupCode, event.OperatorUin, event.AuthorUin, event.MessageId)
+	}
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupRecallNoticeEvent,
 	}
@@ -392,8 +470,12 @@ func ReportGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessage
 			GroupId:    event.GroupCode,
 			UserId:     event.AuthorUin,
 			OperatorId: event.OperatorUin,
-			MessageId: &onebot.MessageReceipt{
-				Seqs: []int32{event.MessageId},
+			MessageId:  event.MessageId,
+			MessageReceipt: &onebot.MessageReceipt{
+				SenderId: event.AuthorUin,
+				Time:     time.Now().Unix(),
+				Seqs:     []int32{event.MessageId},
+				GroupId:  event.GroupCode,
 			},
 		},
 	}
@@ -402,6 +484,7 @@ func ReportGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessage
 }
 
 func ReportFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessageRecalledEvent) int32 {
+	log.Infof("好友 %v 撤回了一条消息, 消息Id为 %v", event.FriendUin, event.MessageId)
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TFriendRecallNoticeEvent,
 	}
@@ -412,8 +495,11 @@ func ReportFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessa
 			PostType:   "notice",
 			NoticeType: "friend_recall",
 			UserId:     event.FriendUin,
-			MessageId: &onebot.MessageReceipt{
-				Seqs: []int32{event.MessageId},
+			MessageId:  event.MessageId,
+			MessageReceipt: &onebot.MessageReceipt{
+				SenderId: event.FriendUin,
+				Time:     time.Now().Unix(),
+				Seqs:     []int32{event.MessageId},
 			},
 		},
 	}
@@ -450,8 +536,11 @@ func ReportOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) int
 			PostType:    "message",
 			MessageType: "private",
 			SubType:     "normal",
-			MessageId: &onebot.MessageReceipt{
-				Seqs: []int32{0},
+			MessageId:   0,
+			MessageReceipt: &onebot.MessageReceipt{
+				SenderId: event.Sender,
+				Time:     time.Now().Unix(),
+				Seqs:     []int32{0},
 			},
 			UserId: event.Sender,
 			Message: []*onebot.Message{
@@ -471,5 +560,97 @@ func ReportOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) int
 		},
 	}
 	bot.HandleEventFrame(cli, eventProto)
+	return plugin.MessageIgnore
+}
+
+func ReportGroupNotify(cli *client.QQClient, event client.INotifyEvent) int32 {
+	group := cli.FindGroup(event.From())
+	switch notify := event.(type) {
+	case *client.GroupPokeNotifyEvent:
+		sender := group.FindMember(notify.Sender)
+		receiver := group.FindMember(notify.Receiver)
+		if sender == receiver {
+			log.Infof("群 %v(%v) 内 %v(%v) 戳了戳自己", group.Code, group.Name, sender.Uin, sender.Nickname)
+		} else {
+			log.Infof("群 %v(%v) 内 %v(%v) 戳了戳 %v(%v)", group.Code, group.Name, sender.Uin, sender.Nickname, receiver.Uin, receiver.Nickname)
+		}
+		eventProto := &onebot.Frame{
+			FrameType: onebot.Frame_TGroupNotifyEvent,
+		}
+		eventProto.Data = &onebot.Frame_GroupNotifyEvent{
+			GroupNotifyEvent: &onebot.GroupNotifyEvent{
+				Time:       time.Now().Unix(),
+				SelfId:     cli.Uin,
+				PostType:   "notice",
+				NoticeType: "group_poke",
+				GroupId:    group.Code,
+				GroupName:  group.Name,
+				Sender:     sender.Uin,
+				SenderCard: sender.Nickname,
+				TargetId:   receiver.Uin,
+				TargetCard: receiver.Nickname,
+			},
+		}
+		bot.HandleEventFrame(cli, eventProto)
+		return plugin.MessageIgnore
+	case *client.GroupRedBagLuckyKingNotifyEvent:
+		sender := group.FindMember(notify.Sender)
+		luckyKing := group.FindMember(notify.LuckyKing)
+		log.Infof("群 %v(%v) 内 %v(%v) 的红包被抢完, %v(%v) 是运气王", group.Code, group.Name, sender.Uin, sender.Nickname, luckyKing.Uin, luckyKing.Nickname)
+		eventProto := &onebot.Frame{
+			FrameType: onebot.Frame_TGroupNotifyEvent,
+		}
+		eventProto.Data = &onebot.Frame_GroupNotifyEvent{
+			GroupNotifyEvent: &onebot.GroupNotifyEvent{
+				Time:       time.Now().Unix(),
+				SelfId:     cli.Uin,
+				PostType:   "notice",
+				NoticeType: "group_red_bag_lucky_king",
+				GroupId:    group.Code,
+				GroupName:  group.Name,
+				Sender:     sender.Uin,
+				SenderCard: sender.Nickname,
+				TargetId:   luckyKing.Uin,
+				TargetCard: luckyKing.Nickname,
+			},
+		}
+		bot.HandleEventFrame(cli, eventProto)
+		return plugin.MessageIgnore
+	case *client.MemberHonorChangedNotifyEvent:
+		log.Info(notify.Content())
+		eventProto := &onebot.Frame{
+			FrameType: onebot.Frame_TGroupNotifyEvent,
+		}
+		eventProto.Data = &onebot.Frame_GroupNotifyEvent{
+			GroupNotifyEvent: &onebot.GroupNotifyEvent{
+				Time:       time.Now().Unix(),
+				SelfId:     cli.Uin,
+				PostType:   "notice",
+				NoticeType: "member_honor_change",
+				GroupId:    group.Code,
+				GroupName:  group.Name,
+				TargetId:   notify.Uin,
+				TargetCard: notify.Nick,
+				Honor: func() string {
+					switch notify.Honor {
+					case client.Talkative:
+						return "talkative"
+					case client.Performer:
+						return "performer"
+					case client.Emotion:
+						return "emotion"
+					case client.Legend:
+						return "legend"
+					case client.StrongNewbie:
+						return "strong_newbie"
+					default:
+						return "ERROR"
+					}
+				}(),
+			},
+		}
+		bot.HandleEventFrame(cli, eventProto)
+		return plugin.MessageIgnore
+	}
 	return plugin.MessageIgnore
 }

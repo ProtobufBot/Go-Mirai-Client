@@ -22,6 +22,8 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 			msgList = append(msgList, MiraiDiceToProtoDice(elem))
 		case *message.FingerGuessingElement:
 			msgList = append(msgList, MiraiFingerGuessingToProtoFingerGuessing(elem))
+		case *message.GuildImageElement:
+			msgList = append(msgList, MiraiGuildImageToProtoImage(elem))
 		case *message.FriendImageElement:
 			msgList = append(msgList, MiraiFriendImageToProtoImage(elem))
 		case *message.GroupImageElement:
@@ -40,6 +42,8 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 			msgList = append(msgList, MiraiVideoToProtoVideo(cli, elem))
 		case *message.ReplyElement:
 			msgList = append(msgList, MiraiReplyToProtoReply(cli, elem))
+		case *message.ForwardElement:
+			msgList = append(msgList, MiraiForwardToProtoForward(cli, elem))
 		}
 	}
 	return msgList
@@ -84,6 +88,19 @@ func MiraiGroupImageToProtoImage(elem *message.GroupImageElement) *onebot.Messag
 	if elem.EffectID != 0 {
 		msg.Data["type"] = "show"
 		msg.Data["effect_id"] = strconv.FormatInt(int64(elem.EffectID), 10)
+	}
+	return msg
+}
+
+func MiraiGuildImageToProtoImage(elem *message.GuildImageElement) *onebot.Message {
+	msg := &onebot.Message{
+		Type: "guild_image",
+		Data: map[string]string{
+			"file_id":        strconv.FormatInt(elem.FileId, 10),
+			"file":           elem.FilePath,
+			"url":            elem.Url,
+			"download_index": elem.DownloadIndex,
+		},
 	}
 	return msg
 }
@@ -189,6 +206,17 @@ func MiraiReplyToProtoReply(cli *client.QQClient, elem *message.ReplyElement) *o
 			"sender":      strconv.FormatInt(elem.Sender, 10),
 			"time":        strconv.FormatInt(int64(elem.Time), 10),
 			"raw_message": MiraiMsgToRawMsg(cli, elem.Elements),
+		},
+	}
+}
+
+func MiraiForwardToProtoForward(cli *client.QQClient, elem *message.ForwardElement) *onebot.Message {
+	return &onebot.Message{
+		Type: "forward",
+		Data: map[string]string{
+			"file_name": elem.FileName,
+			"content":   elem.Content,
+			"res_id":    elem.ResId,
 		},
 	}
 }

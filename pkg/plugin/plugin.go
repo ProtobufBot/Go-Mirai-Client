@@ -9,6 +9,8 @@ import (
 type (
 	PrivateMessagePlugin          = func(*client.QQClient, *message.PrivateMessage) int32
 	GroupMessagePlugin            = func(*client.QQClient, *message.GroupMessage) int32
+	GroupNotifyEventPlugin        = func(*client.QQClient, client.INotifyEvent) int32
+	ChannelMessagePlugin          = func(*client.QQClient, *message.GuildChannelMessage) int32
 	TempMessagePlugin             = func(*client.QQClient, *client.TempMessageEvent) int32
 	MemberJoinGroupPlugin         = func(*client.QQClient, *client.MemberJoinGroupEvent) int32
 	MemberLeaveGroupPlugin        = func(*client.QQClient, *client.MemberLeaveGroupEvent) int32
@@ -32,6 +34,8 @@ const (
 
 var PrivateMessagePluginList = make([]PrivateMessagePlugin, 0)
 var GroupMessagePluginList = make([]GroupMessagePlugin, 0)
+var GroupNotifyEventPluginList = make([]GroupNotifyEventPlugin, 0)
+var ChannelMessagePluginList = make([]ChannelMessagePlugin, 0)
 var TempMessagePluginList = make([]TempMessagePlugin, 0)
 var MemberJoinGroupPluginList = make([]MemberJoinGroupPlugin, 0)
 var MemberLeaveGroupPluginList = make([]MemberLeaveGroupPlugin, 0)
@@ -50,6 +54,7 @@ var MemberPermissionChangedPluginList = make([]MemberPermissionChangedPlugin, 0)
 func Serve(cli *client.QQClient) {
 	cli.PrivateMessageEvent.Subscribe(handlePrivateMessage)
 	cli.GroupMessageEvent.Subscribe(handleGroupMessage)
+	cli.GuildService.OnGuildChannelMessage(handleChannelMessage)
 	cli.TempMessageEvent.Subscribe(handleTempMessage)
 	cli.GroupMemberJoinEvent.Subscribe(handleMemberJoinGroup)
 	cli.GroupMemberLeaveEvent.Subscribe(handleMemberLeaveGroup)
@@ -64,6 +69,7 @@ func Serve(cli *client.QQClient) {
 	cli.OfflineFileEvent.Subscribe(handleOfflineFile)
 	cli.GroupMuteEvent.Subscribe(handleGroupMute)
 	cli.GroupMemberPermissionChangedEvent.Subscribe(handleMemberPermissionChanged)
+	cli.GroupNotifyEvent.Subscribe(handleGroupNotifyEvent)
 }
 
 // 添加私聊消息插件
@@ -74,6 +80,15 @@ func AddPrivateMessagePlugin(plugin PrivateMessagePlugin) {
 // 添加群聊消息插件
 func AddGroupMessagePlugin(plugin GroupMessagePlugin) {
 	GroupMessagePluginList = append(GroupMessagePluginList, plugin)
+}
+
+func AddGroupNotifyEventPlugin(plugin GroupNotifyEventPlugin) {
+	GroupNotifyEventPluginList = append(GroupNotifyEventPluginList, plugin)
+}
+
+// 添加频道消息事件
+func AddChannelMessagePlugin(plugin ChannelMessagePlugin) {
+	ChannelMessagePluginList = append(ChannelMessagePluginList, plugin)
 }
 
 // 添加临时消息插件
@@ -159,6 +174,16 @@ func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
 func handleGroupMessage(cli *client.QQClient, event *message.GroupMessage) {
 	util.SafeGo(func() {
 		for _, plugin := range GroupMessagePluginList {
+			if result := plugin(cli, event); result == MessageBlock {
+				break
+			}
+		}
+	})
+}
+
+func handleChannelMessage(cli *client.QQClient, event *message.GuildChannelMessage) {
+	util.SafeGo(func() {
+		for _, plugin := range ChannelMessagePluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}
@@ -299,6 +324,16 @@ func handleGroupMute(cli *client.QQClient, event *client.GroupMuteEvent) {
 func handleMemberPermissionChanged(cli *client.QQClient, event *client.MemberPermissionChangedEvent) {
 	util.SafeGo(func() {
 		for _, plugin := range MemberPermissionChangedPluginList {
+			if result := plugin(cli, event); result == MessageBlock {
+				break
+			}
+		}
+	})
+}
+
+func handleGroupNotifyEvent(cli *client.QQClient, event client.INotifyEvent) {
+	util.SafeGo(func() {
+		for _, plugin := range GroupNotifyEventPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}

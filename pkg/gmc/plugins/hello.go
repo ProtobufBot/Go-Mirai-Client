@@ -1,10 +1,10 @@
 package plugins
 
 import (
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
 )
 
 func HelloPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) int32 {
