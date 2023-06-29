@@ -21,8 +21,9 @@ import (
 //go:generate go run github.com/a8m/syncmap -o "gen_client_map.go" -pkg bot -name ClientMap "map[int64]*client.QQClient"
 //go:generate go run github.com/a8m/syncmap -o "gen_token_map.go" -pkg bot -name TokenMap "map[int64][]byte"
 var (
-	Clients     ClientMap
-	LoginTokens TokenMap
+	Clients      ClientMap
+	LoginTokens  TokenMap
+	FrozenClient = make(map[int64]bool)
 )
 
 type Logger struct {
@@ -107,7 +108,7 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 		}
 		bot.Disconnect()
 		var times = 1
-		for IsClientExist(bot.Uin) {
+		for IsClientExist(bot.Uin) && !FrozenClient[bot.Uin] {
 			if bot.Online.Load() {
 				log.Warn("Bot已登录")
 				return
