@@ -28,6 +28,7 @@ message CreateBotReq{
     string password = 2;
     int64 device_seed = 3; // 设备信息随机种子
     int32 client_protocol = 4; // 协议类型
+    string sign_server = 5;
 }
 message CreateBotResp{
 }

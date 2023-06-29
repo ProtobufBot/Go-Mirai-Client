@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
 
+	_ "github.com/BurntSushi/toml"
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -25,6 +27,35 @@ import (
 
 var queryQRCodeMutex = &sync.RWMutex{}
 var qrCodeBot *client.QQClient
+
+func TokenLogin() {
+	if bot.PathExists("deviceInfo.toml") {
+		fmt.Println("尝试 Token 登录")
+		g, _ := bot.GmcTokenLogin()
+		cli := client.NewClientEmpty()
+		deviceInfo := device.GetDevice(g.DeviceSeed, g.ClientProtocol)
+		cli.UseDevice(deviceInfo)
+		if bot.PathExists("session.token") {
+			token, err := os.ReadFile("session.token")
+			if err == nil {
+				if err = cli.TokenLogin(token); err != nil {
+					_ = os.Remove("session.token")
+					log.Warnf("恢复会话失败: %v , 尝试使用正常流程登录.", err)
+					time.Sleep(time.Second)
+					cli.Disconnect()
+					cli.Release()
+				} else {
+					bot.Clients.LoadOrStore(cli.Uin, cli)
+					AfterLogin(cli)
+				}
+			}
+		} else {
+			fmt.Println("Token 不存在，请尝试使用正常流程登录")
+		}
+	} else {
+		fmt.Println("deviceInfo.toml 不存在，可能是 deviceInfo.toml 缺失或是首次登录")
+	}
+}
 
 func init() {
 	//log.Infof("加载日志插件 Log")
@@ -70,9 +101,27 @@ func CreateBot(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "botId already exists")
 		return
 	}
-	go func() {
-		CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, req.ClientProtocol)
-	}()
+	if req.ClientProtocol == 0 {
+		bot.GTL = &bot.GMCLogin{
+			DeviceSeed:     req.DeviceSeed,
+			ClientProtocol: 6,
+			SignServer:     req.SignServer,
+		}
+		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\"", req.DeviceSeed, 6, req.SignServer)), 0o644)
+		go func() {
+			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, 6)
+		}()
+	} else {
+		bot.GTL = &bot.GMCLogin{
+			DeviceSeed:     req.DeviceSeed,
+			ClientProtocol: req.ClientProtocol,
+			SignServer:     req.SignServer,
+		}
+		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\"", req.DeviceSeed, req.ClientProtocol, req.SignServer)), 0o644)
+		go func() {
+			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, req.ClientProtocol)
+		}()
+	}
 	resp := &dto.CreateBotResp{}
 	Return(c, resp)
 }
@@ -156,6 +205,7 @@ func FetchQrCode(c *gin.Context) {
 	qrCodeBot = client.NewClientEmpty()
 	//deviceInfo := device.GetDevice(req.DeviceSeed, req.ClientProtocol)
 	deviceInfo := device.GetDevice(req.DeviceSeed, 2)
+	_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d\nClientProtocol = %d", req.DeviceSeed, 2)), 0o644)
 	fmt.Println(req.DeviceSeed, req.ClientProtocol)
 	qrCodeBot.UseDevice(deviceInfo)
 
@@ -215,12 +265,15 @@ func QueryQRCodeStatus(c *gin.Context) {
 			}
 			log.Infof("登录成功")
 			originCli, ok := bot.Clients.Load(qrCodeBot.Uin)
+
 			// 重复登录，旧的断开
 			if ok {
 				originCli.Release()
 			}
 			bot.Clients.Store(qrCodeBot.Uin, qrCodeBot)
 			go AfterLogin(qrCodeBot)
+			accountToken := qrCodeBot.GenToken()
+			_ = os.WriteFile("session.token", accountToken, 0o644)
 			qrCodeBot = nil
 		}()
 	}
@@ -348,10 +401,12 @@ func CreateBotImpl(uin int64, password string, deviceRandSeed int64, clientProto
 }
 
 func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, clientProtocol int32) {
+	var deviceInfo *client.DeviceInfo
 	log.Infof("开始初始化设备信息")
-	deviceInfo := device.GetDevice(uin, clientProtocol)
 	if deviceRandSeed != 0 {
 		deviceInfo = device.GetDevice(deviceRandSeed, clientProtocol)
+	} else {
+		deviceInfo = device.GetDevice(uin, clientProtocol)
 	}
 	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 
@@ -373,9 +428,21 @@ func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, cli
 	}
 	if ok {
 		log.Infof("登录成功")
+		bot.GTL = &bot.GMCLogin{
+			DeviceSeed:     bot.GTL.DeviceSeed,
+			ClientProtocol: bot.GTL.ClientProtocol,
+			SignServer:     "",
+		}
 		AfterLogin(cli)
+		accountToken := cli.GenToken()
+		_ = os.WriteFile("session.token", accountToken, 0o644)
 	} else {
 		log.Infof("登录失败")
+		bot.GTL = &bot.GMCLogin{
+			DeviceSeed:     bot.GTL.DeviceSeed,
+			ClientProtocol: bot.GTL.ClientProtocol,
+			SignServer:     "",
+		}
 	}
 }
 

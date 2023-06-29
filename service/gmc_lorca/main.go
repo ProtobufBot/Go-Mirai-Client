@@ -5,17 +5,17 @@ import (
 
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
+	"github.com/zserge/lorca"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/zserge/lorca"
 )
 
 func main() {
 	gmc.Start()
 	ui, err := lorca.New(fmt.Sprintf("http://localhost:%s", config.Port), "", 1024, 768)
 	if err != nil {
-		util.FatalError(err)
+		//util.FatalError(err)
+		fmt.Println(err)
 		return
 	}
 	defer ui.Close()

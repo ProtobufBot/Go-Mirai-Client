@@ -12,7 +12,6 @@ import (
 
 var logger AndroidLogger
 
-// SetSms 设置是否短信优先
 func SetSms(sms bool) {
 	config.SMS = sms
 }
@@ -21,12 +20,10 @@ func Chdir(dir string) {
 	_ = os.Chdir(dir)
 }
 
-// Start 启动主程序
 func Start() {
 	gmc.Start()
 }
 
-// SetLogger 设置日志输出
 func SetLogger(androidLogger AndroidLogger) {
 	logger = androidLogger
 	log.SetOutput(&AndroidWriter{})

@@ -98,6 +98,7 @@ func Start() {
 
 	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
 	InitGin()               // 初始化GIN HTTP管理
+	handler.TokenLogin()
 }
 
 func LoadParamConfig() {

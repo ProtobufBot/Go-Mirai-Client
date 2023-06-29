@@ -136,8 +136,10 @@ func GetDevice(seed int64, clientProtocol int32) *client.DeviceInfo {
 		}
 	}
 
-	if clientProtocol > 0 && clientProtocol < 6 {
+	if clientProtocol > 0 && clientProtocol < 7 {
 		deviceInfo.Protocol = client.ClientProtocol(clientProtocol)
+	} else {
+		deviceInfo.Protocol = client.ClientProtocol(6)
 	}
 
 	GenNewGuid(deviceInfo)

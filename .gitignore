@@ -49,3 +49,7 @@ dist/
 plugins/
 gmc_android.aar
 gmc_android-sources.jar
+*.bat
+*.jar
+*.aar
+*.syso

@@ -11,6 +11,8 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
 
 	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/download"
 	"github.com/fanliao/go-promise"
 	log "github.com/sirupsen/logrus"
 )
@@ -26,6 +28,7 @@ type WaitingCaptcha struct {
 var WaitingCaptchas CaptchaMap
 
 func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, error) {
+	id := utils.RandomString(8)
 	if rsp.Success {
 		WaitingCaptchas.Delete(cli.Uin)
 		return true, nil
@@ -46,20 +49,24 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 			Captcha: &dto.Bot_Captcha{
 				BotId:       cli.Uin,
 				CaptchaType: dto.Bot_Captcha_SLIDER_CAPTCHA,
-				Data:        &dto.Bot_Captcha_Url{Url: rsp.VerifyUrl},
+				Data:        &dto.Bot_Captcha_Url{Url: strings.ReplaceAll(rsp.VerifyUrl, "https://ssl.captcha.qq.com/template/wireless_mqq_captcha.html?", fmt.Sprintf("https://captcha.go-cqhttp.org/captcha?id=%v&", id))},
 			},
 			Prom: prom,
 		})
 		defer WaitingCaptchas.Delete(cli.Uin)
-		result, err := prom.Get()
-		if err != nil {
-			return false, fmt.Errorf("提交ticket错误")
+
+		for count := 120; count > 0; count-- {
+			str := fetchCaptcha(id)
+			if str != "" {
+				rsp, err := cli.SubmitTicket(str)
+				if err != nil {
+					return false, err
+				}
+				return ProcessLoginRsp(cli, rsp)
+			}
+			time.Sleep(time.Second)
 		}
-		text := result.(string)
-		rsp, err := cli.SubmitTicket(text)
-		if err != nil {
-			return false, err
-		}
+		log.Warnf("验证超时")
 		return ProcessLoginRsp(cli, rsp)
 	case client.NeedCaptcha:
 		log.Infof("遇到图形验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
@@ -140,4 +147,16 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		return false, fmt.Errorf("遇到不可处理的登录错误")
 	}
 	return false, fmt.Errorf("process login error")
+}
+
+func fetchCaptcha(id string) string {
+	g, err := download.Request{URL: "https://captcha.go-cqhttp.org/captcha/ticket?id=" + id}.JSON()
+	if err != nil {
+		log.Debugf("获取 Ticket 时出现错误: %v", err)
+		return ""
+	}
+	if g.Get("ticket").Exists() {
+		return g.Get("ticket").String()
+	}
+	return ""
 }
