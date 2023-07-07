@@ -3,6 +3,7 @@ package bot
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -32,13 +33,55 @@ type GMCLogin struct {
 	DeviceSeed     int64
 	ClientProtocol int32
 	SignServer     string
+	SignServerKey  string
 }
 
+type SignRegister struct {
+	Uin       uint64
+	AndroidId string
+	Guid      string
+	Qimei36   string
+	Key       string
+}
+
+type RequestCallback struct {
+	Cmd        string `json:"cmd,omitempty"` // trpc.o3.ecdh_access.EcdhAccess.SsoSecureA2Establish
+	Body       string `json:"body,omitempty"`
+	CallBackId int    `json:"callbackId,omitempty"`
+}
+
+type RequestSignData struct {
+	Token           string `json:"token,omitempty"`
+	Extra           string `json:"extra,omitempty"`
+	Sign            string `json:"sign,omitempty"`
+	O3dId           string `json:"o3did,omitempty"`
+	RequestCallback []*RequestCallback
+}
+
+type RequestSignResult struct {
+	Code int    `json:"code,omitempty"`
+	Msg  string `json:"msg,omitempty"`
+	Data *RequestSignData
+}
+
+var RSR RequestSignResult
+
 var GTL *GMCLogin
+
+var SR SignRegister
+
+var IsRequestTokenAgain bool = false
+
+var TTI_i = 30
 
 func GmcTokenLogin() (g GMCLogin, err error) {
 	_, err = toml.DecodeFile("deviceInfo.toml", &GTL)
 	return *GTL, err
+}
+
+func SRI() (sr SignRegister, err error) {
+	_, err = toml.DecodeFile("signRegisterInfo.toml", &SR)
+	return SR, err
 }
 
 func PathExists(path string) bool {
@@ -73,6 +116,7 @@ func InitLog(cli *client.QQClient) {
 func Login(cli *client.QQClient) (bool, error) {
 	cli.AllowSlider = true
 	if GTL.ClientProtocol == 1 && GTL.SignServer != "" {
+		wrapper.RegisterSign = RegisterSign
 		wrapper.DandelionEnergy = Energy
 		wrapper.FekitGetSign = Sign
 	} else if GTL.SignServer != "" {
@@ -178,7 +222,7 @@ func Energy(uin uint64, id string, appVersion string, salt []byte) ([]byte, erro
 	}
 	response, err := download.Request{
 		Method: http.MethodGet,
-		URL:    signServer + "custom_energy" + fmt.Sprintf("?data=%v&salt=%v", id, hex.EncodeToString(salt)),
+		URL:    signServer + "custom_energy" + fmt.Sprintf("?uin=%v&data=%v&salt=%v", uin, id, hex.EncodeToString(salt)),
 	}.Bytes()
 	if err != nil {
 		log.Warnf("获取T544 sign时出现错误: %v server: %v", err, signServer)
@@ -214,5 +258,87 @@ func Sign(seq uint64, uin string, cmd string, qua string, buff []byte) (sign []b
 	sign, _ = hex.DecodeString(gjson.GetBytes(response, "data.sign").String())
 	extra, _ = hex.DecodeString(gjson.GetBytes(response, "data.extra").String())
 	token, _ = hex.DecodeString(gjson.GetBytes(response, "data.token").String())
+
+	json.Unmarshal(response, &RSR)
+	fmt.Println(RSR.Data.RequestCallback[0], RSR.Data.RequestCallback[1])
 	return sign, extra, token, nil
+}
+
+func RegisterSign(uin uint64, androidId []byte, guid []byte, Qimei36 string, signServerAuth string) {
+	signServer := GTL.SignServer
+	if !strings.HasSuffix(signServer, "/") {
+		signServer += "/"
+	}
+	SR.Uin = uin
+	SR.AndroidId = string(androidId)
+	SR.Guid = string(guid)
+	SR.Guid = string(guid)
+	SR.Key = signServerAuth
+	// http://your.host:port/register?uin=[QQ]&android_id=[ANDROID_ID]&guid=[GUID]&qimei36=[QIMEI36]&key=[KEY]
+	_ = os.WriteFile("signRegisterInfo.toml", []byte(fmt.Sprintf("uin= %v \nandroidId= \"%s\" \nguid= \"%s\" \nqimei36= \"%s\" \nkey= \"%s\"", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)), 0o644)
+
+	fmt.Println(uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)
+	fmt.Println(fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth))
+	response, err := download.Request{
+		Method: http.MethodGet,
+		URL:    signServer + "register" + fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth),
+	}.Bytes()
+	if err != nil {
+		log.Warnf("初始化 Sign 失败\n", err)
+	} else {
+		log.Info("初始化 Sign 成功")
+		fmt.Println(gjson.GetBytes(response, "msg").String())
+	}
+}
+
+// http://your.host:port/submit?uin=[QQ]&cmd=[CMD]&callback_id=[CALLBACK_ID]&buffer=[BUFFER]
+func SubmitRequestCallback(uin uint64, cmd string, callbackId int, buffer []byte) {
+	signServer := GTL.SignServer
+	if !strings.HasSuffix(signServer, "/") {
+		signServer += "/"
+	}
+	response, err := download.Request{
+		Method: http.MethodGet,
+		URL:    signServer + "submit" + fmt.Sprintf("?uin=%v&cmd=%s&callback_id=%v&buffer=%s", uin, cmd, callbackId, buffer),
+	}.Bytes()
+	if err != nil {
+		log.Warnf(cmd, " ", callbackId, "提交失败\n", err)
+	} else {
+		log.Info(cmd, " ", callbackId, "提交成功")
+		fmt.Println(string(response))
+		fmt.Println(gjson.GetBytes(response, "msg").String())
+	}
+}
+
+func RequestToken(uin uint64) {
+	signServer := GTL.SignServer
+	if !strings.HasSuffix(signServer, "/") {
+		signServer += "/"
+	}
+	response, err := download.Request{
+		Method: http.MethodGet,
+		URL:    signServer + "request_token" + fmt.Sprintf("?uin=%v", uin),
+	}.Bytes()
+	if err != nil || strings.HasPrefix(gjson.GetBytes(response, "msg").String(), "Uin") { // QSign
+		log.Warnf("请求 Token 失败\n", gjson.GetBytes(response, "msg").String(), err)
+		log.Info("正在重新注册 ", uin)
+		RegisterSign(SR.Uin, []byte(SR.AndroidId), []byte(SR.Guid), SR.Qimei36, SR.Key)
+		IsRequestTokenAgain = true
+	} else if strings.HasPrefix(gjson.GetBytes(response, "msg").String(), "QSign") {
+		log.Warn("QSign not initialized, unable to request_ Token, please submit the initialization package first.")
+	} else {
+		log.Info("请求 Token 成功")
+		fmt.Println(string(response))
+		fmt.Println(gjson.GetBytes(response, "msg").String())
+	}
+}
+
+func TTIR(uin uint64) {
+	for TTI_i >= 0 {
+		time.Sleep(time.Minute)
+		if TTI_i == 0 {
+			TTI_i = 30
+			RequestToken(uin)
+		}
+	}
 }

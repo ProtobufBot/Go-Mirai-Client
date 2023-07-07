@@ -1,5 +1,36 @@
 # Go-Mirai-Client
 
+## session.token 登录说明
+
+只支持单账号登录，如需多账号登录，请放不同文件夹内，例如
+
+```shell
+File
+|- File one
+| |- gmc.exe
+| |- session.token
+| |- deviceInfo.toml
+| |- logs
+| |  |- 2023-06-30.log
+| |  |- latest.log
+| |- plugins
+| |  |- default.json
+| |- device
+| |  |- device-1688014725597.json
+|- File two
+| |- gmc.exe
+| |- session.token
+| |- deviceInfo.toml
+| |- logs
+| |  |- 2023-06-30.log
+| |  |- latest.log
+| |- plugins
+| |  |- default.json
+| |- device
+| |  |- device-1688014725597.json
+```
+
+
 [![QQ群](https://img.shields.io/static/v1?label=QQ%E7%BE%A4&message=335783090&color=blue)](https://jq.qq.com/?_wv=1027&k=B7Of3GMZ)
 
 用于收发QQ消息，并通过 websocket + protobuf 上报给 server 进行处理。

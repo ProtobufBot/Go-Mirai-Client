@@ -106,20 +106,22 @@ func CreateBot(c *gin.Context) {
 			DeviceSeed:     req.DeviceSeed,
 			ClientProtocol: 6,
 			SignServer:     req.SignServer,
+			SignServerKey:  req.SignServerAuth,
 		}
-		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\"", req.DeviceSeed, 6, req.SignServer)), 0o644)
+		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", req.DeviceSeed, 6, req.SignServer, req.SignServerAuth)), 0o644)
 		go func() {
-			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, 6)
+			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, 6, req.SignServerAuth)
 		}()
 	} else {
 		bot.GTL = &bot.GMCLogin{
 			DeviceSeed:     req.DeviceSeed,
 			ClientProtocol: req.ClientProtocol,
 			SignServer:     req.SignServer,
+			SignServerKey:  req.SignServerAuth,
 		}
-		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\"", req.DeviceSeed, req.ClientProtocol, req.SignServer)), 0o644)
+		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", req.DeviceSeed, req.ClientProtocol, req.SignServer, req.SignServerAuth)), 0o644)
 		go func() {
-			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, req.ClientProtocol)
+			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, req.ClientProtocol, req.SignServerAuth)
 		}()
 	}
 	resp := &dto.CreateBotResp{}
@@ -396,11 +398,11 @@ func Return(c *gin.Context, resp proto.Message) {
 	c.Data(http.StatusOK, c.ContentType(), data)
 }
 
-func CreateBotImpl(uin int64, password string, deviceRandSeed int64, clientProtocol int32) {
-	CreateBotImplMd5(uin, md5.Sum([]byte(password)), deviceRandSeed, clientProtocol)
+func CreateBotImpl(uin int64, password string, deviceRandSeed int64, clientProtocol int32, signServerKey string) {
+	CreateBotImplMd5(uin, md5.Sum([]byte(password)), deviceRandSeed, clientProtocol, signServerKey)
 }
 
-func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, clientProtocol int32) {
+func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, clientProtocol int32, signServerKey string) {
 	var deviceInfo *client.DeviceInfo
 	log.Infof("开始初始化设备信息")
 	if deviceRandSeed != 0 {
@@ -408,11 +410,15 @@ func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, cli
 	} else {
 		deviceInfo = device.GetDevice(uin, clientProtocol)
 	}
+
+	fmt.Println(signServerKey)
+
 	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 
 	log.Infof("创建机器人 %+v", uin)
 
 	cli := client.NewClientMd5(uin, passwordMd5)
+	cli.SetSSK(signServerKey)
 	cli.UseDevice(deviceInfo)
 	bot.Clients.Store(uin, cli)
 
@@ -428,25 +434,24 @@ func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, cli
 	}
 	if ok {
 		log.Infof("登录成功")
-		bot.GTL = &bot.GMCLogin{
-			DeviceSeed:     bot.GTL.DeviceSeed,
-			ClientProtocol: bot.GTL.ClientProtocol,
-			SignServer:     "",
+		for _, data := range bot.RSR.Data.RequestCallback {
+			go bot.SubmitRequestCallback(uint64(uin), data.Cmd, data.CallBackId, []byte(data.Body))
 		}
+		time.Sleep(time.Second * 3)
 		AfterLogin(cli)
 		accountToken := cli.GenToken()
 		_ = os.WriteFile("session.token", accountToken, 0o644)
 	} else {
 		log.Infof("登录失败")
-		bot.GTL = &bot.GMCLogin{
-			DeviceSeed:     bot.GTL.DeviceSeed,
-			ClientProtocol: bot.GTL.ClientProtocol,
-			SignServer:     "",
-		}
 	}
 }
 
 func AfterLogin(cli *client.QQClient) {
+	bot.RequestToken(uint64(cli.Uin))
+	if bot.IsRequestTokenAgain {
+		bot.RequestToken(uint64(cli.Uin))
+	}
+	go bot.TTIR(uint64(cli.Uin))
 	for {
 		time.Sleep(5 * time.Second)
 		if cli.Online.Load() {

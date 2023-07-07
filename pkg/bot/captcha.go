@@ -55,18 +55,11 @@ func ProcessLoginRsp(cli *client.QQClient, rsp *client.LoginResponse) (bool, err
 		})
 		defer WaitingCaptchas.Delete(cli.Uin)
 
-		for count := 120; count > 0; count-- {
-			str := fetchCaptcha(id)
-			if str != "" {
-				rsp, err := cli.SubmitTicket(str)
-				if err != nil {
-					return false, err
-				}
-				return ProcessLoginRsp(cli, rsp)
-			}
-			time.Sleep(time.Second)
+		ticket := getTicket(id)
+		rsp, err := cli.SubmitTicket(ticket)
+		if err != nil {
+			return false, err
 		}
-		log.Warnf("验证超时")
 		return ProcessLoginRsp(cli, rsp)
 	case client.NeedCaptcha:
 		log.Infof("遇到图形验证码，根据README提示操作 https://github.com/protobufbot/Go-Mirai-Client (顺便star)")
@@ -158,5 +151,17 @@ func fetchCaptcha(id string) string {
 	if g.Get("ticket").Exists() {
 		return g.Get("ticket").String()
 	}
+	return ""
+}
+
+func getTicket(id string) string {
+	for count := 120; count > 0; count-- {
+		str := fetchCaptcha(id)
+		if str != "" {
+			return str
+		}
+		time.Sleep(time.Second)
+	}
+	log.Warnf("验证超时")
 	return ""
 }

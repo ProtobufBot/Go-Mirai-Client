@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/handler"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/static"
@@ -98,6 +99,11 @@ func Start() {
 
 	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
 	InitGin()               // 初始化GIN HTTP管理
+	sr, err := bot.SRI()
+	if err != nil {
+		log.Warn("signRegisterInfo.toml 不存在，应该是首次登录")
+	}
+	fmt.Println(sr)
 	handler.TokenLogin()
 }
 
@@ -138,7 +144,7 @@ func CreateBotIfParamExist() {
 	if uin != 0 && pass != "" {
 		log.Infof("使用参数创建机器人 %d", uin)
 		go func() {
-			handler.CreateBotImpl(uin, pass, 0, 0)
+			handler.CreateBotImpl(uin, pass, 0, 0, "")
 		}()
 	}
 }
