@@ -99,11 +99,10 @@ func Start() {
 
 	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
 	InitGin()               // 初始化GIN HTTP管理
-	sr, err := bot.SRI()
+	_, err := bot.SRI()
 	if err != nil {
 		log.Warn("signRegisterInfo.toml 不存在，应该是首次登录")
 	}
-	fmt.Println(sr)
 	handler.TokenLogin()
 }
 

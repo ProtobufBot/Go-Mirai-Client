@@ -53,3 +53,5 @@ gmc_android-sources.jar
 *.jar
 *.aar
 *.syso
+*.toml
+*.token

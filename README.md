@@ -5,29 +5,29 @@
 只支持单账号登录，如需多账号登录，请放不同文件夹内，例如
 
 ```shell
-File
+Files
 |- File one
-| |- gmc.exe
-| |- session.token
-| |- deviceInfo.toml
-| |- logs
-| |  |- 2023-06-30.log
-| |  |- latest.log
-| |- plugins
-| |  |- default.json
-| |- device
-| |  |- device-1688014725597.json
+|  |- gmc.exe
+|  |- session.token
+|  |- deviceInfo.toml
+|  |- logs
+|  |  |- 2023-06-30.log
+|  |  |- latest.log
+|  |- plugins
+|  |  |- default.json
+|  |- device
+|  |  |- device-1688014725597.json
 |- File two
-| |- gmc.exe
-| |- session.token
-| |- deviceInfo.toml
-| |- logs
-| |  |- 2023-06-30.log
-| |  |- latest.log
-| |- plugins
-| |  |- default.json
-| |- device
-| |  |- device-1688014725597.json
+|  |- gmc.exe
+|  |- session.token
+|  |- deviceInfo.toml
+|  |- logs
+|  |  |- 2023-06-30.log
+|  |  |- latest.log
+|  |- plugins
+|  |  |- default.json
+|  |- device
+|  |  |- device-1688014725597.json
 ```
 
 

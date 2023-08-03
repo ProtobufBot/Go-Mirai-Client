@@ -75,8 +75,13 @@ var IsRequestTokenAgain bool = false
 var TTI_i = 30
 
 func GmcTokenLogin() (g GMCLogin, err error) {
-	_, err = toml.DecodeFile("deviceInfo.toml", &GTL)
-	return *GTL, err
+	if PathExists("deviceInfo.toml"){
+		_, err = toml.DecodeFile("deviceInfo.toml", &GTL)
+		return *GTL, err
+	} else {
+		g = GMCLogin{}
+		return g, nil
+	}
 }
 
 func SRI() (sr SignRegister, err error) {
@@ -116,21 +121,21 @@ func InitLog(cli *client.QQClient) {
 func Login(cli *client.QQClient) (bool, error) {
 	cli.AllowSlider = true
 	if GTL.ClientProtocol == 1 && GTL.SignServer != "" {
-		wrapper.RegisterSign = RegisterSign
+		RegisterSign(uint64(cli.Uin), cli.Device().AndroidId, cli.Device().Guid, cli.Device().QImei36, GTL.SignServerKey)
 		wrapper.DandelionEnergy = Energy
 		wrapper.FekitGetSign = Sign
 	} else if GTL.SignServer != "" {
-		fmt.Println("SignServer 不支持该协议")
+		log.Warn("SignServer 不支持该协议")
 	}
 	rsp, err := cli.Login()
 	if rsp.Code == byte(45) && GTL.SignServer == "" {
-		fmt.Println("您的账号被限制登录，请配置 SignServer 后重试")
+		log.Warn("您的账号被限制登录，请配置 SignServer 后重试")
 	}
 	if rsp.Code == byte(235) {
-		fmt.Println("设备信息被封禁，请删除设备（device）文件夹里对应设备文件后重试")
+		log.Warn("设备信息被封禁，请删除设备（device）文件夹里对应设备文件后重试")
 	}
 	if rsp.Code == byte(237) {
-		fmt.Println("登录过于频繁，请在手机QQ登录并根据提示完成认证")
+		log.Warn("登录过于频繁，请在手机QQ登录并根据提示完成认证")
 	}
 	if err != nil {
 		return false, err
@@ -260,7 +265,7 @@ func Sign(seq uint64, uin string, cmd string, qua string, buff []byte) (sign []b
 	token, _ = hex.DecodeString(gjson.GetBytes(response, "data.token").String())
 
 	json.Unmarshal(response, &RSR)
-	fmt.Println(RSR.Data.RequestCallback[0], RSR.Data.RequestCallback[1])
+	log.Debug(RSR.Data.RequestCallback[0], RSR.Data.RequestCallback[1])
 	return sign, extra, token, nil
 }
 
@@ -277,8 +282,8 @@ func RegisterSign(uin uint64, androidId []byte, guid []byte, Qimei36 string, sig
 	// http://your.host:port/register?uin=[QQ]&android_id=[ANDROID_ID]&guid=[GUID]&qimei36=[QIMEI36]&key=[KEY]
 	_ = os.WriteFile("signRegisterInfo.toml", []byte(fmt.Sprintf("uin= %v \nandroidId= \"%s\" \nguid= \"%s\" \nqimei36= \"%s\" \nkey= \"%s\"", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)), 0o644)
 
-	fmt.Println(uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)
-	fmt.Println(fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth))
+	log.Debug(uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)
+	log.Debug(fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth))
 	response, err := download.Request{
 		Method: http.MethodGet,
 		URL:    signServer + "register" + fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth),
@@ -287,7 +292,7 @@ func RegisterSign(uin uint64, androidId []byte, guid []byte, Qimei36 string, sig
 		log.Warnf("初始化 Sign 失败\n", err)
 	} else {
 		log.Info("初始化 Sign 成功")
-		fmt.Println(gjson.GetBytes(response, "msg").String())
+		log.Debug(gjson.GetBytes(response, "msg").String())
 	}
 }
 
@@ -305,8 +310,8 @@ func SubmitRequestCallback(uin uint64, cmd string, callbackId int, buffer []byte
 		log.Warnf(cmd, " ", callbackId, "提交失败\n", err)
 	} else {
 		log.Info(cmd, " ", callbackId, "提交成功")
-		fmt.Println(string(response))
-		fmt.Println(gjson.GetBytes(response, "msg").String())
+		log.Debug(string(response))
+		log.Debug(gjson.GetBytes(response, "msg").String())
 	}
 }
 
@@ -328,8 +333,8 @@ func RequestToken(uin uint64) {
 		log.Warn("QSign not initialized, unable to request_ Token, please submit the initialization package first.")
 	} else {
 		log.Info("请求 Token 成功")
-		fmt.Println(string(response))
-		fmt.Println(gjson.GetBytes(response, "msg").String())
+		log.Debug(string(response))
+		log.Debug(gjson.GetBytes(response, "msg").String())
 	}
 }
 

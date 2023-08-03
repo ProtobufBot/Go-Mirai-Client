@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/Mrs4s/MiraiGo v0.0.0-20230627090859-19e3d172596e
+	github.com/Mrs4s/MiraiGo v0.0.0-20230801023408-b4cd7e8f2149
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
@@ -15,10 +15,10 @@ require (
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
-	github.com/tidwall/gjson v1.14.4
+	github.com/tidwall/gjson v1.15.0
 	github.com/zserge/lorca v0.1.10
 	golang.org/x/mobile v0.0.0-20230531173138-3c911d8e3eda
-	google.golang.org/grpc v1.56.1
+	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
 )
 
@@ -45,7 +45,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
-	github.com/smartystreets/goconvey v1.8.0 // indirect
+	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
@@ -58,6 +58,6 @@ require (
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

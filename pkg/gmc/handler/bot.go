@@ -30,7 +30,7 @@ var qrCodeBot *client.QQClient
 
 func TokenLogin() {
 	if bot.PathExists("deviceInfo.toml") {
-		fmt.Println("尝试 Token 登录")
+		log.Info("尝试 Token 登录")
 		g, _ := bot.GmcTokenLogin()
 		cli := client.NewClientEmpty()
 		deviceInfo := device.GetDevice(g.DeviceSeed, g.ClientProtocol)
@@ -50,10 +50,10 @@ func TokenLogin() {
 				}
 			}
 		} else {
-			fmt.Println("Token 不存在，请尝试使用正常流程登录")
+			log.Warn("Token 不存在，请尝试使用正常流程登录")
 		}
 	} else {
-		fmt.Println("deviceInfo.toml 不存在，可能是 deviceInfo.toml 缺失或是首次登录")
+		log.Warn("deviceInfo.toml 不存在，可能是 deviceInfo.toml 缺失或是首次登录")
 	}
 }
 
@@ -86,6 +86,7 @@ func init() {
 }
 
 func CreateBot(c *gin.Context) {
+	g, _ := bot.GmcTokenLogin()
 	req := &dto.CreateBotReq{}
 	err := Bind(c, req)
 	if err != nil {
@@ -105,10 +106,16 @@ func CreateBot(c *gin.Context) {
 		bot.GTL = &bot.GMCLogin{
 			DeviceSeed:     req.DeviceSeed,
 			ClientProtocol: 6,
-			SignServer:     req.SignServer,
-			SignServerKey:  req.SignServerAuth,
+			SignServer:     g.SignServer,
+			SignServerKey:  g.SignServerKey,
 		}
-		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", req.DeviceSeed, 6, req.SignServer, req.SignServerAuth)), 0o644)
+		if req.SignServer != "" {
+			bot.GTL.SignServer = req.SignServer
+		}
+		if req.SignServerAuth != "" {
+			bot.GTL.SignServerKey = req.SignServerAuth
+		}
+		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", bot.GTL.DeviceSeed, 6, bot.GTL.SignServer, bot.GTL.SignServerKey)), 0o644)
 		go func() {
 			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, 6, req.SignServerAuth)
 		}()
@@ -116,10 +123,16 @@ func CreateBot(c *gin.Context) {
 		bot.GTL = &bot.GMCLogin{
 			DeviceSeed:     req.DeviceSeed,
 			ClientProtocol: req.ClientProtocol,
-			SignServer:     req.SignServer,
-			SignServerKey:  req.SignServerAuth,
+			SignServer:     g.SignServer,
+			SignServerKey:  g.SignServerKey,
 		}
-		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", req.DeviceSeed, req.ClientProtocol, req.SignServer, req.SignServerAuth)), 0o644)
+		if req.SignServer != "" {
+			bot.GTL.SignServer = req.SignServer
+		}
+		if req.SignServerAuth != "" {
+			bot.GTL.SignServerKey = req.SignServerAuth
+		}
+		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", bot.GTL.DeviceSeed, bot.GTL.ClientProtocol, bot.GTL.SignServer, bot.GTL.SignServerKey)), 0o644)
 		go func() {
 			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, req.ClientProtocol, req.SignServerAuth)
 		}()
@@ -208,7 +221,6 @@ func FetchQrCode(c *gin.Context) {
 	//deviceInfo := device.GetDevice(req.DeviceSeed, req.ClientProtocol)
 	deviceInfo := device.GetDevice(req.DeviceSeed, 2)
 	_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d\nClientProtocol = %d", req.DeviceSeed, 2)), 0o644)
-	fmt.Println(req.DeviceSeed, req.ClientProtocol)
 	qrCodeBot.UseDevice(deviceInfo)
 
 	log.Infof("初始化日志")
@@ -411,14 +423,11 @@ func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, cli
 		deviceInfo = device.GetDevice(uin, clientProtocol)
 	}
 
-	fmt.Println(signServerKey)
-
 	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
 
 	log.Infof("创建机器人 %+v", uin)
 
 	cli := client.NewClientMd5(uin, passwordMd5)
-	cli.SetSSK(signServerKey)
 	cli.UseDevice(deviceInfo)
 	bot.Clients.Store(uin, cli)
 
