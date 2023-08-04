@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/Mrs4s/MiraiGo v0.0.0-20230801023408-b4cd7e8f2149
+	github.com/Mrs4s/MiraiGo v0.0.0-20230803152300-e4b6dc62fd76
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da

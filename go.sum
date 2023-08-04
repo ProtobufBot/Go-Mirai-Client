@@ -1,7 +1,7 @@
 github.com/BurntSushi/toml v1.3.2 h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8=
 github.com/BurntSushi/toml v1.3.2/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
-github.com/Mrs4s/MiraiGo v0.0.0-20230801023408-b4cd7e8f2149 h1:q9w4m+ps0gTyUHLObX6avawN1Rfn0GQwbmEKCZ6WrBo=
-github.com/Mrs4s/MiraiGo v0.0.0-20230801023408-b4cd7e8f2149/go.mod h1:mU3fBFU+7eO0kaGes7YRKtzIDtwIU84nSSwTV7NK2b0=
+github.com/Mrs4s/MiraiGo v0.0.0-20230803152300-e4b6dc62fd76 h1:4LofcibYtQv3H48dgEsATpqnYaO9zo2UCfPwo9Ka2RQ=
+github.com/Mrs4s/MiraiGo v0.0.0-20230803152300-e4b6dc62fd76/go.mod h1:mU3fBFU+7eO0kaGes7YRKtzIDtwIU84nSSwTV7NK2b0=
 github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d h1:/Xuj3fIiMY2ls1TwvPKmaqQrtJsPY+c9s+0lOScVHd8=
 github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d/go.mod h1:2Ie+hdBFQpQFDHfeklgxoFmQRCE7O+KwFpISeXq7OwA=
 github.com/RomiChan/syncx v0.0.0-20220404072119-d7ea0ae15a4c h1:cNPOdTNiVwxLpROLjXCgbIPvdkE+BwvxDvgmdYmWx6Q=
