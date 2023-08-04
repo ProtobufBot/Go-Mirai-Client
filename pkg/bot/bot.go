@@ -337,12 +337,7 @@ func RequestToken(uin uint64) {
 		IsRequestTokenAgain = true
 	} else if strings.HasPrefix(gjson.GetBytes(response, "msg").String(), "QSign") {
 		log.Warn("QSign not initialized, unable to request_ Token, please submit the initialization package first.")
-		time.Sleep(time.Second * 3)
-		i := 0
-		for ;i < 3; {
-			RequestToken(uin)
-			i++
-		}
+		IsRequestTokenAgain = false
 	} else {
 		log.Info("请求 Token 成功")
 		log.Warn(string(response))
