@@ -75,7 +75,7 @@ var IsRequestTokenAgain bool = false
 var TTI_i = 30
 
 func GmcTokenLogin() (g GMCLogin, err error) {
-	if PathExists("deviceInfo.toml"){
+	if PathExists("deviceInfo.toml") {
 		_, err = toml.DecodeFile("deviceInfo.toml", &GTL)
 		return *GTL, err
 	} else {
@@ -104,7 +104,7 @@ func (l *Logger) Error(format string, args ...any) {
 	log.Errorf(format, args)
 }
 func (l *Logger) Debug(format string, args ...any) {
-	log.Debugf(format, args)
+	log.Debug(format, args)
 }
 func (l *Logger) Dump(dumped []byte, format string, args ...any) {
 }
@@ -204,6 +204,7 @@ func SetRelogin(cli *client.QQClient, retryInterval int, retryCount int) {
 
 // ReleaseClient 断开连接并释放资源
 func ReleaseClient(cli *client.QQClient) {
+	DestoryInstance(uint(SR.Uin), SR.Key)
 	cli.Release()
 	Clients.Delete(cli.Uin) // 必须先删Clients，影响IsClientExist
 	LoginTokens.Delete(cli.Uin)
@@ -265,7 +266,9 @@ func Sign(seq uint64, uin string, cmd string, qua string, buff []byte) (sign []b
 	token, _ = hex.DecodeString(gjson.GetBytes(response, "data.token").String())
 
 	json.Unmarshal(response, &RSR)
-	log.Debug(RSR.Data.RequestCallback[0], RSR.Data.RequestCallback[1])
+	if len(RSR.Data.RequestCallback) > 1 {
+		log.Warn(RSR.Data.RequestCallback[0], RSR.Data.RequestCallback[1])
+	}
 	return sign, extra, token, nil
 }
 
@@ -282,17 +285,19 @@ func RegisterSign(uin uint64, androidId []byte, guid []byte, Qimei36 string, sig
 	// http://your.host:port/register?uin=[QQ]&android_id=[ANDROID_ID]&guid=[GUID]&qimei36=[QIMEI36]&key=[KEY]
 	_ = os.WriteFile("signRegisterInfo.toml", []byte(fmt.Sprintf("uin= %v \nandroidId= \"%s\" \nguid= \"%s\" \nqimei36= \"%s\" \nkey= \"%s\"", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)), 0o644)
 
-	log.Debug(uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)
-	log.Debug(fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth))
+	log.Warn(uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth)
+	log.Warn(fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth))
 	response, err := download.Request{
 		Method: http.MethodGet,
 		URL:    signServer + "register" + fmt.Sprintf("?uin=%v&android_id=%s&guid=%s&qimei36=%s&key=%s", uin, hex.EncodeToString(androidId), hex.EncodeToString(guid), Qimei36, signServerAuth),
 	}.Bytes()
 	if err != nil {
 		log.Warnf("初始化 Sign 失败\n", err)
+		time.Sleep(time.Second)
+		RegisterSign(SR.Uin, []byte(SR.AndroidId), []byte(SR.Guid), SR.Qimei36, signServerAuth)
 	} else {
 		log.Info("初始化 Sign 成功")
-		log.Debug(gjson.GetBytes(response, "msg").String())
+		log.Warn(gjson.GetBytes(response, "msg").String())
 	}
 }
 
@@ -308,10 +313,11 @@ func SubmitRequestCallback(uin uint64, cmd string, callbackId int, buffer []byte
 	}.Bytes()
 	if err != nil {
 		log.Warnf(cmd, " ", callbackId, "提交失败\n", err)
+		SubmitRequestCallback(uin, cmd, callbackId, buffer)
 	} else {
 		log.Info(cmd, " ", callbackId, "提交成功")
-		log.Debug(string(response))
-		log.Debug(gjson.GetBytes(response, "msg").String())
+		log.Warn(string(response))
+		log.Warn(gjson.GetBytes(response, "msg").String())
 	}
 }
 
@@ -331,10 +337,28 @@ func RequestToken(uin uint64) {
 		IsRequestTokenAgain = true
 	} else if strings.HasPrefix(gjson.GetBytes(response, "msg").String(), "QSign") {
 		log.Warn("QSign not initialized, unable to request_ Token, please submit the initialization package first.")
+		RequestToken(uin)
 	} else {
 		log.Info("请求 Token 成功")
-		log.Debug(string(response))
-		log.Debug(gjson.GetBytes(response, "msg").String())
+		log.Warn(string(response))
+		log.Warn(gjson.GetBytes(response, "msg").String())
+	}
+}
+
+// http://host:port/destroy?uin=[QQ]&key=[key]
+func DestoryInstance(uin uint, key string){
+	signServer := GTL.SignServer
+	if !strings.HasSuffix(signServer, "/") {
+		signServer += "/"
+	}
+	response, err := download.Request{
+		Method: http.MethodGet,
+		URL:    signServer + "destroy" + fmt.Sprintf("?uin=%v&key=%s", uin, key),
+	}.Bytes()
+	if err != nil {
+		DestoryInstance(uin, key)
+	} else {
+		log.Warn(gjson.GetBytes(response, "msg").String())
 	}
 }
 
