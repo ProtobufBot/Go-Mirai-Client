@@ -1,8 +1,12 @@
 # Go-Mirai-Client
 
-## session.token 登录说明
+## 默认端口9000，若启动失败，将依次在9001-9020端口中选择可用的端口启动。
 
-### 默认端口9000，若启动失败，将依次在9001-9020端口中选择可用的端口启动。
+## 快速登录辅助（非首次登录使用）
+
+[GMCLoginHelper](https://github.com/2mf8/GMCLoginHelper/releases)
+
+## session.token 登录说明
 
 只支持单账号登录，如需多账号登录，请放不同文件夹内，例如
 
