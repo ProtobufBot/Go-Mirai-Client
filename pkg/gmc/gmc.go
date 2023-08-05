@@ -169,7 +169,18 @@ func InitGin() {
 	router.POST("/plugin/delete/v1", handler.DeletePlugin)
 	realPort, err := RunGin(router, ":"+config.Port)
 	if err != nil {
-		util.FatalError(fmt.Errorf("failed to run gin, err: %+v", err))
+		for i := 9001; i <= 9020; i++ {
+			config.Port = strconv.Itoa(i)
+			realPort, err := RunGin(router, ":"+config.Port)
+			if err != nil {
+				log.Warn(fmt.Errorf("failed to run gin, err: %+v", err))
+				continue
+			}
+			config.Port = realPort
+			log.Infof("端口号 %s", realPort)
+			log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
+			break
+		}
 	}
 	config.Port = realPort
 	log.Infof("端口号 %s", realPort)

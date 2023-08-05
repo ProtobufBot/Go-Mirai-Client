@@ -55,3 +55,4 @@ gmc_android-sources.jar
 *.syso
 *.toml
 *.token
+login.json
