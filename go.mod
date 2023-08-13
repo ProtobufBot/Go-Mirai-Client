@@ -1,6 +1,6 @@
 module github.com/ProtobufBot/Go-Mirai-Client
 
-go 1.20
+go 1.21
 
 require (
 	github.com/BurntSushi/toml v1.3.2
@@ -15,7 +15,7 @@ require (
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/t-tomalak/logrus-easy-formatter v0.0.0-20190827215021-c074f06c5816
-	github.com/tidwall/gjson v1.15.0
+	github.com/tidwall/gjson v1.16.0
 	github.com/zserge/lorca v0.1.10
 	golang.org/x/mobile v0.0.0-20230531173138-3c911d8e3eda
 	google.golang.org/grpc v1.57.0

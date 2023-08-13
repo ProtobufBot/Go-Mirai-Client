@@ -447,9 +447,14 @@ func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, cli
 			go bot.SubmitRequestCallback(uint64(uin), data.Cmd, data.CallBackId, []byte(data.Body))
 		}
 		time.Sleep(time.Second * 3)
-		AfterLogin(cli)
-		accountToken := cli.GenToken()
-		_ = os.WriteFile("session.token", accountToken, 0o644)
+		if !bot.SubmitRequestCallbackStop {
+			log.Infof("登录成功")
+			AfterLogin(cli)
+			accountToken := cli.GenToken()
+			_ = os.WriteFile("session.token", accountToken, 0o644)
+		} else {
+			log.Warn("联网更新Token失败，请退出重登")
+		}
 	} else {
 		log.Infof("登录失败")
 	}
