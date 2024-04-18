@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/safe_ws"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/safe_ws"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
 	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/golang/protobuf/jsonpb"

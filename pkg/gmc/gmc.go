@@ -15,10 +15,10 @@ import (
 	"github.com/LagrangeDev/LagrangeGo/info"
 	"github.com/LagrangeDev/LagrangeGo/utils"
 	"github.com/LagrangeDev/LagrangeGo/utils/platform"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/handler"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/static"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/handler"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/static"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 
 	"github.com/gin-gonic/gin"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
@@ -122,9 +122,8 @@ func Start() {
 		log.Infof("Plugin(%s): %s", value.Name, util.MustMarshal(value))
 		return true
 	})
-	Login()
-	InitLog()
-	InitGin() // 初始化GIN HTTP管理
+	InitGin()
+	Login() // 初始化GIN HTTP管理
 }
 
 func LoadParamConfig() {

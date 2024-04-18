@@ -1,8 +1,8 @@
 package plugins
 
 import (
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/bot"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/plugin"
 
 	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/LagrangeDev/LagrangeGo/message"

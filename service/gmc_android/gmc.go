@@ -3,8 +3,8 @@ package gmc_android
 import (
 	"os"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc"
 
 	log "github.com/sirupsen/logrus"
 	_ "golang.org/x/mobile/bind"

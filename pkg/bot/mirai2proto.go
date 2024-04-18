@@ -3,8 +3,8 @@ package bot
 import (
 	"strconv"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
-	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/clz"
+	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
 	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/LagrangeDev/LagrangeGo/message"

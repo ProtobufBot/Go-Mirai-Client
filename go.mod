@@ -1,6 +1,6 @@
-module github.com/ProtobufBot/Go-Mirai-Client
+module github.com/2mf8/Go-Lagrange-Client
 
-go 1.21
+go 1.22
 
 require (
 	github.com/BurntSushi/toml v1.3.2

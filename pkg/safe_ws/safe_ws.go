@@ -3,7 +3,7 @@ package safe_ws
 import (
 	"fmt"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 )

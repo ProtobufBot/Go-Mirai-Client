@@ -4,7 +4,7 @@ import (
 	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/LagrangeDev/LagrangeGo/event"
 	"github.com/LagrangeDev/LagrangeGo/message"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 )
 
 type (

@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/cache"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/cache"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/clz"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
 	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/LagrangeDev/LagrangeGo/message"

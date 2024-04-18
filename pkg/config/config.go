@@ -9,12 +9,13 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 )
 
-//go:generate go run github.com/a8m/syncmap -o "gen_plugin_map.go" -pkg config -name PluginMap "map[string]*Plugin"
+//go:generate go run github.com/2mf8/syncmap -o "gen_plugin_map.go" -pkg config -name PluginMap "map[string]*Plugin"
+//go:generate go run github.com/2mf8/syncmap -o "gen_device_info_map.go" -pkg config -name PluginMap "map[string]*DeviceInfo"
 var (
 	Fragment = false // 是否分片
 	Port     = "9000"
@@ -58,6 +59,13 @@ type Plugin struct {
 	RegexReplace string              `json:"regex_replace"` // 正则替换
 	ExtraHeader  map[string][]string `json:"extra_header"`  // 自定义请求头
 	// TODO event filter, msg filter, regex filter, prefix filter, suffix filter
+}
+
+type DeviceInfo struct {
+	Guid          string `json:"guid"`
+	DeviceName    string `json:"device_name"`
+	SystemKernel  string `json:"system_kernel"`
+	KernelVersion string `json:"kernel_version"`
 }
 
 var PluginPath = "plugins"

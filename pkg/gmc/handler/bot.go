@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/plugins"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/bot"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/plugins"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/plugin"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/proto_gen/dto"
 
 	_ "github.com/BurntSushi/toml"
 	"github.com/LagrangeDev/LagrangeGo/client"
