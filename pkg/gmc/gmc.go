@@ -11,14 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/info"
-	"github.com/LagrangeDev/LagrangeGo/utils"
-	"github.com/LagrangeDev/LagrangeGo/utils/platform"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/handler"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/static"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
+	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/info"
 
 	"github.com/gin-gonic/gin"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
@@ -86,14 +84,8 @@ func InitLog() {
 }
 
 func Login() {
-	uin := int(utils.RandU32())
 	appInfo := info.AppList["linux"]
-	newDeviceInfo := &info.DeviceInfo{
-		Guid:          fmt.Sprintf("%X", utils.Md5Digest([]byte(strconv.Itoa(uin)))),
-		DeviceName:    fmt.Sprintf("Lagrange-%X", utils.Md5Digest([]byte(strconv.Itoa(uin)))[0:4]),
-		SystemKernel:  fmt.Sprintf("%s %s", platform.GetSystem(), platform.GetVersion()),
-		KernelVersion: platform.GetVersion(),
-	}
+	newDeviceInfo := info.LoadDevice("./device.json")
 	sig := info.NewSigInfo(8848)
 	qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, sig)
 	qqclient.Loop()

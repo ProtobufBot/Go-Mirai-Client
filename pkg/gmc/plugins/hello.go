@@ -18,6 +18,9 @@ func HelloPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) in
 	elem := &message.SendingMessage{
 		Elements: []message.IMessageElement{
 			&message.TextElement{Content: "hello"},
+			&message.FriendImageElement{
+				Url: "https://2mf8.cn/logo.png",
+			},
 		},
 	}
 	cli.SendPrivateMessage(event.Sender.Uin, elem.Elements)
