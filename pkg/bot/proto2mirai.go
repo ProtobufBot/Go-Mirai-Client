@@ -2,10 +2,8 @@ package bot
 
 import (
 	"bytes"
-	"fmt"
 
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"path"
 	"strconv"
@@ -17,11 +15,9 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/message"
 	log "github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 )
 
 func EmptyText() *message.TextElement {
@@ -47,16 +43,6 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			}
 		case "at":
 			messageChain = append(messageChain, ProtoAtToMiraiAt(protoMsg.Data))
-		case "dice":
-			messageChain = append(messageChain, ProtoDiceToMiraiDice(protoMsg.Data))
-		case "finger_guessing":
-			messageChain = append(messageChain, ProtoFingerGuessingToMiraiFingerGuessing(protoMsg.Data))
-		case "poke":
-			messageChain = append(messageChain, ProtoPokeToMiraiPoke(protoMsg.Data))
-		case "sign_in":
-			messageChain = append(messageChain, ProtoSignInToMiraiSignIn(protoMsg.Data))
-		case "guild_image":
-			messageChain = append(messageChain, ProtoGuildImageToMiraiGuildImage(protoMsg.Data))
 		case "image":
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
 		case "img":
@@ -65,12 +51,6 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			messageChain = append(messageChain, ProtoVoiceToMiraiVoice(protoMsg.Data))
 		case "face":
 			messageChain = append(messageChain, ProtoFaceToMiraiFace(protoMsg.Data))
-		case "share":
-			messageChain = append(messageChain, ProtoShareToMiraiShare(protoMsg.Data))
-		case "light_app":
-			messageChain = append(messageChain, ProtoLightAppToMiraiLightApp(protoMsg.Data))
-		case "service":
-			messageChain = append(messageChain, ProtoServiceToMiraiService(protoMsg.Data))
 		case "reply":
 			if replyElement := ProtoReplyToMiraiReply(protoMsg.Data); replyElement != nil && !containReply {
 				containReply = true
@@ -78,12 +58,8 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			}
 		case "sleep":
 			ProtoSleep(protoMsg.Data)
-		case "tts":
-			messageChain = append(messageChain, ProtoTtsToMiraiTts(cli, protoMsg.Data))
 		case "video":
 			messageChain = append(messageChain, ProtoVideoToMiraiVideo(cli, protoMsg.Data))
-		case "music":
-			messageChain = append(messageChain, ProtoMusicToMiraiMusic(cli, protoMsg.Data))
 		default:
 			log.Errorf("不支持的消息类型 %+v", protoMsg)
 		}
@@ -203,56 +179,14 @@ func ProtoAtToMiraiAt(data map[string]string) message.IMessageElement {
 		return EmptyText()
 	}
 	if qq == "all" {
-		return message.AtAll()
+		return message.NewAt(0)
 	}
 	userId, err := strconv.ParseInt(qq, 10, 64)
 	if err != nil {
 		log.Warnf("atQQ不是数字")
 		return EmptyText()
 	}
-	return message.NewAt(userId)
-}
-
-func ProtoDiceToMiraiDice(data map[string]string) message.IMessageElement {
-	value := int32(rand.Intn(6) + 1)
-	valueStr, ok := data["value"]
-	if ok {
-		v, err := strconv.ParseInt(valueStr, 10, 64)
-		if err == nil && v >= 1 && v <= 6 {
-			value = int32(v)
-		}
-	}
-	return message.NewDice(value)
-}
-
-func ProtoFingerGuessingToMiraiFingerGuessing(data map[string]string) message.IMessageElement {
-	value := int32(rand.Intn(2))
-	valueStr, ok := data["value"]
-	if ok {
-		v, err := strconv.ParseInt(valueStr, 10, 64)
-		if err == nil && v >= 0 && v <= 2 {
-			value = int32(v)
-		}
-	}
-	return message.NewFingerGuessing(value)
-}
-
-func ProtoPokeToMiraiPoke(data map[string]string) message.IMessageElement {
-	qq, ok := data["qq"]
-	if !ok {
-		log.Warnf("pokeQQ不存在")
-		return EmptyText()
-	}
-	userId, err := strconv.ParseInt(qq, 10, 64)
-	if err != nil {
-		log.Warnf("pokeQQ不是数字")
-		return EmptyText()
-	}
-	return &clz.PokeElement{Target: userId}
-}
-
-func ProtoSignInToMiraiSignIn(data map[string]string) message.IMessageElement {
-	return &clz.SignInElement{}
+	return message.NewAt(uint32(userId))
 }
 
 func ProtoFaceToMiraiFace(data map[string]string) message.IMessageElement {
@@ -266,67 +200,8 @@ func ProtoFaceToMiraiFace(data map[string]string) message.IMessageElement {
 		log.Warnf("faceId不是数字")
 		return EmptyText()
 	}
-	return message.NewFace(int32(id))
-}
-
-func ProtoShareToMiraiShare(data map[string]string) message.IMessageElement {
-	url, ok := data["url"]
-	if !ok {
-		url = "https://www.baidu.com/"
-	}
-	title, ok := data["title"]
-	if !ok {
-		title = "分享标题"
-	}
-	content, ok := data["content"]
-	if !ok {
-		url = "分享内容"
-	}
-	image, ok := data["image"]
-	if !ok {
-		image = ""
-	}
-	return message.NewUrlShare(url, title, content, image)
-}
-
-func ProtoLightAppToMiraiLightApp(data map[string]string) message.IMessageElement {
-	content, ok := data["content"]
-	if !ok || content == "" {
-		return EmptyText()
-	}
-	return message.NewLightApp(content)
-}
-
-func ProtoServiceToMiraiService(data map[string]string) message.IMessageElement {
-	subType, ok := data["sub_type"]
-	if !ok || subType == "" {
-		log.Warnf("service sub_type不存在")
-		return EmptyText()
-	}
-
-	content, ok := data["content"]
-	if !ok {
-		log.Warnf("service content不存在")
-		return EmptyText()
-	}
-
-	id, ok := data["id"]
-	if !ok {
-		id = ""
-	}
-	resId, err := strconv.ParseInt(id, 10, 64)
-	if err != nil || resId == 0 {
-		if subType == "xml" {
-			resId = 60 // xml默认60
-		} else {
-			resId = 1 // json默认1
-		}
-	}
-
-	return &message.ServiceElement{
-		Id:      int32(resId),
-		Content: content,
-		SubType: subType,
+	return &message.FaceElement{
+		FaceID: uint16(id),
 	}
 }
 
@@ -348,8 +223,8 @@ func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
 		if ok {
 			return &message.ReplyElement{
 				ReplySeq: groupMessage.Id,
-				Sender:   groupMessage.Sender.Uin,
-				Time:     groupMessage.Time,
+				Sender:   uint64(groupMessage.Sender.Uin),
+				Time:     int32(groupMessage.Time),
 				Elements: func() []message.IMessageElement {
 					if hasRawMessage {
 						return []message.IMessageElement{message.NewText(rawMessage)}
@@ -366,7 +241,7 @@ func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
 		if ok {
 			return &message.ReplyElement{
 				ReplySeq: privateMessage.Id,
-				Sender:   privateMessage.Sender.Uin,
+				Sender:   uint64(privateMessage.Sender.Uin),
 				Time:     privateMessage.Time,
 				Elements: func() []message.IMessageElement {
 					if hasRawMessage {
@@ -397,26 +272,6 @@ func ProtoSleep(data map[string]string) {
 		ms = 24 * 3600 * 1000
 	}
 	time.Sleep(time.Duration(ms) * time.Millisecond)
-}
-
-func ProtoTtsToMiraiTts(cli *client.QQClient, data map[string]string) (m message.IMessageElement) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Warnf("tts 转换失败")
-			m = EmptyText()
-		}
-	}()
-	text, ok := data["text"]
-	if !ok {
-		log.Warnf("text不存在")
-		return EmptyText()
-	}
-	b, err := cli.GetTts(text)
-	if err != nil {
-		log.Warnf("failed to get tts, %+v", err)
-		return EmptyText()
-	}
-	return &message.VoiceElement{Data: b}
 }
 
 func ProtoVideoToMiraiVideo(_ *client.QQClient, data map[string]string) (m message.IMessageElement) {
@@ -486,7 +341,7 @@ func ProtoVideoToMiraiVideo(_ *client.QQClient, data map[string]string) (m messa
 	return elem
 }
 
-func ProtoMusicToMiraiMusic(_ *client.QQClient, data map[string]string) (m message.IMessageElement) {
+/*func ProtoMusicToMiraiMusic(_ *client.QQClient, data map[string]string) (m message.IMessageElement) {
 	if data["type"] == "qq" {
 		info, err := util.QQMusicSongInfo(data["id"])
 		if err != nil {
@@ -577,4 +432,4 @@ func ProtoMusicToMiraiMusic(_ *client.QQClient, data map[string]string) (m messa
 		}
 	}
 	return EmptyText()
-}
+}*/

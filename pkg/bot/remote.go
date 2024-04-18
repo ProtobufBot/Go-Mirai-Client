@@ -13,7 +13,7 @@ import (
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 
-	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -42,7 +42,7 @@ type WsServer struct {
 
 func ConnectUniversal(cli *client.QQClient) {
 	botServers := map[string]*WsServer{}
-	RemoteServers.Store(cli.Uin, botServers)
+	RemoteServers.Store(int64(cli.Uin), botServers)
 
 	plugins := make([]*config.Plugin, 0)
 	config.Plugins.Range(func(key string, value *config.Plugin) bool {
@@ -58,7 +58,7 @@ func ConnectUniversal(cli *client.QQClient) {
 		util.SafeGo(func() {
 			rand.Shuffle(len(serverGroup.Urls), func(i, j int) { serverGroup.Urls[i], serverGroup.Urls[j] = serverGroup.Urls[j], serverGroup.Urls[i] })
 			urlIndex := 0 // 使用第几个url
-			for IsClientExist(cli.Uin) {
+			for IsClientExist(int64(cli.Uin)) {
 				urlIndex = (urlIndex + 1) % len(serverGroup.Urls)
 				serverUrl := serverGroup.Urls[urlIndex]
 				log.Infof("开始连接Websocket服务器 [%s](%s)", serverGroup.Name, serverUrl)
@@ -68,7 +68,7 @@ func ConnectUniversal(cli *client.QQClient) {
 						header[k] = v
 					}
 				}
-				header["X-Self-ID"] = []string{strconv.FormatInt(cli.Uin, 10)}
+				header["X-Self-ID"] = []string{strconv.FormatInt(int64(cli.Uin), 10)}
 				header["X-Client-Role"] = []string{"Universal"}
 				conn, _, err := websocket.DefaultDialer.Dial(serverUrl, header)
 				if err != nil {
@@ -98,7 +98,7 @@ func ConnectUniversal(cli *client.QQClient) {
 					}
 				}
 				util.SafeGo(func() {
-					for IsClientExist(cli.Uin) {
+					for IsClientExist(int64(cli.Uin)) {
 						if err := safeWs.Send(websocket.PingMessage, []byte("ping")); err != nil {
 							break
 						}
@@ -111,7 +111,7 @@ func ConnectUniversal(cli *client.QQClient) {
 				log.Warnf("Websocket 服务器 [%s](%s) 已断开，5秒后重连", serverGroup.Name, serverUrl)
 				time.Sleep(5 * time.Second)
 			}
-			log.Errorf("client does not exist, close websocket, %+v", cli.Uin)
+			log.Errorf("client does not exist, close websocket, %+v", int64(cli.Uin))
 		})
 	}
 }
@@ -129,7 +129,7 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 	}
 
 	return func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
-		if !IsClientExist(cli.Uin) {
+		if !IsClientExist(int64(cli.Uin)) {
 			ws.Close()
 			return
 		}
@@ -137,7 +137,7 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 			return
 		}
 		if !cli.Online.Load() {
-			log.Warnf("bot is not online, ignore API, %+v", cli.Uin)
+			log.Warnf("bot is not online, ignore API, %+v", int64(cli.Uin))
 			return
 		}
 		var apiReq onebot.Frame
@@ -183,7 +183,7 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 
 func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(onebot.Frame_FrameType) bool) (resp *onebot.Frame) {
 	resp = &onebot.Frame{
-		BotId: cli.Uin,
+		BotId: int64(cli.Uin),
 		Echo:  req.Echo,
 		Ok:    true,
 	}
@@ -212,14 +212,6 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_SendMsgResp{
 			SendMsgResp: HandleSendMsg(cli, data.SendMsgReq),
 		}
-	case *onebot.Frame_DeleteMsgReq:
-		resp.FrameType = onebot.Frame_TDeleteMsgResp
-		if resp.Ok = isApiAllow(onebot.Frame_TDeleteMsgReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_DeleteMsgResp{
-			DeleteMsgResp: HandleDeleteMsg(cli, data.DeleteMsgReq),
-		}
 	case *onebot.Frame_GetMsgReq:
 		resp.FrameType = onebot.Frame_TGetMsgResp
 		if resp.Ok = isApiAllow(onebot.Frame_TGetMsgReq); !resp.Ok {
@@ -228,23 +220,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_GetMsgResp{
 			GetMsgResp: HandleGetMsg(cli, data.GetMsgReq),
 		}
-	case *onebot.Frame_SetGroupKickReq:
-		resp.FrameType = onebot.Frame_TSetGroupKickResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupKickReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_SetGroupKickResp{
-			SetGroupKickResp: HandleSetGroupKick(cli, data.SetGroupKickReq),
-		}
-	case *onebot.Frame_SetGroupBanReq:
-		resp.FrameType = onebot.Frame_TSetGroupBanResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupBanReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_SetGroupBanResp{
-			SetGroupBanResp: HandleSetGroupBan(cli, data.SetGroupBanReq),
-		}
-	case *onebot.Frame_SetGroupWholeBanReq:
+	/*case *onebot.Frame_SetGroupWholeBanReq:
 		resp.FrameType = onebot.Frame_TSetGroupWholeBanResp
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupWholeBanReq); !resp.Ok {
 			return
@@ -355,63 +331,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		}
 		resp.Data = &onebot.Frame_GetStrangerInfoResp{
 			GetStrangerInfoResp: HandleGetStrangerInfo(cli, data.GetStrangerInfoReq),
-		}
-	case *onebot.Frame_GetCookiesReq:
-		resp.FrameType = onebot.Frame_TGetCookiesResp
-		if resp.Ok = isApiAllow(onebot.Frame_TGetCookiesReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_GetCookiesResp{
-			GetCookiesResp: HandleGetCookies(cli, data.GetCookiesReq),
-		}
-	case *onebot.Frame_GetCsrfTokenReq:
-		resp.FrameType = onebot.Frame_TGetCsrfTokenResp
-		if resp.Ok = isApiAllow(onebot.Frame_TGetCsrfTokenReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_GetCsrfTokenResp{
-			GetCsrfTokenResp: HandleGetCSRFToken(cli, data.GetCsrfTokenReq),
-		}
-	case *onebot.Frame_SetGroupSignInReq:
-		resp.FrameType = onebot.Frame_TSetGroupSignInResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSignInReq); !resp.Ok{
-			return
-		}
-		resp.Data = &onebot.Frame_SetGroupSignInResp{
-			SetGroupSignInResp: HandleSetGroupSignIn(cli, data.SetGroupSignInReq),
-		}
-	case *onebot.Frame_SendGroupPokeReq:
-		resp.FrameType = onebot.Frame_TSendGroupPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok{
-			return
-		}
-		resp.Data = &onebot.Frame_SendGroupPokeResp{
-			SendGroupPokeResp: HandleSendGroupPoke(cli, data.SendGroupPokeReq),
-		}
-	case *onebot.Frame_SendMusicReq:
-		resp.FrameType = onebot.Frame_TSendMusicResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSendMusicReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_SendMusicResp{
-			SendMusicResp: HandleSendMusic(cli, data.SendMusicReq),
-		}
-	case *onebot.Frame_SendFriendPokeReq:
-		resp.FrameType = onebot.Frame_TSendFriendPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSendFriendPokeReq); !resp.Ok{
-			return
-		}
-		resp.Data = &onebot.Frame_SendFriendPokeResp{
-			SendFriendPokeResp: HandleSendFriendPoke(cli, data.SendFriendPokeReq),
-		}
-	case *onebot.Frame_SendChannelMsgReq:
-		resp.FrameType = onebot.Frame_TSendChannelMsgResp
-		if resp.Ok = isApiAllow(onebot.Frame_TCanSendImageReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_SendChannelMsgResp{
-			SendChannelMsgResp: HandleSendChannelMsg(cli, data.SendChannelMsgReq),
-		}
+		}*/
 	default:
 		return resp
 	}
@@ -420,16 +340,16 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 
 func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 	eventFrame.Ok = true
-	eventFrame.BotId = cli.Uin
+	eventFrame.BotId = int64(cli.Uin)
 	eventBytes, err := proto.Marshal(eventFrame)
 	if err != nil {
 		log.Errorf("event 序列化错误 %v", err)
 		return
 	}
 
-	wsServers, ok := RemoteServers.Load(cli.Uin)
+	wsServers, ok := RemoteServers.Load(int64(cli.Uin))
 	if !ok {
-		log.Warnf("failed to load remote servers, %+v", cli.Uin)
+		log.Warnf("failed to load remote servers, %+v", int64(cli.Uin))
 		return
 	}
 

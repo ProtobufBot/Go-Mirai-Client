@@ -1,31 +1,29 @@
 package plugin
 
 import (
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/event"
+	"github.com/LagrangeDev/LagrangeGo/message"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
 )
 
 type (
-	PrivateMessagePlugin          = func(*client.QQClient, *message.PrivateMessage) int32
-	GroupMessagePlugin            = func(*client.QQClient, *message.GroupMessage) int32
-	GroupNotifyEventPlugin        = func(*client.QQClient, client.INotifyEvent) int32
-	ChannelMessagePlugin          = func(*client.QQClient, *message.GuildChannelMessage) int32
-	TempMessagePlugin             = func(*client.QQClient, *client.TempMessageEvent) int32
-	MemberJoinGroupPlugin         = func(*client.QQClient, *client.MemberJoinGroupEvent) int32
-	MemberLeaveGroupPlugin        = func(*client.QQClient, *client.MemberLeaveGroupEvent) int32
-	JoinGroupPlugin               = func(*client.QQClient, *client.GroupInfo) int32
-	LeaveGroupPlugin              = func(*client.QQClient, *client.GroupLeaveEvent) int32
-	NewFriendRequestPlugin        = func(*client.QQClient, *client.NewFriendRequest) int32
-	UserJoinGroupRequestPlugin    = func(*client.QQClient, *client.UserJoinGroupRequest) int32
-	GroupInvitedRequestPlugin     = func(*client.QQClient, *client.GroupInvitedRequest) int32
-	GroupMessageRecalledPlugin    = func(*client.QQClient, *client.GroupMessageRecalledEvent) int32
-	FriendMessageRecalledPlugin   = func(*client.QQClient, *client.FriendMessageRecalledEvent) int32
-	NewFriendAddedPlugin          = func(*client.QQClient, *client.NewFriendEvent) int32
-	OfflineFilePlugin             = func(*client.QQClient, *client.OfflineFileEvent) int32
-	GroupMutePlugin               = func(*client.QQClient, *client.GroupMuteEvent) int32
-	MemberPermissionChangedPlugin = func(*client.QQClient, *client.MemberPermissionChangedEvent) int32
+	PrivateMessagePlugin        = func(*client.QQClient, *message.PrivateMessage) int32
+	GroupMessagePlugin          = func(*client.QQClient, *message.GroupMessage) int32
+	MemberJoinGroupPlugin       = func(*client.QQClient, *event.GroupMemberIncrease) int32
+	MemberLeaveGroupPlugin      = func(*client.QQClient, *event.GroupMemberDecrease) int32
+	JoinGroupPlugin             = func(*client.QQClient, *event.GroupMemberJoinRequest) int32
+	LeaveGroupPlugin            = func(*client.QQClient, *event.GroupMemberDecrease) int32
+	NewFriendRequestPlugin      = func(*client.QQClient, *event.FriendRequest) int32
+	UserJoinGroupRequestPlugin  = func(*client.QQClient, *event.GroupMemberIncrease) int32
+	GroupInvitedRequestPlugin   = func(*client.QQClient, *event.GroupInvite) int32
+	GroupMessageRecalledPlugin  = func(*client.QQClient, *event.GroupRecall) int32
+	FriendMessageRecalledPlugin = func(*client.QQClient, *event.FriendRecall) int32
+	NewFriendAddedPlugin        = func(*client.QQClient, *event.FriendRequest) int32
+	GroupMutePlugin             = func(*client.QQClient, *event.GroupMute) int32
 )
+
+var eclient *client.QQClient
 
 const (
 	MessageIgnore = 0
@@ -34,9 +32,6 @@ const (
 
 var PrivateMessagePluginList = make([]PrivateMessagePlugin, 0)
 var GroupMessagePluginList = make([]GroupMessagePlugin, 0)
-var GroupNotifyEventPluginList = make([]GroupNotifyEventPlugin, 0)
-var ChannelMessagePluginList = make([]ChannelMessagePlugin, 0)
-var TempMessagePluginList = make([]TempMessagePlugin, 0)
 var MemberJoinGroupPluginList = make([]MemberJoinGroupPlugin, 0)
 var MemberLeaveGroupPluginList = make([]MemberLeaveGroupPlugin, 0)
 var JoinGroupPluginList = make([]JoinGroupPlugin, 0)
@@ -47,29 +42,19 @@ var GroupInvitedRequestPluginList = make([]GroupInvitedRequestPlugin, 0)
 var GroupMessageRecalledPluginList = make([]GroupMessageRecalledPlugin, 0)
 var FriendMessageRecalledPluginList = make([]FriendMessageRecalledPlugin, 0)
 var NewFriendAddedPluginList = make([]NewFriendAddedPlugin, 0)
-var OfflineFilePluginList = make([]OfflineFilePlugin, 0)
 var GroupMutePluginList = make([]GroupMutePlugin, 0)
-var MemberPermissionChangedPluginList = make([]MemberPermissionChangedPlugin, 0)
 
 func Serve(cli *client.QQClient) {
 	cli.PrivateMessageEvent.Subscribe(handlePrivateMessage)
 	cli.GroupMessageEvent.Subscribe(handleGroupMessage)
-	cli.GuildService.OnGuildChannelMessage(handleChannelMessage)
-	cli.TempMessageEvent.Subscribe(handleTempMessage)
 	cli.GroupMemberJoinEvent.Subscribe(handleMemberJoinGroup)
 	cli.GroupMemberLeaveEvent.Subscribe(handleMemberLeaveGroup)
-	cli.GroupJoinEvent.Subscribe(handleJoinGroup)
-	cli.GroupLeaveEvent.Subscribe(handleLeaveGroup)
-	cli.NewFriendRequestEvent.Subscribe(handleNewFriendRequest)
-	cli.UserWantJoinGroupEvent.Subscribe(handleUserJoinGroupRequest)
+	cli.GroupMemberLeaveEvent.Subscribe(handleLeaveGroup)
+	cli.FriendRequestEvent.Subscribe(handleNewFriendRequest)
 	cli.GroupInvitedEvent.Subscribe(handleGroupInvitedRequest)
-	cli.GroupMessageRecalledEvent.Subscribe(handleGroupMessageRecalled)
-	cli.FriendMessageRecalledEvent.Subscribe(handleFriendMessageRecalled)
-	cli.NewFriendEvent.Subscribe(handleNewFriendAdded)
-	cli.OfflineFileEvent.Subscribe(handleOfflineFile)
+	cli.GroupRecallEvent.Subscribe(handleGroupMessageRecalled)
+	cli.FriendRecallEvent.Subscribe(handleFriendMessageRecalled)
 	cli.GroupMuteEvent.Subscribe(handleGroupMute)
-	cli.GroupMemberPermissionChangedEvent.Subscribe(handleMemberPermissionChanged)
-	cli.GroupNotifyEvent.Subscribe(handleGroupNotifyEvent)
 }
 
 // 添加私聊消息插件
@@ -80,20 +65,6 @@ func AddPrivateMessagePlugin(plugin PrivateMessagePlugin) {
 // 添加群聊消息插件
 func AddGroupMessagePlugin(plugin GroupMessagePlugin) {
 	GroupMessagePluginList = append(GroupMessagePluginList, plugin)
-}
-
-func AddGroupNotifyEventPlugin(plugin GroupNotifyEventPlugin) {
-	GroupNotifyEventPluginList = append(GroupNotifyEventPluginList, plugin)
-}
-
-// 添加频道消息事件
-func AddChannelMessagePlugin(plugin ChannelMessagePlugin) {
-	ChannelMessagePluginList = append(ChannelMessagePluginList, plugin)
-}
-
-// 添加临时消息插件
-func AddTempMessagePlugin(plugin TempMessagePlugin) {
-	TempMessagePluginList = append(TempMessagePluginList, plugin)
 }
 
 // 添加群成员加入插件
@@ -146,19 +117,9 @@ func AddNewFriendAddedPlugin(plugin NewFriendAddedPlugin) {
 	NewFriendAddedPluginList = append(NewFriendAddedPluginList, plugin)
 }
 
-// 添加离线文件处理插件
-func AddOfflineFilePlugin(plugin OfflineFilePlugin) {
-	OfflineFilePluginList = append(OfflineFilePluginList, plugin)
-}
-
 // 添加群成员被禁言插件
 func AddGroupMutePlugin(plugin GroupMutePlugin) {
 	GroupMutePluginList = append(GroupMutePluginList, plugin)
-}
-
-// 添加群成员权限变动插件
-func AddMemberPermissionChangedPlugin(plugin MemberPermissionChangedPlugin) {
-	MemberPermissionChangedPluginList = append(MemberPermissionChangedPluginList, plugin)
 }
 
 func handlePrivateMessage(cli *client.QQClient, event *message.PrivateMessage) {
@@ -181,27 +142,7 @@ func handleGroupMessage(cli *client.QQClient, event *message.GroupMessage) {
 	})
 }
 
-func handleChannelMessage(cli *client.QQClient, event *message.GuildChannelMessage) {
-	util.SafeGo(func() {
-		for _, plugin := range ChannelMessagePluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleTempMessage(cli *client.QQClient, event *client.TempMessageEvent) {
-	util.SafeGo(func() {
-		for _, plugin := range TempMessagePluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleMemberJoinGroup(cli *client.QQClient, event *client.MemberJoinGroupEvent) {
+func handleMemberJoinGroup(cli *client.QQClient, event *event.GroupMemberIncrease) {
 	util.SafeGo(func() {
 		for _, plugin := range MemberJoinGroupPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
@@ -211,7 +152,7 @@ func handleMemberJoinGroup(cli *client.QQClient, event *client.MemberJoinGroupEv
 	})
 }
 
-func handleMemberLeaveGroup(cli *client.QQClient, event *client.MemberLeaveGroupEvent) {
+func handleMemberLeaveGroup(cli *client.QQClient, event *event.GroupMemberDecrease) {
 	util.SafeGo(func() {
 		for _, plugin := range MemberLeaveGroupPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
@@ -221,17 +162,7 @@ func handleMemberLeaveGroup(cli *client.QQClient, event *client.MemberLeaveGroup
 	})
 }
 
-func handleJoinGroup(cli *client.QQClient, event *client.GroupInfo) {
-	util.SafeGo(func() {
-		for _, plugin := range JoinGroupPluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleLeaveGroup(cli *client.QQClient, event *client.GroupLeaveEvent) {
+func handleLeaveGroup(cli *client.QQClient, event *event.GroupMemberDecrease) {
 	util.SafeGo(func() {
 		for _, plugin := range LeaveGroupPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
@@ -241,7 +172,7 @@ func handleLeaveGroup(cli *client.QQClient, event *client.GroupLeaveEvent) {
 	})
 }
 
-func handleNewFriendRequest(cli *client.QQClient, event *client.NewFriendRequest) {
+func handleNewFriendRequest(cli *client.QQClient, event *event.FriendRequest) {
 	util.SafeGo(func() {
 		for _, plugin := range NewFriendRequestPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
@@ -251,17 +182,7 @@ func handleNewFriendRequest(cli *client.QQClient, event *client.NewFriendRequest
 	})
 }
 
-func handleUserJoinGroupRequest(cli *client.QQClient, event *client.UserJoinGroupRequest) {
-	util.SafeGo(func() {
-		for _, plugin := range UserJoinGroupRequestPluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleGroupInvitedRequest(cli *client.QQClient, event *client.GroupInvitedRequest) {
+func handleGroupInvitedRequest(cli *client.QQClient, event *event.GroupInvite) {
 	util.SafeGo(func() {
 		for _, plugin := range GroupInvitedRequestPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
@@ -271,7 +192,7 @@ func handleGroupInvitedRequest(cli *client.QQClient, event *client.GroupInvitedR
 	})
 }
 
-func handleGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessageRecalledEvent) {
+func handleGroupMessageRecalled(cli *client.QQClient, event *event.GroupRecall) {
 	util.SafeGo(func() {
 		for _, plugin := range GroupMessageRecalledPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
@@ -281,7 +202,7 @@ func handleGroupMessageRecalled(cli *client.QQClient, event *client.GroupMessage
 	})
 }
 
-func handleFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessageRecalledEvent) {
+func handleFriendMessageRecalled(cli *client.QQClient, event *event.FriendRecall) {
 	util.SafeGo(func() {
 		for _, plugin := range FriendMessageRecalledPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
@@ -291,49 +212,9 @@ func handleFriendMessageRecalled(cli *client.QQClient, event *client.FriendMessa
 	})
 }
 
-func handleNewFriendAdded(cli *client.QQClient, event *client.NewFriendEvent) {
-	util.SafeGo(func() {
-		for _, plugin := range NewFriendAddedPluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleOfflineFile(cli *client.QQClient, event *client.OfflineFileEvent) {
-	util.SafeGo(func() {
-		for _, plugin := range OfflineFilePluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleGroupMute(cli *client.QQClient, event *client.GroupMuteEvent) {
+func handleGroupMute(cli *client.QQClient, event *event.GroupMute) {
 	util.SafeGo(func() {
 		for _, plugin := range GroupMutePluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleMemberPermissionChanged(cli *client.QQClient, event *client.MemberPermissionChangedEvent) {
-	util.SafeGo(func() {
-		for _, plugin := range MemberPermissionChangedPluginList {
-			if result := plugin(cli, event); result == MessageBlock {
-				break
-			}
-		}
-	})
-}
-
-func handleGroupNotifyEvent(cli *client.QQClient, event client.INotifyEvent) {
-	util.SafeGo(func() {
-		for _, plugin := range GroupNotifyEventPluginList {
 			if result := plugin(cli, event); result == MessageBlock {
 				break
 			}

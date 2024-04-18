@@ -3,7 +3,8 @@ package clz
 import (
 	"io"
 
-	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/LagrangeDev/LagrangeGo/message"
+	message2 "github.com/LagrangeDev/LagrangeGo/packets/pb/message"
 )
 
 // 自定义类型
@@ -26,17 +27,6 @@ func (m *LocalImageElement) Type() message.ElementType {
 	return message.Image
 }
 
-type PokeElement struct {
-	Target int64
-}
-
-type SignInElement struct {
-}
-
-func (g *PokeElement) Type() message.ElementType {
-	return message.At
-}
-
-func (s *SignInElement) Type() message.ElementType {
-	return message.Text
+func (m *LocalImageElement) BuildElement() *message2.Elem {
+	return nil
 }

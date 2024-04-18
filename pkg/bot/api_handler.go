@@ -1,23 +1,19 @@
 package bot
 
 import (
-	"bytes"
 	_ "image/gif" // 用于解决发不出图片的问题
 	_ "image/jpeg"
 	_ "image/png"
 	"math"
-	"strconv"
 	"time"
 	_ "unsafe"
 
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/cache"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/MiraiGo/utils"
+	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/message"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -43,172 +39,42 @@ func splitText(content string, limit int) []string {
 	return result
 }
 
-// 预处理私聊消息，上传图片，MiraiGo更新后删除
-func preProcessPrivateSendingMessage(cli *client.QQClient, target int64, m *message.SendingMessage) {
-	newElements := make([]message.IMessageElement, 0, len(m.Elements))
-	for _, element := range m.Elements {
-		if _, ok := element.(*clz.PokeElement); ok {
-			cli.SendFriendPoke(target)
-			continue
-		}
-		if i, ok := element.(*clz.LocalImageElement); ok {
-			img, err := cli.UploadImage(message.Source{SourceType: message.SourcePrivate, PrimaryID: target}, i.Stream)
-			if err != nil {
-				log.Errorf("failed to upload private image, %+v", err)
-				continue
-			}
-			newElements = append(newElements, img)
-			continue
-		}
-		if i, ok := element.(*message.VoiceElement); ok {
-			gm, err := cli.UploadVoice(message.Source{SourceType: message.SourcePrivate, PrimaryID: target}, bytes.NewReader(i.Data))
-			if err != nil {
-				log.Errorf("failed to upload private ptt, %+v", err)
-				continue
-			}
-			newElements = append(newElements, gm)
-			continue
-		}
-		if i, ok := element.(*clz.MyVideoElement); ok {
-			gm, err := cli.UploadShortVideo(message.Source{SourceType: message.SourcePrivate, PrimaryID: target}, i.UploadingVideo, i.UploadingCover)
-			if err != nil {
-				log.Errorf("failed to upload private video, %+v", err)
-				continue
-			}
-			newElements = append(newElements, gm)
-			continue
-		}
-		if i, ok := element.(*message.MusicShareElement); ok {
-			// TODO 撤回？
-			cli.SendFriendMusicShare(target, i)
-			continue
-		}
-		newElements = append(newElements, element)
-	}
-	m.Elements = newElements
-}
-
-// 预处理群消息，上传图片/语音，MiraiGo更新后删除
-func preProcessGroupSendingMessage(cli *client.QQClient, groupCode int64, m *message.SendingMessage) {
-	newElements := make([]message.IMessageElement, 0, len(m.Elements))
-	for _, element := range m.Elements {
-		if i, ok := element.(*message.TextElement); ok {
-			for _, text := range utils.ChunkString(i.Content, MAX_TEXT_LENGTH) {
-				if text != "" {
-					newElements = append(newElements, message.NewText(text))
-				}
-			}
-			continue
-		}
-		if i, ok := element.(*clz.LocalImageElement); ok {
-			img, err := cli.UploadImage(message.Source{SourceType: message.SourceGroup, PrimaryID: groupCode}, i.Stream)
-			if err != nil {
-				log.Errorf("failed to upload group image, %+v", err)
-				continue
-			}
-			if img, ok := img.(*message.GroupImageElement); ok {
-				if i.LocalImageType == "flash" {
-					img.Flash = true
-				} else if i.LocalImageType == "show" {
-					img.EffectID = i.EffectId
-				}
-			}
-			newElements = append(newElements, img)
-			continue
-		}
-		if i, ok := element.(*message.VoiceElement); ok {
-			gm, err := cli.UploadVoice(message.Source{SourceType: message.SourceGroup, PrimaryID: groupCode}, bytes.NewReader(i.Data))
-			if err != nil {
-				log.Errorf("failed to upload group ptt, %+v", err)
-				continue
-			}
-			newElements = append(newElements, gm)
-			continue
-		}
-		if i, ok := element.(*message.AtElement); ok && i.Target != 0 {
-			i.Display = "@" + func() string {
-				mem := cli.FindGroup(groupCode).FindMember(i.Target)
-				if mem != nil {
-					return mem.DisplayName()
-				}
-				return strconv.FormatInt(i.Target, 10)
-			}()
-			newElements = append(newElements, i)
-			continue
-		}
-		if i, ok := element.(*clz.PokeElement); ok {
-			cli.SendGroupPoke(groupCode, i.Target)
-			continue
-		}
-		if _, ok := element.(*clz.SignInElement); ok {
-			cli.SendGroupSign(groupCode)
-			continue
-		}
-		if i, ok := element.(*clz.MyVideoElement); ok {
-			gm, err := cli.UploadShortVideo(message.Source{SourceType: message.SourceGroup, PrimaryID: groupCode}, i.UploadingVideo, i.UploadingCover)
-			if err != nil {
-				log.Errorf("failed to upload group video, %+v", err)
-				continue
-			}
-			newElements = append(newElements, gm)
-			continue
-		}
-		if i, ok := element.(*message.MusicShareElement); ok {
-			// TODO 撤回？
-			_, err := cli.SendGroupMusicShare(groupCode, i)
-			if err != nil {
-				log.Errorf("failed to send music, %+v", err)
-				continue
-			}
-			continue
-		}
-		newElements = append(newElements, element)
-	}
-	m.Elements = newElements
-}
-
 func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *onebot.SendPrivateMsgResp {
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Private(%d) <- %s", cli.Uin, req.UserId, MiraiMsgToRawMsg(cli, miraiMsg))
-	preProcessPrivateSendingMessage(cli, req.UserId, sendingMessage)
-	ret := cli.SendPrivateMessage(req.UserId, sendingMessage)
-	cache.PrivateMessageLru.Add(ret.Id, ret)
+	ret, _ := cli.SendPrivateMessage(uint32(req.UserId), sendingMessage.Elements)
+	cache.PrivateMessageLru.Add(ret.Result, ret)
 	return &onebot.SendPrivateMsgResp{
-		MessageId: ret.Id,
+		MessageId: ret.Result,
 		MessageReceipt: &onebot.MessageReceipt{
 			SenderId: req.UserId,
 			Time:     time.Now().Unix(),
-			Seqs:     []int32{ret.Id},
+			Seqs:     []int32{ret.Result},
 		},
 	}
 }
 
 func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *onebot.SendGroupMsgResp {
-	if cli.FindGroup(req.GroupId) == nil {
-		log.Warnf("发送消息失败，群聊 %d 不存在", req.GroupId)
-		return nil
-	}
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(cli, miraiMsg))
-	preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
 	if len(sendingMessage.Elements) == 0 {
 		log.Warnf("发送消息内容为空")
 		return nil
 	}
-	ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
-	if ret == nil || ret.Id == -1 {
+	ret, _ := cli.SendGroupMessage(uint32(req.GroupId), sendingMessage.Elements)
+	if ret == nil || ret.Result == -1 {
 		config.Fragment = !config.Fragment
 		log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，Fragment: %+v", config.Fragment)
 		return nil
 	}
-	cache.GroupMessageLru.Add(ret.Id, ret)
+	cache.GroupMessageLru.Add(ret.Result, ret)
 	return &onebot.SendGroupMsgResp{
-		MessageId: ret.Id,
+		MessageId: ret.Result,
 		MessageReceipt: &onebot.MessageReceipt{
 			Time:    time.Now().Unix(),
-			Seqs:    []int32{ret.Id},
+			Seqs:    []int32{ret.Result},
 			GroupId: req.GroupId,
 		},
 	}
@@ -217,102 +83,53 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsgResp {
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
-	if req.UserId != 0 { // 私聊+临时
-		preProcessPrivateSendingMessage(cli, req.UserId, sendingMessage)
-	} else { // 群
-		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
-	}
 
 	if req.GroupId != 0 && req.UserId != 0 { // 临时
-		ret := cli.SendGroupTempMessage(req.GroupId, req.UserId, sendingMessage)
-		cache.PrivateMessageLru.Add(ret.Id, ret)
+		ret, _ := cli.SendTempMessage(uint32(req.GroupId), uint32(req.UserId), sendingMessage.Elements)
+		cache.PrivateMessageLru.Add(ret.Result, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Id,
+			MessageId: ret.Result,
 			MessageReceipt: &onebot.MessageReceipt{
 				SenderId: req.UserId,
 				Time:     time.Now().Unix(),
-				Seqs:     []int32{ret.Id},
+				Seqs:     []int32{ret.Result},
 				GroupId:  req.GroupId,
 			},
 		}
 	}
 
 	if req.GroupId != 0 { // 群
-		if cli.FindGroup(req.GroupId) == nil {
-			log.Warnf("发送消息失败，群聊 %d 不存在", req.GroupId)
-			return nil
-		}
-		preProcessGroupSendingMessage(cli, req.GroupId, sendingMessage)
-		ret := cli.SendGroupMessage(req.GroupId, sendingMessage)
-		if ret == nil || ret.Id == -1 {
+		ret, _ := cli.SendGroupMessage(uint32(req.GroupId), sendingMessage.Elements)
+		if ret == nil || ret.Result == -1 {
 			config.Fragment = !config.Fragment
 			log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，Fragment: %+v", config.Fragment)
 			return nil
 		}
-		cache.GroupMessageLru.Add(ret.Id, ret)
+		cache.GroupMessageLru.Add(ret.Result, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Id,
+			MessageId: ret.Result,
 			MessageReceipt: &onebot.MessageReceipt{
 				Time:    time.Now().Unix(),
-				Seqs:    []int32{ret.Id},
+				Seqs:    []int32{ret.Result},
 				GroupId: req.GroupId,
 			},
 		}
 	}
 
 	if req.UserId != 0 { // 私聊
-		preProcessPrivateSendingMessage(cli, req.UserId, sendingMessage)
-		ret := cli.SendPrivateMessage(req.UserId, sendingMessage)
-		cache.PrivateMessageLru.Add(ret.Id, ret)
+		ret, _ := cli.SendPrivateMessage(uint32(req.UserId), sendingMessage.Elements)
+		cache.PrivateMessageLru.Add(ret.Result, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Id,
+			MessageId: ret.Result,
 			MessageReceipt: &onebot.MessageReceipt{
 				SenderId: req.UserId,
 				Time:     time.Now().Unix(),
-				Seqs:     []int32{ret.Id},
+				Seqs:     []int32{ret.Result},
 			},
 		}
 	}
 	log.Warnf("failed to send msg")
 	return nil
-}
-
-func HandleDeleteMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.DeleteMsgResp {
-	if req.MessageId > 0 {
-		if eventInterface, ok := cache.PrivateMessageLru.Get(req.MessageId); ok {
-			if event, ok := eventInterface.(*message.PrivateMessage); ok {
-				if err := cli.RecallPrivateMessage(event.Target, int64(event.Time), event.Id, event.InternalId); err == nil {
-					return &onebot.DeleteMsgResp{}
-				}
-			}
-		}
-
-		if eventInterface, ok := cache.GroupMessageLru.Get(req.MessageId); ok {
-			if event, ok := eventInterface.(*message.GroupMessage); ok {
-				if err := cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId); err != nil {
-					return &onebot.DeleteMsgResp{}
-				}
-			}
-		}
-		return nil
-	} else {
-		if eventInterface, ok := cache.PrivateMessageLru.Get(req.MessageReceipt.Seqs[len(req.MessageReceipt.Seqs)-1]); ok {
-			if event, ok := eventInterface.(*message.PrivateMessage); ok {
-				if err := cli.RecallPrivateMessage(event.Target, int64(event.Time), event.Id, event.InternalId); err == nil {
-					return &onebot.DeleteMsgResp{}
-				}
-			}
-		}
-
-		if eventInterface, ok := cache.GroupMessageLru.Get(req.MessageReceipt.Seqs[len(req.MessageReceipt.Seqs)-1]); ok {
-			if event, ok := eventInterface.(*message.GroupMessage); ok {
-				if err := cli.RecallGroupMessage(event.GroupCode, event.Id, event.InternalId); err != nil {
-					return &onebot.DeleteMsgResp{}
-				}
-			}
-		}
-		return nil
-	}
 }
 
 func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgResp {
@@ -324,14 +141,14 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 			messageType = "self"
 		}
 		return &onebot.GetMsgResp{
-			Time:        event.Time,
+			Time:        int32(event.Time),
 			MessageType: messageType,
 			MessageId:   req.MessageId,
 			RealId:      event.InternalId, // 不知道是什么？
 			Message:     MiraiMsgToProtoMsg(cli, event.Elements),
 			RawMessage:  MiraiMsgToRawMsg(cli, event.Elements),
 			Sender: &onebot.GetMsgResp_Sender{
-				UserId:   event.Sender.Uin,
+				UserId:   int64(event.Sender.Uin),
 				Nickname: event.Sender.Nickname,
 			},
 		}
@@ -352,385 +169,10 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 			Message:     MiraiMsgToProtoMsg(cli, event.Elements),
 			RawMessage:  MiraiMsgToRawMsg(cli, event.Elements),
 			Sender: &onebot.GetMsgResp_Sender{
-				UserId:   event.Sender.Uin,
+				UserId:   int64(event.Sender.Uin),
 				Nickname: event.Sender.Nickname,
 			},
 		}
 	}
 	return nil
-}
-
-func HandleSetGroupKick(cli *client.QQClient, req *onebot.SetGroupKickReq) *onebot.SetGroupKickResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		if member := group.FindMember(req.UserId); member != nil {
-			if err := member.Kick("", req.RejectAddRequest); err != nil {
-				return nil
-			}
-			return &onebot.SetGroupKickResp{}
-		}
-	}
-	return nil
-}
-
-func HandleSetGroupBan(cli *client.QQClient, req *onebot.SetGroupBanReq) *onebot.SetGroupBanResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		if member := group.FindMember(req.UserId); member != nil {
-			if err := member.Mute(uint32(req.Duration)); err != nil {
-				return nil
-			}
-			return &onebot.SetGroupBanResp{}
-		}
-	}
-	return nil
-}
-
-func HandleSetGroupWholeBan(cli *client.QQClient, req *onebot.SetGroupWholeBanReq) *onebot.SetGroupWholeBanResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		group.MuteAll(req.Enable)
-		return &onebot.SetGroupWholeBanResp{}
-	}
-	return nil
-}
-
-func HandleSetGroupCard(cli *client.QQClient, req *onebot.SetGroupCardReq) *onebot.SetGroupCardResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		if member := group.FindMember(req.UserId); member != nil {
-			member.EditCard(req.Card)
-			return &onebot.SetGroupCardResp{}
-		}
-	}
-	return nil
-}
-
-func HandleSetGroupName(cli *client.QQClient, req *onebot.SetGroupNameReq) *onebot.SetGroupNameResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		group.UpdateName(req.GroupName)
-		return &onebot.SetGroupNameResp{}
-	}
-	return nil
-}
-
-func HandleSetGroupLeave(cli *client.QQClient, req *onebot.SetGroupLeaveReq) *onebot.SetGroupLeaveResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		group.Quit()
-		return &onebot.SetGroupLeaveResp{}
-	}
-	return nil
-}
-
-func HandleSetGroupSpecialTitle(cli *client.QQClient, req *onebot.SetGroupSpecialTitleReq) *onebot.SetGroupSpecialTitleResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		if member := group.FindMember(req.UserId); member != nil {
-			member.EditSpecialTitle(req.SpecialTitle)
-			return &onebot.SetGroupSpecialTitleResp{}
-		}
-	}
-	return nil
-}
-
-func HandleSetFriendAddRequest(cli *client.QQClient, req *onebot.SetFriendAddRequestReq) *onebot.SetFriendAddRequestResp {
-	eventInterface, ok := cache.FriendRequestLru.Get(req.Flag)
-	if !ok {
-		return nil
-	}
-	event, ok := eventInterface.(*client.NewFriendRequest)
-	if !ok {
-		return nil
-	}
-	cli.SolveFriendRequest(event, req.Approve)
-	return &onebot.SetFriendAddRequestResp{}
-}
-
-func HandleSetGroupAddRequest(cli *client.QQClient, req *onebot.SetGroupAddRequestReq) *onebot.SetGroupAddRequestResp {
-	eventInterface, isGroupRequest := cache.GroupRequestLru.Get(req.Flag)
-	if isGroupRequest {
-		event, ok := eventInterface.(*client.UserJoinGroupRequest)
-		if !ok {
-			return nil
-		}
-		if req.Approve {
-			event.Accept()
-		} else {
-			event.Reject(false, req.Reason)
-		}
-
-		return &onebot.SetGroupAddRequestResp{}
-	}
-
-	eventInterface, isBotInvited := cache.GroupInvitedRequestLru.Get(req.Flag)
-	if isBotInvited {
-		event, ok := eventInterface.(*client.GroupInvitedRequest)
-		if !ok {
-			return nil
-		}
-		cli.SolveGroupJoinRequest(event, req.Approve, false, req.Reason)
-		return &onebot.SetGroupAddRequestResp{}
-	}
-	return nil
-}
-
-func HandleGetLoginInfo(cli *client.QQClient, req *onebot.GetLoginInfoReq) *onebot.GetLoginInfoResp {
-	return &onebot.GetLoginInfoResp{
-		UserId:   cli.Uin,
-		Nickname: cli.Nickname,
-	}
-}
-
-func HandleGetFriendList(cli *client.QQClient, req *onebot.GetFriendListReq) *onebot.GetFriendListResp {
-	friendList := make([]*onebot.GetFriendListResp_Friend, 0)
-	for _, friend := range cli.FriendList {
-		friendList = append(friendList, &onebot.GetFriendListResp_Friend{
-			UserId:   friend.Uin,
-			Nickname: friend.Nickname,
-			Remark:   friend.Remark,
-		})
-	}
-	return &onebot.GetFriendListResp{
-		Friend: friendList,
-	}
-}
-
-func HandleGetGroupInfo(cli *client.QQClient, req *onebot.GetGroupInfoReq) *onebot.GetGroupInfoResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		return &onebot.GetGroupInfoResp{
-			GroupId:        group.Code,
-			GroupName:      group.Name,
-			MaxMemberCount: int32(group.MaxMemberCount),
-			MemberCount:    int32(group.MemberCount),
-		}
-	}
-	return nil
-}
-
-func HandleGetGroupList(cli *client.QQClient, req *onebot.GetGroupListReq) *onebot.GetGroupListResp {
-	groupList := make([]*onebot.GetGroupListResp_Group, 0)
-	for _, group := range cli.GroupList {
-		groupList = append(groupList, &onebot.GetGroupListResp_Group{
-			GroupId:        group.Code,
-			GroupName:      group.Name,
-			MaxMemberCount: int32(group.MaxMemberCount),
-			MemberCount:    int32(group.MemberCount),
-		})
-	}
-	return &onebot.GetGroupListResp{
-		Group: groupList,
-	}
-}
-
-func HandleGetGroupMemberInfo(cli *client.QQClient, req *onebot.GetGroupMemberInfoReq) *onebot.GetGroupMemberInfoResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		if member := group.FindMember(req.UserId); member != nil {
-			return &onebot.GetGroupMemberInfoResp{
-				GroupId:      req.GroupId,
-				UserId:       req.UserId,
-				Nickname:     member.Nickname,
-				Card:         member.CardName,
-				JoinTime:     member.JoinTime,
-				LastSentTime: member.LastSpeakTime,
-				Level:        strconv.FormatInt(int64(member.Level), 10),
-				Role: func() string {
-					switch member.Permission {
-					case client.Owner:
-						return "owner"
-					case client.Administrator:
-						return "admin"
-					default:
-						return "member"
-					}
-				}(),
-				Title: member.SpecialTitle,
-				//TitleExpireTime: member.SpecialTitleExpireTime,
-			}
-		}
-	}
-	return nil
-}
-
-func HandleGetGroupMemberList(cli *client.QQClient, req *onebot.GetGroupMemberListReq) *onebot.GetGroupMemberListResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		members, err := cli.GetGroupMembers(group)
-		if err != nil {
-			log.Errorf("获取群成员列表失败")
-			return nil
-		}
-		memberList := make([]*onebot.GetGroupMemberListResp_GroupMember, 0)
-		for _, member := range members {
-			memberList = append(memberList, &onebot.GetGroupMemberListResp_GroupMember{
-				GroupId:      req.GroupId,
-				UserId:       member.Uin,
-				Nickname:     member.Nickname,
-				Card:         member.CardName,
-				JoinTime:     member.JoinTime,
-				LastSentTime: member.LastSpeakTime,
-				Level:        strconv.FormatInt(int64(member.Level), 10),
-				Role: func() string {
-					switch member.Permission {
-					case client.Owner:
-						return "owner"
-					case client.Administrator:
-						return "admin"
-					default:
-						return "member"
-					}
-				}(),
-				Title: member.SpecialTitle,
-				//TitleExpireTime: member.SpecialTitleExpireTime,
-			})
-		}
-		return &onebot.GetGroupMemberListResp{
-			GroupMember: memberList,
-		}
-	}
-	return nil
-}
-
-func HandleGetStrangerInfo(cli *client.QQClient, req *onebot.GetStrangerInfoReq) *onebot.GetStrangerInfoResp {
-	info, err := cli.GetSummaryInfo(req.UserId)
-	if err != nil {
-		log.Warnf("获取陌生人信息错误 %+v", err)
-		return nil
-	}
-	return &onebot.GetStrangerInfoResp{
-		UserId:   req.UserId,
-		Nickname: info.Nickname,
-		Sex: func() string {
-			if info.Sex == 1 {
-				return "female"
-			}
-			return "male"
-		}(),
-		Age:       int32(info.Age),
-		Level:     info.Level,
-		LoginDays: info.LoginDays,
-	}
-}
-
-//go:linkname GetCookiesWithDomain github.com/Mrs4s/MiraiGo/client.(*QQClient).getCookiesWithDomain
-func GetCookiesWithDomain(c *client.QQClient, domain string) string
-
-func HandleGetCookies(cli *client.QQClient, req *onebot.GetCookiesReq) *onebot.GetCookiesResp {
-	return &onebot.GetCookiesResp{Cookies: GetCookiesWithDomain(cli, req.Domain)}
-}
-
-//go:linkname GetCSRFToken github.com/Mrs4s/MiraiGo/client.(*QQClient).getCSRFToken
-func GetCSRFToken(c *client.QQClient) int
-
-func HandleGetCSRFToken(cli *client.QQClient, req *onebot.GetCsrfTokenReq) *onebot.GetCsrfTokenResp {
-	return &onebot.GetCsrfTokenResp{
-		Token: int32(GetCSRFToken(cli)),
-	}
-}
-
-func HandleSetGroupSignIn(cli *client.QQClient, req *onebot.SetGroupSignInReq) *onebot.SetGroupSignInResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		cli.SendGroupSign(group.Code)
-	}
-	return nil
-}
-
-func HandleSendMusic(cli *client.QQClient, req *onebot.SendMusicReq) *onebot.SendMusicResp {
-	musicType := map[string]int{
-		"qq":    message.QQMusic,
-		"163":   message.CloudMusic,
-		"migu":  message.MiguMusic,
-		"kugou": message.KugouMusic,
-		"kuwo":  message.KuwoMusic,
-	}
-	music := &message.MusicShareElement{
-		MusicType:  musicType[req.Type],
-		Title:      req.Title,
-		Brief:      req.Brief,
-		Summary:    req.Summary,
-		Url:        req.Url,
-		PictureUrl: req.PictureUrl,
-		MusicUrl:   req.MusicUrl,
-	}
-	if req.GroupId != 0 {
-		if _, err := cli.SendGroupMusicShare(req.GroupId, music); err != nil {
-			return nil
-		}
-		return &onebot.SendMusicResp{}
-	}
-	if req.UserId != 0 {
-		cli.SendFriendMusicShare(req.UserId, music)
-		return &onebot.SendMusicResp{}
-	}
-	return nil
-}
-
-func HandleSendGroupPoke(cli *client.QQClient, req *onebot.SendGroupPokeReq) *onebot.SendGroupPokeResp {
-	if group := cli.FindGroup(req.GroupId); group != nil {
-		if member := group.FindMember(req.ToUin); member != nil {
-			cli.SendGroupPoke(group.Code, member.Uin)
-		}
-	}
-	return nil
-}
-
-func HandleSendFriendPoke(cli *client.QQClient, req *onebot.SendFriendPokeReq) *onebot.SendFriendPokeResp {
-	for _, friend := range cli.FriendList {
-		if friend.Uin == req.ToUin && friend.Uin != cli.Uin {
-			cli.SendFriendPoke(friend.Uin)
-		}
-	}
-	return nil
-}
-
-func preProcessChannelSendingMessage(cli *client.QQClient, guildid uint64, channelId uint64, m *message.SendingMessage) {
-	newElements := make([]message.IMessageElement, 0, len(m.Elements))
-	for _, element := range m.Elements {
-		if i, ok := element.(*message.TextElement); ok {
-			for _, text := range utils.ChunkString(i.Content, MAX_TEXT_LENGTH) {
-				if text != "" {
-					newElements = append(newElements, message.NewText(text))
-				}
-			}
-			continue
-		}
-		if i, ok := element.(*clz.LocalImageElement); ok {
-			img, err := cli.UploadImage(message.Source{SourceType: message.SourceGuildChannel, PrimaryID: int64(guildid), SecondaryID: int64(channelId)}, i.Stream)
-			if err != nil {
-				log.Errorf("failed to upload guild image, %+v", err)
-				continue
-			}
-			newElements = append(newElements, img)
-			continue
-		}
-	}
-	m.Elements = newElements
-}
-
-func HandleSendChannelMsg(cli *client.QQClient, req *onebot.SendChannelMsgReq) *onebot.SendChannelMsgResp {
-	if len(req.Message) == 0 {
-		log.Warnf("消息为空")
-		return nil
-	}
-	guildId := cli.GuildService.FindGuild(req.GuildId)
-	if guildId == nil {
-		log.Warnf("频道不存在")
-		return nil
-	}
-	channelId := guildId.FindChannel(req.ChannelId)
-	if channelId == nil {
-		log.Warnf("子频道不存在")
-		return nil
-	}
-	if channelId.ChannelType != client.ChannelTypeText {
-		log.Warnf("无法发送频道信息: 频道类型错误, 不接受文本信息")
-	}
-	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
-	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
-	log.Infof("Bot(%+v) GuildId(%+v) ChannelId(%+v) <- %+v\n", cli.Uin, req.GuildId, req.ChannelId, MiraiMsgToRawMsg(cli, miraiMsg))
-	preProcessChannelSendingMessage(cli, req.GuildId, req.ChannelId, sendingMessage)
-	if len(sendingMessage.Elements) == 0 {
-		log.Warnf("发送消息内容为空")
-		return nil
-	}
-	ret, _ := cli.GuildService.SendGuildChannelMessage(req.GuildId, req.ChannelId, sendingMessage)
-	if ret == nil {
-		return nil
-	}
-	return &onebot.SendChannelMsgResp{
-		MessageId: ret.Id,
-	}
 }

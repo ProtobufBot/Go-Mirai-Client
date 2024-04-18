@@ -11,7 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
+	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/info"
+	"github.com/LagrangeDev/LagrangeGo/utils"
+	"github.com/LagrangeDev/LagrangeGo/utils/platform"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/handler"
 	"github.com/ProtobufBot/Go-Mirai-Client/pkg/static"
@@ -82,6 +85,29 @@ func InitLog() {
 	))
 }
 
+func Login() {
+	uin := int(utils.RandU32())
+	appInfo := info.AppList["linux"]
+	newDeviceInfo := &info.DeviceInfo{
+		Guid:          fmt.Sprintf("%X", utils.Md5Digest([]byte(strconv.Itoa(uin)))),
+		DeviceName:    fmt.Sprintf("Lagrange-%X", utils.Md5Digest([]byte(strconv.Itoa(uin)))[0:4]),
+		SystemKernel:  fmt.Sprintf("%s %s", platform.GetSystem(), platform.GetVersion()),
+		KernelVersion: platform.GetVersion(),
+	}
+	sig := info.NewSigInfo(8848)
+	qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, sig)
+	qqclient.Loop()
+
+	_, err := qqclient.Login("", "./qrcode.png")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	handler.AfterLogin(qqclient)
+
+	select {}
+}
+
 func Start() {
 	if help {
 		flag.Usage()
@@ -96,14 +122,9 @@ func Start() {
 		log.Infof("Plugin(%s): %s", value.Name, util.MustMarshal(value))
 		return true
 	})
-
-	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
-	InitGin()               // 初始化GIN HTTP管理
-	_, err := bot.SRI()
-	if err != nil {
-		log.Warn("signRegisterInfo.toml 不存在，应该是首次登录")
-	}
-	handler.TokenLogin()
+	Login()
+	InitLog()
+	InitGin() // 初始化GIN HTTP管理
 }
 
 func LoadParamConfig() {
@@ -139,15 +160,6 @@ func LoadParamConfig() {
 	}
 }
 
-func CreateBotIfParamExist() {
-	if uin != 0 && pass != "" {
-		log.Infof("使用参数创建机器人 %d", uin)
-		go func() {
-			handler.CreateBotImpl(uin, pass, 0, 0, "")
-		}()
-	}
-}
-
 func InitGin() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -158,10 +170,8 @@ func InitGin() {
 
 	router.Use(handler.CORSMiddleware())
 	router.StaticFS("/", http.FS(static.MustGetStatic()))
-	router.POST("/bot/create/v1", handler.CreateBot)
 	router.POST("/bot/delete/v1", handler.DeleteBot)
 	router.POST("/bot/list/v1", handler.ListBot)
-	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
 	router.POST("/qrcode/fetch/v1", handler.FetchQrCode)
 	router.POST("/qrcode/query/v1", handler.QueryQRCodeStatus)
 	router.POST("/plugin/list/v1", handler.ListPlugin)
