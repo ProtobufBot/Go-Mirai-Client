@@ -3,7 +3,6 @@ package bot
 import (
 	"strconv"
 
-	"github.com/2mf8/Go-Lagrange-Client/pkg/clz"
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
 	"github.com/LagrangeDev/LagrangeGo/client"
@@ -76,16 +75,6 @@ func MiraiGroupImageToProtoImage(elem *message.GroupImageElement) *onebot.Messag
 		msg.Data["effect_id"] = strconv.FormatInt(int64(elem.EffectID), 10)
 	}
 	return msg
-}
-
-func MiraiLocalImageToProtoImage(elem *clz.LocalImageElement) *onebot.Message {
-	return &onebot.Message{
-		Type: "image",
-		Data: map[string]string{
-			"file": elem.Url,
-			"url":  elem.Url,
-		},
-	}
 }
 
 func MiraiAtToProtoAt(elem *message.AtElement) *onebot.Message {

@@ -16,6 +16,7 @@ import (
 
 	_ "github.com/BurntSushi/toml"
 	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/info"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/protobuf/proto"
@@ -24,6 +25,21 @@ import (
 
 var queryQRCodeMutex = &sync.RWMutex{}
 var qrCodeBot *client.QQClient
+var success = false
+var first = true
+var register = true
+
+type QRCodeResp int
+
+const (
+	Unknown = iota
+	QRCodeImageFetch
+	QRCodeWaitingForScan
+	QRCodeWaitingForConfirm
+	QRCodeTimeout
+	QRCodeConfirmed
+	QRCodeCanceled
+)
 
 func init() {
 	log.Infof("加载日志插件 Log")
@@ -31,6 +47,7 @@ func init() {
 	plugin.AddGroupMessagePlugin(plugins.LogGroupMessage)
 	log.Infof("加载测试插件 Hello")
 	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
+	plugin.AddGroupMessagePlugin(plugins.HelloGroupMessage)
 	log.Infof("加载上报插件 Report")
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
@@ -38,6 +55,8 @@ func init() {
 }
 
 func DeleteBot(c *gin.Context) {
+	first = true
+	success = false
 	req := &dto.DeleteBotReq{}
 	err := Bind(c, req)
 	if err != nil {
@@ -50,11 +69,19 @@ func DeleteBot(c *gin.Context) {
 		return
 	}
 	bot.Clients.Delete(int64(cli.Uin))
+	bot.ReleaseClient(cli)
 	resp := &dto.DeleteBotResp{}
 	Return(c, resp)
 }
 
 func ListBot(c *gin.Context) {
+	if success {
+		if first {
+			first = false
+			time.Sleep(time.Second * 5)
+			AfterLogin(qrCodeBot)
+		}
+	}
 	req := &dto.ListBotReq{}
 	err := Bind(c, req)
 	if err != nil {
@@ -75,6 +102,12 @@ func ListBot(c *gin.Context) {
 }
 
 func FetchQrCode(c *gin.Context) {
+	appInfo := info.AppList["linux"]
+	newDeviceInfo := info.LoadDevice("./device.json")
+	sig := info.NewSigInfo(8848)
+	qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, sig)
+	qqclient.Loop()
+	qrCodeBot = qqclient
 	b, s, err := qrCodeBot.FecthQrcode()
 	if err != nil {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
@@ -89,24 +122,47 @@ func FetchQrCode(c *gin.Context) {
 }
 
 func QueryQRCodeStatus(c *gin.Context) {
-	r, err := qrCodeBot.GetQrcodeResult()
-
+	queryQRCodeMutex.Lock()
+	defer queryQRCodeMutex.Unlock()
+	respCode := 0
+	ok, err := qrCodeBot.GetQrcodeResult()
 	if err != nil {
 		resp := &dto.QRCodeLoginResp{
 			State: dto.QRCodeLoginResp_QRCodeLoginState(http.StatusExpectationFailed),
 		}
 		Return(c, resp)
 	}
-
-	if !r.Success() {
+	fmt.Println(ok.Name())
+	if !ok.Success() {
 		resp := &dto.QRCodeLoginResp{
 			State: dto.QRCodeLoginResp_QRCodeLoginState(http.StatusExpectationFailed),
 		}
 		Return(c, resp)
 	}
-
+	if ok.Name() == "WaitingForConfirm" {
+		respCode = QRCodeWaitingForScan
+	}
+	if ok.Name() == "Canceled" {
+		respCode = QRCodeCanceled
+	}
+	if ok.Name() == "WaitingForConfirm" {
+		respCode = QRCodeWaitingForConfirm
+	}
+	if ok.Name() == "Confirmed" {
+		respCode = QRCodeConfirmed
+		ok, err := qrCodeBot.QrcodeConfirmed()
+		if err == nil {
+			if ok {
+				success = true
+				qrCodeBot.Register()
+			}
+		}
+	}
+	if ok.Name() == "Expired" {
+		respCode = QRCodeTimeout
+	}
 	resp := &dto.QRCodeLoginResp{
-		State: dto.QRCodeLoginResp_QRCodeLoginState(http.StatusOK),
+		State: dto.QRCodeLoginResp_QRCodeLoginState(respCode),
 	}
 	Return(c, resp)
 }

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"html"
 
-	"github.com/2mf8/Go-Lagrange-Client/pkg/clz"
-
 	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/LagrangeDev/LagrangeGo/message"
 )
@@ -26,8 +24,6 @@ func MiraiMsgToRawMsg(cli *client.QQClient, messageChain []message.IMessageEleme
 			result += fmt.Sprintf(`<voice url="%s"/>`, html.EscapeString(elem.Url))
 		case *message.ReplyElement:
 			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.Sender, html.EscapeString(MiraiMsgToRawMsg(cli, elem.Elements)), elem.ReplySeq)
-		case *clz.MyVideoElement:
-			result += fmt.Sprintf(`<video url="%s" cover="%s"/>`, html.EscapeString(elem.Url), html.EscapeString(elem.CoverUrl))
 		}
 	}
 	return result

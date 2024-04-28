@@ -115,7 +115,7 @@ func Start() {
 		return true
 	})
 	InitGin()
-	Login() // 初始化GIN HTTP管理
+	//Login() // 初始化GIN HTTP管理
 }
 
 func LoadParamConfig() {

@@ -220,7 +220,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_GetMsgResp{
 			GetMsgResp: HandleGetMsg(cli, data.GetMsgReq),
 		}
-	/*case *onebot.Frame_SetGroupWholeBanReq:
+	case *onebot.Frame_SetGroupWholeBanReq:
 		resp.FrameType = onebot.Frame_TSetGroupWholeBanResp
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupWholeBanReq); !resp.Ok {
 			return
@@ -260,22 +260,22 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_SetGroupSpecialTitleResp{
 			SetGroupSpecialTitleResp: HandleSetGroupSpecialTitle(cli, data.SetGroupSpecialTitleReq),
 		}
-	case *onebot.Frame_SetFriendAddRequestReq:
+	/* case *onebot.Frame_SetFriendAddRequestReq:
 		resp.FrameType = onebot.Frame_TSetFriendAddRequestResp
 		if resp.Ok = isApiAllow(onebot.Frame_TSetFriendAddRequestReq); !resp.Ok {
 			return
 		}
 		resp.Data = &onebot.Frame_SetFriendAddRequestResp{
 			SetFriendAddRequestResp: HandleSetFriendAddRequest(cli, data.SetFriendAddRequestReq),
-		}
-	case *onebot.Frame_SetGroupAddRequestReq:
+		} */
+	/* case *onebot.Frame_SetGroupAddRequestReq:
 		resp.FrameType = onebot.Frame_TSetGroupAddRequestResp
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupAddRequestReq); !resp.Ok {
 			return
 		}
 		resp.Data = &onebot.Frame_SetGroupAddRequestResp{
 			SetGroupAddRequestResp: HandleSetGroupAddRequest(cli, data.SetGroupAddRequestReq),
-		}
+		} */
 	case *onebot.Frame_GetLoginInfoReq:
 		resp.FrameType = onebot.Frame_TGetLoginInfoResp
 		if resp.Ok = isApiAllow(onebot.Frame_TGetLoginInfoReq); !resp.Ok {
@@ -324,14 +324,14 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		resp.Data = &onebot.Frame_GetGroupMemberListResp{
 			GetGroupMemberListResp: HandleGetGroupMemberList(cli, data.GetGroupMemberListReq),
 		}
-	case *onebot.Frame_GetStrangerInfoReq:
+	/* case *onebot.Frame_GetStrangerInfoReq:
 		resp.FrameType = onebot.Frame_TGetStrangerInfoResp
 		if resp.Ok = isApiAllow(onebot.Frame_TGetStrangerInfoReq); !resp.Ok {
 			return
 		}
 		resp.Data = &onebot.Frame_GetStrangerInfoResp{
 			GetStrangerInfoResp: HandleGetStrangerInfo(cli, data.GetStrangerInfoReq),
-		}*/
+		} */
 	default:
 		return resp
 	}

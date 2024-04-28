@@ -66,8 +66,6 @@ func RawMsgToMiraiMsg(cli *client.QQClient, str string) []message.IMessageElemen
 				}
 			case "sleep":
 				ProtoSleep(attrMap)
-			case "video":
-				elemList = append(elemList, ProtoVideoToMiraiVideo(cli, attrMap))
 			default:
 				log.Warnf("不支持的类型 %s", code)
 				elemList = append(elemList, message.NewText(code))

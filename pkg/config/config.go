@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -74,7 +73,7 @@ func LoadPlugins() {
 	if !util.PathExists(PluginPath) {
 		return
 	}
-	files, err := ioutil.ReadDir(PluginPath)
+	files, err := os.ReadDir(PluginPath)
 	if err != nil {
 		log.Warnf("failed to read plugin dir: %s", err)
 		return
@@ -132,7 +131,7 @@ func WritePlugins() {
 }
 
 func DeletePluginFiles() {
-	files, err := ioutil.ReadDir(PluginPath)
+	files, err := os.ReadDir(PluginPath)
 	if err != nil {
 		log.Warnf("failed to read plugin dir: %s", err)
 	}

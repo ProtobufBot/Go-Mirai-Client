@@ -5,6 +5,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"math"
+	"strconv"
 	"time"
 	_ "unsafe"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
 	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/entity"
 	"github.com/LagrangeDev/LagrangeGo/message"
 	log "github.com/sirupsen/logrus"
 )
@@ -56,6 +58,10 @@ func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *
 }
 
 func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *onebot.SendGroupMsgResp {
+	if g, err := cli.GetCachedGroupInfo(uint32(req.GroupId)); err != nil || g == nil {
+		log.Warnf("发送消息失败，群聊 %d 不存在", req.GroupId)
+		return nil
+	}
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 	log.Infof("Bot(%d) Group(%d) <- %s", cli.Uin, req.GroupId, MiraiMsgToRawMsg(cli, miraiMsg))
@@ -99,6 +105,10 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 	}
 
 	if req.GroupId != 0 { // 群
+		if g, err := cli.GetCachedGroupInfo(uint32(req.GroupId)); err != nil || g == nil {
+			log.Warnf("发送消息失败，群聊 %d 不存在", req.GroupId)
+			return nil
+		}
 		ret, _ := cli.SendGroupMessage(uint32(req.GroupId), sendingMessage.Elements)
 		if ret == nil || ret.Result == -1 {
 			config.Fragment = !config.Fragment
@@ -172,6 +182,232 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 				UserId:   int64(event.Sender.Uin),
 				Nickname: event.Sender.Nickname,
 			},
+		}
+	}
+	return nil
+}
+
+func ReleaseClient(cli *client.QQClient) {
+	cli.DisConnect()
+	if wsServers, ok := RemoteServers.Load(int64(cli.Uin)); ok {
+		for _, wsServer := range wsServers {
+			wsServer.Close()
+		}
+	}
+	RemoteServers.Delete(int64(cli.Uin))
+}
+
+func HandleSetGroupKick(cli *client.QQClient, req *onebot.SetGroupKickReq) *onebot.SetGroupKickResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		if member, _ := cli.GetCachedMemberInfo(uint32(req.UserId), group.GroupUin); member != nil {
+			if err := cli.GroupKickMember(group.GroupUin, member.Uin, req.RejectAddRequest); err != nil {
+				return nil
+			}
+			return &onebot.SetGroupKickResp{}
+		}
+	}
+	return nil
+}
+
+func HandleSetGroupBan(cli *client.QQClient, req *onebot.SetGroupBanReq) *onebot.SetGroupBanResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		if member, _ := cli.GetCachedMemberInfo(uint32(req.UserId), group.GroupUin); member != nil {
+			if err := cli.GroupMuteMember(group.GroupUin, member.Uin, uint32(req.Duration)); err != nil {
+				return nil
+			}
+			return &onebot.SetGroupBanResp{}
+		}
+	}
+	return nil
+}
+
+func HandleSetGroupWholeBan(cli *client.QQClient, req *onebot.SetGroupWholeBanReq) *onebot.SetGroupWholeBanResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		cli.GroupMuteGlobal(group.GroupUin, req.Enable)
+		return &onebot.SetGroupWholeBanResp{}
+	}
+	return nil
+}
+
+func HandleSetGroupCard(cli *client.QQClient, req *onebot.SetGroupCardReq) *onebot.SetGroupCardResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		if member, _ := cli.GetCachedMemberInfo(uint32(req.UserId), group.GroupUin); member != nil {
+			cli.GroupRenameMember(group.GroupUin, member.Uin, req.Card)
+			return &onebot.SetGroupCardResp{}
+		}
+	}
+	return nil
+}
+
+func HandleSetGroupName(cli *client.QQClient, req *onebot.SetGroupNameReq) *onebot.SetGroupNameResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		cli.GroupRename(group.GroupUin, req.GroupName)
+		return &onebot.SetGroupNameResp{}
+	}
+	return nil
+}
+
+func HandleSetGroupLeave(cli *client.QQClient, req *onebot.SetGroupLeaveReq) *onebot.SetGroupLeaveResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		cli.GroupLeave(group.GroupUin)
+		return &onebot.SetGroupLeaveResp{}
+	}
+	return nil
+}
+
+func HandleSetGroupSpecialTitle(cli *client.QQClient, req *onebot.SetGroupSpecialTitleReq) *onebot.SetGroupSpecialTitleResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		if member, _ := cli.GetCachedMemberInfo(uint32(req.UserId), group.GroupUin); member != nil {
+			cli.GroupSetSpecialTitle(group.GroupUin, member.Uin, req.SpecialTitle)
+			return &onebot.SetGroupSpecialTitleResp{}
+		}
+	}
+	return nil
+}
+
+func HandleGetLoginInfo(cli *client.QQClient, req *onebot.GetLoginInfoReq) *onebot.GetLoginInfoResp {
+	return &onebot.GetLoginInfoResp{
+		UserId:   int64(cli.Uin),
+		Nickname: cli.NickName(),
+	}
+}
+
+func HandleGetFriendList(cli *client.QQClient, req *onebot.GetFriendListReq) *onebot.GetFriendListResp {
+	friendList := make([]*onebot.GetFriendListResp_Friend, 0)
+	friends, _ := cli.GetFriendsData()
+	for _, friend := range friends {
+		friendList = append(friendList, &onebot.GetFriendListResp_Friend{
+			UserId:   int64(friend.Uin),
+			Nickname: friend.Nickname,
+			Remark:   friend.Remarks,
+		})
+	}
+	return &onebot.GetFriendListResp{
+		Friend: friendList,
+	}
+}
+
+func HandleGetGroupInfo(cli *client.QQClient, req *onebot.GetGroupInfoReq) *onebot.GetGroupInfoResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		return &onebot.GetGroupInfoResp{
+			GroupId:        int64(group.GroupUin),
+			GroupName:      group.GroupName,
+			MaxMemberCount: int32(group.MaxMember),
+			MemberCount:    int32(group.MemberCount),
+		}
+	}
+	return nil
+}
+
+func HandleGetGroupList(cli *client.QQClient, req *onebot.GetGroupListReq) *onebot.GetGroupListResp {
+	groupList := make([]*onebot.GetGroupListResp_Group, 0)
+	groups, _ := cli.GetCachedAllGroupsInfo()
+	for _, group := range groups {
+		groupList = append(groupList, &onebot.GetGroupListResp_Group{
+			GroupId:        int64(group.GroupUin),
+			GroupName:      group.GroupName,
+			MaxMemberCount: int32(group.MaxMember),
+			MemberCount:    int32(group.MemberCount),
+		})
+	}
+	return &onebot.GetGroupListResp{
+		Group: groupList,
+	}
+}
+
+func HandleGetGroupMemberInfo(cli *client.QQClient, req *onebot.GetGroupMemberInfoReq) *onebot.GetGroupMemberInfoResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		if member, _ := cli.GetCachedMemberInfo(uint32(req.UserId), group.GroupUin); member != nil {
+			return &onebot.GetGroupMemberInfoResp{
+				GroupId:      req.GroupId,
+				UserId:       req.UserId,
+				Nickname:     member.MemberName,
+				Card:         member.MemberCard,
+				JoinTime:     int64(member.JoinTime),
+				LastSentTime: int64(member.LastMsgTime),
+				Level:        strconv.FormatInt(int64(member.GroupLevel), 10),
+				Role: func() string {
+					switch member.Permission {
+					case entity.Owner:
+						return "owner"
+					case entity.Admin:
+						return "admin"
+					default:
+						return "member"
+					}
+				}(),
+			}
+		}
+	}
+	return nil
+}
+
+func HandleGetGroupMemberList(cli *client.QQClient, req *onebot.GetGroupMemberListReq) *onebot.GetGroupMemberListResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		members, err := cli.GetGroupMembersData(group.GroupUin)
+		if err != nil {
+			log.Errorf("获取群成员列表失败")
+			return nil
+		}
+		memberList := make([]*onebot.GetGroupMemberListResp_GroupMember, 0)
+		for _, member := range members {
+			memberList = append(memberList, &onebot.GetGroupMemberListResp_GroupMember{
+				GroupId:      req.GroupId,
+				UserId:       int64(member.Uin),
+				Nickname:     member.MemberName,
+				Card:         member.MemberCard,
+				JoinTime:     int64(member.JoinTime),
+				LastSentTime: int64(member.LastMsgTime),
+				Level:        strconv.FormatInt(int64(member.GroupLevel), 10),
+				Role: func() string {
+					switch member.Permission {
+					case entity.Owner:
+						return "owner"
+					case entity.Admin:
+						return "admin"
+					default:
+						return "member"
+					}
+				}(),
+			})
+		}
+		return &onebot.GetGroupMemberListResp{
+			GroupMember: memberList,
+		}
+	}
+	return nil
+}
+
+//go:linkname GetCookiesWithDomain github.com/Mrs4s/MiraiGo/client.(*QQClient).getCookiesWithDomain
+func GetCookiesWithDomain(c *client.QQClient, domain string) string
+
+func HandleGetCookies(cli *client.QQClient, req *onebot.GetCookiesReq) *onebot.GetCookiesResp {
+	return &onebot.GetCookiesResp{Cookies: GetCookiesWithDomain(cli, req.Domain)}
+}
+
+//go:linkname GetCSRFToken github.com/Mrs4s/MiraiGo/client.(*QQClient).getCSRFToken
+func GetCSRFToken(c *client.QQClient) int
+
+func HandleGetCSRFToken(cli *client.QQClient, req *onebot.GetCsrfTokenReq) *onebot.GetCsrfTokenResp {
+	return &onebot.GetCsrfTokenResp{
+		Token: int32(GetCSRFToken(cli)),
+	}
+}
+
+func HandleSendGroupPoke(cli *client.QQClient, req *onebot.SendGroupPokeReq) *onebot.SendGroupPokeResp {
+	if group, _ := cli.GetCachedGroupInfo(uint32(req.GroupId)); group != nil {
+		if member, _ := cli.GetCachedMemberInfo(uint32(req.ToUin), group.GroupUin); member != nil {
+			cli.GroupPoke(group.GroupUin, member.Uin)
+		}
+	}
+	return nil
+}
+
+func HandleSendFriendPoke(cli *client.QQClient, req *onebot.SendFriendPokeReq) *onebot.SendFriendPokeResp {
+	friends, _ := cli.GetFriendsData()
+	for _, friend := range friends {
+		if friend.Uin == uint32(req.ToUin) && friend.Uin != cli.Uin {
+			cli.FriendPoke(friend.Uin)
 		}
 	}
 	return nil
