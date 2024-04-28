@@ -182,10 +182,11 @@ func InitGin() {
 			log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
 			break
 		}
+	} else {
+		config.Port = realPort
+		log.Infof("端口号 %s", realPort)
+		log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
 	}
-	config.Port = realPort
-	log.Infof("端口号 %s", realPort)
-	log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
 }
 
 func RunGin(engine *gin.Engine, port string) (string, error) {

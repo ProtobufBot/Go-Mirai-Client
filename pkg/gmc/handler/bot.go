@@ -75,13 +75,6 @@ func DeleteBot(c *gin.Context) {
 }
 
 func ListBot(c *gin.Context) {
-	if success {
-		if first {
-			first = false
-			time.Sleep(time.Second * 5)
-			AfterLogin(qrCodeBot)
-		}
-	}
 	req := &dto.ListBotReq{}
 	err := Bind(c, req)
 	if err != nil {
@@ -102,8 +95,15 @@ func ListBot(c *gin.Context) {
 }
 
 func FetchQrCode(c *gin.Context) {
+	req := &dto.FetchQRCodeReq{}
+	err := Bind(c, req)
+	if err != nil {
+		c.String(http.StatusBadRequest, "bad request, not protobuf")
+		return
+	}
+	devpath := fmt.Sprintf("./%v_device.json", req.DeviceSeed)
 	appInfo := info.AppList["linux"]
-	newDeviceInfo := info.LoadDevice("./device.json")
+	newDeviceInfo := info.LoadDevice(devpath)
 	sig := info.NewSigInfo(8848)
 	qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, sig)
 	qqclient.Loop()
@@ -152,10 +152,16 @@ func QueryQRCodeStatus(c *gin.Context) {
 		respCode = QRCodeConfirmed
 		ok, err := qrCodeBot.QrcodeConfirmed()
 		if err == nil {
-			if ok {
-				success = true
-				qrCodeBot.Register()
-			}
+			go func() {
+				queryQRCodeMutex.Lock()
+				defer queryQRCodeMutex.Unlock()
+				if ok {
+					success = true
+					qrCodeBot.Register()
+					time.Sleep(time.Second * 5)
+					AfterLogin(qrCodeBot)
+				}
+			}()
 		}
 	}
 	if ok.Name() == "Expired" {
