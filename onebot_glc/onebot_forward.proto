@@ -1,0 +1,24 @@
+syntax = "proto3";
+package onebot;
+import "onebot_base.proto";
+option go_package="./onebot";
+
+message ForwardMessageNode{
+  repeated Message message = 1;
+}
+message ForwardContent{
+  int64 sender_id = 1;
+  int32 time = 2;
+  string sender_name = 3;
+  oneof Content{
+    ForwardMessageNode message_node = 101;
+    int32 forward_node = 102;
+  }
+}
+message ForwardChain{
+  repeated ForwardContent content = 1;
+}
+message ForwardMessage{
+  ForwardChain chain = 1;
+  map<int32, ForwardChain> data = 2;
+}
