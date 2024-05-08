@@ -52,6 +52,13 @@ func init() {
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
 	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
+	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
+	plugin.AddNewFriendRequestPlugin(plugins.ReportNewFriendRequest)
+	plugin.AddGroupInvitedRequestPlugin(plugins.ReportGroupInvitedRequest)
+	plugin.AddGroupMessageRecalledPlugin(plugins.ReportGroupMessageRecalled)
+	plugin.AddFriendMessageRecalledPlugin(plugins.ReportFriendMessageRecalled)
+	plugin.AddNewFriendAddedPlugin(plugins.ReportNewFriendAdded)
+	plugin.AddGroupMutePlugin(plugins.ReportGroupMute)
 }
 
 func DeleteBot(c *gin.Context) {
