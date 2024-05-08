@@ -103,22 +103,26 @@ func FetchQrCode(c *gin.Context) {
 	}
 	devpath := fmt.Sprintf("./%v_device.json", req.DeviceSeed)
 	appInfo := info.AppList["linux"]
-	newDeviceInfo := info.LoadDevice(devpath)
-	sig := info.NewSigInfo(8848)
-	qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, sig)
-	qqclient.Loop()
-	qrCodeBot = qqclient
-	b, s, err := qrCodeBot.FecthQrcode()
+	newDeviceInfo, err := info.LoadDevice(devpath)
 	if err != nil {
-		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
-		return
+		fmt.Println(err)
+	} else {
+		sig := info.NewSigInfo(8848)
+		qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, &sig)
+		qqclient.Loop()
+		qrCodeBot = qqclient
+		b, s, err := qrCodeBot.FecthQrcode()
+		if err != nil {
+			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
+			return
+		}
+		resp := &dto.QRCodeLoginResp{
+			State:     dto.QRCodeLoginResp_QRCodeLoginState(http.StatusOK),
+			ImageData: b,
+			Sig:       []byte(s),
+		}
+		Return(c, resp)
 	}
-	resp := &dto.QRCodeLoginResp{
-		State:     dto.QRCodeLoginResp_QRCodeLoginState(http.StatusOK),
-		ImageData: b,
-		Sig:       []byte(s),
-	}
-	Return(c, resp)
 }
 
 func QueryQRCodeStatus(c *gin.Context) {
@@ -150,17 +154,15 @@ func QueryQRCodeStatus(c *gin.Context) {
 	}
 	if ok.Name() == "Confirmed" {
 		respCode = QRCodeConfirmed
-		ok, err := qrCodeBot.QrcodeConfirmed()
+		err := qrCodeBot.QrcodeConfirmed()
 		if err == nil {
 			go func() {
 				queryQRCodeMutex.Lock()
 				defer queryQRCodeMutex.Unlock()
-				if ok {
-					success = true
-					qrCodeBot.Register()
-					time.Sleep(time.Second * 5)
-					AfterLogin(qrCodeBot)
-				}
+				success = true
+				qrCodeBot.Register()
+				time.Sleep(time.Second * 5)
+				AfterLogin(qrCodeBot)
 			}()
 		}
 	}

@@ -85,17 +85,21 @@ func InitLog() {
 
 func Login() {
 	appInfo := info.AppList["linux"]
-	newDeviceInfo := info.LoadDevice("./device.json")
-	sig := info.NewSigInfo(8848)
-	qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, sig)
-	qqclient.Loop()
-
-	_, err := qqclient.Login("", "./qrcode.png")
+	newDeviceInfo, err := info.LoadDevice("./device.json")
 	if err != nil {
 		fmt.Println(err)
-	}
+	} else {
+		sig := info.NewSigInfo(8848)
+		qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, &sig)
+		qqclient.Loop()
 
-	handler.AfterLogin(qqclient)
+		err = qqclient.Login("", "./qrcode.png")
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		handler.AfterLogin(qqclient)
+	}
 
 	select {}
 }

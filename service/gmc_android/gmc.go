@@ -10,6 +10,7 @@ import (
 	_ "golang.org/x/mobile/bind"
 )
 
+// gomobile bind -target=android -androidapi=21 ./service/gmc_android
 var logger AndroidLogger
 
 func SetSms(sms bool) {
