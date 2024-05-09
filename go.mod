@@ -4,7 +4,6 @@ go 1.22
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/LagrangeDev/LagrangeGo v0.0.0-20240508082235-beb6239cc63f
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/golang/protobuf v1.5.4
@@ -61,3 +60,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+require github.com/LagrangeDev/LagrangeGo v0.0.0
+
+replace github.com/LagrangeDev/LagrangeGo => github.com/2mf8/LagrangeGo v0.0.0-20240508234748-ab6b8cfcb394
