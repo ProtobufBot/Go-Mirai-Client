@@ -115,7 +115,7 @@ func FetchQrCode(c *gin.Context) {
 		fmt.Println(err)
 	} else {
 		sig := info.NewSigInfo(8848)
-		qqclient := client.NewQQclient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, &sig)
+		qqclient := client.NewQQClient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, &sig)
 		qqclient.Loop()
 		qrCodeBot = qqclient
 		b, s, err := qrCodeBot.FecthQrcode()

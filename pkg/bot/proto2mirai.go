@@ -45,6 +45,10 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
 		case "img":
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
+		case "friend_image":
+			messageChain = append(messageChain, ProtoPrivateImageToMiraiPrivateImage(protoMsg.Data))
+		case "friend_img":
+			messageChain = append(messageChain, ProtoPrivateImageToMiraiPrivateImage(protoMsg.Data))
 		case "record":
 			messageChain = append(messageChain, ProtoVoiceToMiraiVoice(protoMsg.Data))
 		case "face":
@@ -74,6 +78,26 @@ func ProtoTextToMiraiText(data map[string]string) message.IMessageElement {
 
 func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 	elem := &message.GroupImageElement{}
+	url, ok := data["url"]
+	if !ok {
+		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
+		if !ok {
+			url, ok = data["file"]
+		}
+	}
+	if !ok {
+		log.Warnf("imageUrl不存在")
+		return EmptyText()
+	}
+	b, err := preprocessImageMessage(url)
+	if err == nil {
+		elem.Stream = b
+	}
+	return elem
+}
+
+func ProtoPrivateImageToMiraiPrivateImage(data map[string]string) message.IMessageElement {
+	elem := &message.FriendImageElement{}
 	url, ok := data["url"]
 	if !ok {
 		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
