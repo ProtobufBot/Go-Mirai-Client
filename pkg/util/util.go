@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"runtime"
 	"runtime/debug"
 	"strconv"
@@ -30,6 +31,7 @@ import (
 var (
 	HEADER_AMR  = []byte("#!AMR")
 	HEADER_SILK = []byte("\x02#!SILK_V3")
+	IsJson      = false
 )
 
 var httpClient = http.Client{
@@ -375,4 +377,17 @@ func NeteaseMusicSongInfo(id string) (gjson.Result, error) {
 		return gjson.Result{}, err
 	}
 	return gjson.ParseBytes(d).Get("songs.0"), nil
+}
+
+func Convert(s string) string {
+	reg := regexp.MustCompile(`"([0-9]+)"`)
+	ss := reg.FindAllString(s, -1)
+	for _, v := range ss {
+		dr := regexp.MustCompile(`([0-9]+)`)
+		ds := dr.FindAllString(v, -1)
+		for _, jv := range ds {
+			s = strings.ReplaceAll(s, v, jv)
+		}
+	}
+	return s
 }

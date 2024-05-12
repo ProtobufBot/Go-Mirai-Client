@@ -6,7 +6,6 @@ import (
 	_ "image/png"
 	"math"
 	"strconv"
-	"time"
 	_ "unsafe"
 
 	"github.com/2mf8/Go-Lagrange-Client/pkg/cache"
@@ -49,11 +48,6 @@ func HandleSendPrivateMsg(cli *client.QQClient, req *onebot.SendPrivateMsgReq) *
 	cache.PrivateMessageLru.Add(ret.Result, ret)
 	return &onebot.SendPrivateMsgResp{
 		MessageId: ret.Result,
-		MessageReceipt: &onebot.MessageReceipt{
-			SenderId: req.UserId,
-			Time:     time.Now().Unix(),
-			Seqs:     []int32{ret.Result},
-		},
 	}
 }
 
@@ -78,11 +72,6 @@ func HandleSendGroupMsg(cli *client.QQClient, req *onebot.SendGroupMsgReq) *oneb
 	cache.GroupMessageLru.Add(ret.Result, ret)
 	return &onebot.SendGroupMsgResp{
 		MessageId: ret.Result,
-		MessageReceipt: &onebot.MessageReceipt{
-			Time:    time.Now().Unix(),
-			Seqs:    []int32{ret.Result},
-			GroupId: req.GroupId,
-		},
 	}
 }
 
@@ -95,12 +84,6 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		cache.PrivateMessageLru.Add(ret.Result, ret)
 		return &onebot.SendMsgResp{
 			MessageId: ret.Result,
-			MessageReceipt: &onebot.MessageReceipt{
-				SenderId: req.UserId,
-				Time:     time.Now().Unix(),
-				Seqs:     []int32{ret.Result},
-				GroupId:  req.GroupId,
-			},
 		}
 	}
 
@@ -118,11 +101,6 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		cache.GroupMessageLru.Add(ret.Result, ret)
 		return &onebot.SendMsgResp{
 			MessageId: ret.Result,
-			MessageReceipt: &onebot.MessageReceipt{
-				Time:    time.Now().Unix(),
-				Seqs:    []int32{ret.Result},
-				GroupId: req.GroupId,
-			},
 		}
 	}
 
@@ -131,11 +109,6 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		cache.PrivateMessageLru.Add(ret.Result, ret)
 		return &onebot.SendMsgResp{
 			MessageId: ret.Result,
-			MessageReceipt: &onebot.MessageReceipt{
-				SenderId: req.UserId,
-				Time:     time.Now().Unix(),
-				Seqs:     []int32{ret.Result},
-			},
 		}
 	}
 	log.Warnf("failed to send msg")

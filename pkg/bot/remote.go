@@ -2,6 +2,8 @@ package bot
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"regexp"
@@ -26,7 +28,7 @@ var (
 	RemoteServers RemoteMap
 	jsonMarshaler = jsonpb.Marshaler{
 		OrigName:     true,
-		EmitDefaults: true,
+		EmitDefaults: false,
 	}
 	jsonUnmarshaler = jsonpb.Unmarshaler{
 		AllowUnknownFields: true,
@@ -111,7 +113,7 @@ func ConnectUniversal(cli *client.QQClient) {
 				log.Warnf("Websocket 服务器 [%s](%s) 已断开，5秒后重连", serverGroup.Name, serverUrl)
 				time.Sleep(5 * time.Second)
 			}
-			log.Errorf("client does not exist, close websocket, %+v", int64(cli.Uin))
+			log.Errorf("client does not exist, close websocket, %+v", fmt.Sprintf("%v", cli.Uin))
 		})
 	}
 }
@@ -137,7 +139,7 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 			return
 		}
 		if !cli.Online.Load() {
-			log.Warnf("bot is not online, ignore API, %+v", int64(cli.Uin))
+			log.Warnf("bot is not online, ignore API, %+v", fmt.Sprintf("%v", cli.Uin))
 			return
 		}
 		var apiReq onebot.Frame
@@ -187,13 +189,13 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		Echo:  req.Echo,
 		Ok:    true,
 	}
-	switch data := req.Data.(type) {
+	switch data := req.PbData.(type) {
 	case *onebot.Frame_SendPrivateMsgReq:
 		resp.FrameType = onebot.Frame_TSendPrivateMsgResp
 		if resp.Ok = isApiAllow(onebot.Frame_TSendPrivateMsgReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SendPrivateMsgResp{
+		resp.PbData = &onebot.Frame_SendPrivateMsgResp{
 			SendPrivateMsgResp: HandleSendPrivateMsg(cli, data.SendPrivateMsgReq),
 		}
 	case *onebot.Frame_SendGroupMsgReq:
@@ -201,7 +203,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupMsgReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SendGroupMsgResp{
+		resp.PbData = &onebot.Frame_SendGroupMsgResp{
 			SendGroupMsgResp: HandleSendGroupMsg(cli, data.SendGroupMsgReq),
 		}
 	case *onebot.Frame_SendMsgReq:
@@ -209,7 +211,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TSendMsgReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SendMsgResp{
+		resp.PbData = &onebot.Frame_SendMsgResp{
 			SendMsgResp: HandleSendMsg(cli, data.SendMsgReq),
 		}
 	case *onebot.Frame_GetMsgReq:
@@ -217,7 +219,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TGetMsgReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_GetMsgResp{
+		resp.PbData = &onebot.Frame_GetMsgResp{
 			GetMsgResp: HandleGetMsg(cli, data.GetMsgReq),
 		}
 	case *onebot.Frame_SetGroupWholeBanReq:
@@ -225,7 +227,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupWholeBanReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SetGroupWholeBanResp{
+		resp.PbData = &onebot.Frame_SetGroupWholeBanResp{
 			SetGroupWholeBanResp: HandleSetGroupWholeBan(cli, data.SetGroupWholeBanReq),
 		}
 	case *onebot.Frame_SetGroupCardReq:
@@ -233,7 +235,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupCardReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SetGroupCardResp{
+		resp.PbData = &onebot.Frame_SetGroupCardResp{
 			SetGroupCardResp: HandleSetGroupCard(cli, data.SetGroupCardReq),
 		}
 	case *onebot.Frame_SetGroupNameReq:
@@ -241,7 +243,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupNameReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SetGroupNameResp{
+		resp.PbData = &onebot.Frame_SetGroupNameResp{
 			SetGroupNameResp: HandleSetGroupName(cli, data.SetGroupNameReq),
 		}
 	case *onebot.Frame_SetGroupLeaveReq:
@@ -249,7 +251,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupLeaveReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SetGroupLeaveResp{
+		resp.PbData = &onebot.Frame_SetGroupLeaveResp{
 			SetGroupLeaveResp: HandleSetGroupLeave(cli, data.SetGroupLeaveReq),
 		}
 	case *onebot.Frame_SetGroupSpecialTitleReq:
@@ -257,31 +259,31 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupSpecialTitleReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_SetGroupSpecialTitleResp{
+		resp.PbData = &onebot.Frame_SetGroupSpecialTitleResp{
 			SetGroupSpecialTitleResp: HandleSetGroupSpecialTitle(cli, data.SetGroupSpecialTitleReq),
 		}
 	/* case *onebot.Frame_SetFriendAddRequestReq:
-		resp.FrameType = onebot.Frame_TSetFriendAddRequestResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetFriendAddRequestReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_SetFriendAddRequestResp{
-			SetFriendAddRequestResp: HandleSetFriendAddRequest(cli, data.SetFriendAddRequestReq),
-		} */
+	resp.FrameType = onebot.Frame_TSetFriendAddRequestResp
+	if resp.Ok = isApiAllow(onebot.Frame_TSetFriendAddRequestReq); !resp.Ok {
+		return
+	}
+	resp.PbData = &onebot.Frame_SetFriendAddRequestResp{
+		SetFriendAddRequestResp: HandleSetFriendAddRequest(cli, data.SetFriendAddRequestReq),
+	} */
 	/* case *onebot.Frame_SetGroupAddRequestReq:
-		resp.FrameType = onebot.Frame_TSetGroupAddRequestResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupAddRequestReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_SetGroupAddRequestResp{
-			SetGroupAddRequestResp: HandleSetGroupAddRequest(cli, data.SetGroupAddRequestReq),
-		} */
+	resp.FrameType = onebot.Frame_TSetGroupAddRequestResp
+	if resp.Ok = isApiAllow(onebot.Frame_TSetGroupAddRequestReq); !resp.Ok {
+		return
+	}
+	resp.PbData = &onebot.Frame_SetGroupAddRequestResp{
+		SetGroupAddRequestResp: HandleSetGroupAddRequest(cli, data.SetGroupAddRequestReq),
+	} */
 	case *onebot.Frame_GetLoginInfoReq:
 		resp.FrameType = onebot.Frame_TGetLoginInfoResp
 		if resp.Ok = isApiAllow(onebot.Frame_TGetLoginInfoReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_GetLoginInfoResp{
+		resp.PbData = &onebot.Frame_GetLoginInfoResp{
 			GetLoginInfoResp: HandleGetLoginInfo(cli, data.GetLoginInfoReq),
 		}
 	case *onebot.Frame_GetFriendListReq:
@@ -289,7 +291,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TGetFriendListReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_GetFriendListResp{
+		resp.PbData = &onebot.Frame_GetFriendListResp{
 			GetFriendListResp: HandleGetFriendList(cli, data.GetFriendListReq),
 		}
 	case *onebot.Frame_GetGroupInfoReq:
@@ -297,7 +299,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupInfoReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_GetGroupInfoResp{
+		resp.PbData = &onebot.Frame_GetGroupInfoResp{
 			GetGroupInfoResp: HandleGetGroupInfo(cli, data.GetGroupInfoReq),
 		}
 	case *onebot.Frame_GetGroupListReq:
@@ -305,7 +307,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupListReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_GetGroupListResp{
+		resp.PbData = &onebot.Frame_GetGroupListResp{
 			GetGroupListResp: HandleGetGroupList(cli, data.GetGroupListReq),
 		}
 	case *onebot.Frame_GetGroupMemberInfoReq:
@@ -313,7 +315,7 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupMemberInfoReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_GetGroupMemberInfoResp{
+		resp.PbData = &onebot.Frame_GetGroupMemberInfoResp{
 			GetGroupMemberInfoResp: HandleGetGroupMemberInfo(cli, data.GetGroupMemberInfoReq),
 		}
 	case *onebot.Frame_GetGroupMemberListReq:
@@ -321,17 +323,17 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupMemberListReq); !resp.Ok {
 			return
 		}
-		resp.Data = &onebot.Frame_GetGroupMemberListResp{
+		resp.PbData = &onebot.Frame_GetGroupMemberListResp{
 			GetGroupMemberListResp: HandleGetGroupMemberList(cli, data.GetGroupMemberListReq),
 		}
 	/* case *onebot.Frame_GetStrangerInfoReq:
-		resp.FrameType = onebot.Frame_TGetStrangerInfoResp
-		if resp.Ok = isApiAllow(onebot.Frame_TGetStrangerInfoReq); !resp.Ok {
-			return
-		}
-		resp.Data = &onebot.Frame_GetStrangerInfoResp{
-			GetStrangerInfoResp: HandleGetStrangerInfo(cli, data.GetStrangerInfoReq),
-		} */
+	resp.FrameType = onebot.Frame_TGetStrangerInfoResp
+	if resp.Ok = isApiAllow(onebot.Frame_TGetStrangerInfoReq); !resp.Ok {
+		return
+	}
+	resp.PbData = &onebot.Frame_GetStrangerInfoResp{
+		GetStrangerInfoResp: HandleGetStrangerInfo(cli, data.GetStrangerInfoReq),
+	} */
 	default:
 		return resp
 	}
@@ -349,7 +351,7 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 
 	wsServers, ok := RemoteServers.Load(int64(cli.Uin))
 	if !ok {
-		log.Warnf("failed to load remote servers, %+v", int64(cli.Uin))
+		log.Warnf("failed to load remote servers, %+v", fmt.Sprintf("%v", cli.Uin))
 		return
 	}
 
@@ -370,12 +372,12 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		report := true // 是否上报event
 
 		if ws.regexp != nil { // 有prefix filter
-			if e, ok := eventFrame.Data.(*onebot.Frame_PrivateMessageEvent); ok {
+			if e, ok := eventFrame.PbData.(*onebot.Frame_PrivateMessageEvent); ok {
 				if report = ws.regexp.MatchString(e.PrivateMessageEvent.RawMessage); report && ws.RegexReplace != "" {
 					e.PrivateMessageEvent.RawMessage = ws.regexp.ReplaceAllString(e.PrivateMessageEvent.RawMessage, ws.RegexReplace)
 				}
 			}
-			if e, ok := eventFrame.Data.(*onebot.Frame_GroupMessageEvent); ok {
+			if e, ok := eventFrame.PbData.(*onebot.Frame_GroupMessageEvent); ok {
 				if report = ws.regexp.MatchString(e.GroupMessageEvent.RawMessage); report && ws.RegexReplace != "" {
 					e.GroupMessageEvent.RawMessage = ws.regexp.ReplaceAllString(e.GroupMessageEvent.RawMessage, ws.RegexReplace)
 				}
@@ -384,13 +386,15 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 
 		if report {
 			if ws.Json {
+				util.IsJson = true
 				// 使用json上报
-				sendingString, err := jsonMarshaler.MarshalToString(eventFrame)
+				sendingString, err := json.Marshal(eventFrame.Data)
+				fmt.Println(string(sendingString))
 				if err != nil {
 					log.Errorf("event 序列化错误 %v", err)
 					continue
 				}
-				_ = ws.Send(websocket.TextMessage, []byte(sendingString))
+				_ = ws.Send(websocket.TextMessage, sendingString)
 			} else {
 				// 使用protobuf上报
 				sendingBytes, err := proto.Marshal(eventFrame) // 使用正则修改后的eventFrame

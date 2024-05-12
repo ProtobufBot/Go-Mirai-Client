@@ -20,7 +20,7 @@ func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) i
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TPrivateMessageEvent,
 	}
-	eventProto.Data = &onebot.Frame_PrivateMessageEvent{
+	eventProto.PbData = &onebot.Frame_PrivateMessageEvent{
 		PrivateMessageEvent: &onebot.PrivateMessageEvent{
 			Time:        time.Now().Unix(),
 			SelfId:      int64(cli.Uin),
@@ -28,14 +28,9 @@ func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) i
 			MessageType: "private",
 			SubType:     "normal",
 			MessageId:   event.Id,
-			MessageReceipt: &onebot.MessageReceipt{
-				SenderId: int64(event.Sender.Uin),
-				Time:     time.Now().Unix(),
-				Seqs:     []int32{event.Id},
-			},
-			UserId:     int64(event.Sender.Uin),
-			Message:    bot.MiraiMsgToProtoMsg(cli, event.Elements),
-			RawMessage: bot.MiraiMsgToRawMsg(cli, event.Elements),
+			UserId:      int64(event.Sender.Uin),
+			Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
+			RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Elements),
 			Sender: &onebot.PrivateMessageEvent_Sender{
 				UserId:   int64(event.Sender.Uin),
 				Nickname: event.Sender.Nickname,
@@ -58,22 +53,16 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		MessageType: "group",
 		SubType:     "normal",
 		MessageId:   event.Id,
-		MessageReceipt: &onebot.MessageReceipt{
-			SenderId: int64(event.Sender.Uin),
-			Time:     time.Now().Unix(),
-			Seqs:     []int32{event.Id},
-			GroupId:  int64(event.GroupCode),
-		},
-		GroupId:    int64(event.GroupCode),
-		UserId:     int64(event.Sender.Uin),
-		Message:    bot.MiraiMsgToProtoMsg(cli, event.Elements),
-		RawMessage: bot.MiraiMsgToRawMsg(cli, event.Elements),
+		GroupId:     int64(event.GroupCode),
+		UserId:      int64(event.Sender.Uin),
+		Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
+		RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Elements),
 		Sender: &onebot.GroupMessageEvent_Sender{
 			UserId: int64(event.Sender.Uin),
 		},
 	}
 
-	eventProto.Data = &onebot.Frame_GroupMessageEvent{
+	eventProto.PbData = &onebot.Frame_GroupMessageEvent{
 		GroupMessageEvent: groupMessageEvent,
 	}
 	bot.HandleEventFrame(cli, eventProto)
@@ -84,7 +73,7 @@ func ReportMemberJoin(cli *client.QQClient, event *event.GroupMemberIncrease) in
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupIncreaseNoticeEvent,
 	}
-	eventProto.Data = &onebot.Frame_GroupIncreaseNoticeEvent{
+	eventProto.PbData = &onebot.Frame_GroupIncreaseNoticeEvent{
 		GroupIncreaseNoticeEvent: &onebot.GroupIncreaseNoticeEvent{
 			Time:       time.Now().Unix(),
 			SelfId:     int64(cli.Uin),
@@ -114,7 +103,7 @@ func ReportMemberLeave(cli *client.QQClient, event *event.GroupMemberDecrease) i
 		operatorUid = event.OperatorUid
 	}
 
-	eventProto.Data = &onebot.Frame_GroupDecreaseNoticeEvent{
+	eventProto.PbData = &onebot.Frame_GroupDecreaseNoticeEvent{
 		GroupDecreaseNoticeEvent: &onebot.GroupDecreaseNoticeEvent{
 			Time:        time.Now().Unix(),
 			SelfId:      int64(cli.Uin),
@@ -134,7 +123,7 @@ func ReportJoinGroup(cli *client.QQClient, event *event.GroupMemberIncrease) int
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupIncreaseNoticeEvent,
 	}
-	eventProto.Data = &onebot.Frame_GroupIncreaseNoticeEvent{
+	eventProto.PbData = &onebot.Frame_GroupIncreaseNoticeEvent{
 		GroupIncreaseNoticeEvent: &onebot.GroupIncreaseNoticeEvent{
 			Time:       time.Now().Unix(),
 			SelfId:     int64(cli.Uin),
@@ -157,7 +146,7 @@ func ReportGroupMute(cli *client.QQClient, event *event.GroupMute) int32 {
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupBanNoticeEvent,
 	}
-	eventProto.Data = &onebot.Frame_GroupBanNoticeEvent{
+	eventProto.PbData = &onebot.Frame_GroupBanNoticeEvent{
 		GroupBanNoticeEvent: &onebot.GroupBanNoticeEvent{
 			Time:       time.Now().Unix(),
 			SelfId:     int64(cli.Uin),
@@ -185,7 +174,7 @@ func ReportNewFriendRequest(cli *client.QQClient, event *event.FriendRequest) in
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TFriendRequestEvent,
 	}
-	eventProto.Data = &onebot.Frame_FriendRequestEvent{
+	eventProto.PbData = &onebot.Frame_FriendRequestEvent{
 		FriendRequestEvent: &onebot.FriendRequestEvent{
 			Time:        time.Now().Unix(),
 			SelfId:      int64(cli.Uin),
@@ -207,7 +196,7 @@ func ReportUserJoinGroupRequest(cli *client.QQClient, event *event.GroupMemberJo
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupRequestEvent,
 	}
-	eventProto.Data = &onebot.Frame_GroupRequestEvent{
+	eventProto.PbData = &onebot.Frame_GroupRequestEvent{
 		GroupRequestEvent: &onebot.GroupRequestEvent{
 			Time:        time.Now().Unix(),
 			SelfId:      int64(cli.Uin),
@@ -230,7 +219,7 @@ func ReportGroupInvitedRequest(cli *client.QQClient, event *event.GroupInvite) i
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupRequestEvent,
 	}
-	eventProto.Data = &onebot.Frame_GroupRequestEvent{
+	eventProto.PbData = &onebot.Frame_GroupRequestEvent{
 		GroupRequestEvent: &onebot.GroupRequestEvent{
 			Time:        time.Now().Unix(),
 			SelfId:      int64(cli.Uin),
@@ -256,7 +245,7 @@ func ReportGroupMessageRecalled(cli *client.QQClient, event *event.GroupRecall) 
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupRecallNoticeEvent,
 	}
-	eventProto.Data = &onebot.Frame_GroupRecallNoticeEvent{
+	eventProto.PbData = &onebot.Frame_GroupRecallNoticeEvent{
 		GroupRecallNoticeEvent: &onebot.GroupRecallNoticeEvent{
 			Time:        time.Now().Unix(),
 			SelfId:      int64(cli.Uin),
@@ -278,7 +267,7 @@ func ReportFriendMessageRecalled(cli *client.QQClient, event *event.FriendRecall
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TFriendRecallNoticeEvent,
 	}
-	eventProto.Data = &onebot.Frame_FriendRecallNoticeEvent{
+	eventProto.PbData = &onebot.Frame_FriendRecallNoticeEvent{
 		FriendRecallNoticeEvent: &onebot.FriendRecallNoticeEvent{
 			Time:       time.Now().Unix(),
 			SelfId:     int64(cli.Uin),
@@ -296,7 +285,7 @@ func ReportNewFriendAdded(cli *client.QQClient, event *event.FriendRequest) int3
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TFriendAddNoticeEvent,
 	}
-	eventProto.Data = &onebot.Frame_FriendAddNoticeEvent{
+	eventProto.PbData = &onebot.Frame_FriendAddNoticeEvent{
 		FriendAddNoticeEvent: &onebot.FriendAddNoticeEvent{
 			Time:       time.Now().Unix(),
 			SelfId:     int64(cli.Uin),
