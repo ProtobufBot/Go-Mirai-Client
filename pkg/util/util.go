@@ -31,7 +31,6 @@ import (
 var (
 	HEADER_AMR  = []byte("#!AMR")
 	HEADER_SILK = []byte("\x02#!SILK_V3")
-	IsJson      = false
 )
 
 var httpClient = http.Client{

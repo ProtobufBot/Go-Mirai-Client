@@ -386,15 +386,23 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 
 		if report {
 			if ws.Json {
-				util.IsJson = true
 				// 使用json上报
-				sendingString, err := json.Marshal(eventFrame.Data)
-				fmt.Println(string(sendingString))
-				if err != nil {
-					log.Errorf("event 序列化错误 %v", err)
-					continue
+				if pme, ok := eventFrame.PbData.(*onebot.Frame_PrivateMessageEvent); ok {
+					sendingString, err := json.Marshal(pme.PrivateMessageEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
 				}
-				_ = ws.Send(websocket.TextMessage, sendingString)
+				if gme, ok := eventFrame.PbData.(*onebot.Frame_GroupMessageEvent); ok{
+					sendingString, err := json.Marshal(gme.GroupMessageEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
 			} else {
 				// 使用protobuf上报
 				sendingBytes, err := proto.Marshal(eventFrame) // 使用正则修改后的eventFrame
