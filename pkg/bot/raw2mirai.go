@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/message"
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/message"
 	log "github.com/sirupsen/logrus"
 )
 

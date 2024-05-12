@@ -4,19 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"path"
+	"strconv"
+	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/2mf8/Go-Lagrange-Client/pkg/bot"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/device"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/plugins"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/plugin"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/dto"
 
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/client/auth"
 	_ "github.com/BurntSushi/toml"
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/info"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/protobuf/proto"
@@ -25,9 +32,6 @@ import (
 
 var queryQRCodeMutex = &sync.RWMutex{}
 var qrCodeBot *client.QQClient
-var success = false
-var first = true
-var register = true
 
 type QRCodeResp int
 
@@ -40,6 +44,46 @@ const (
 	QRCodeConfirmed
 	QRCodeCanceled
 )
+
+func TokenLogin() {
+	dfs, err := os.ReadDir("./device/")
+	if err == nil {
+		for _, v := range dfs {
+			df := strings.Split(v.Name(), ".")
+			uin, err := strconv.ParseInt(df[0], 10, 64)
+			if err == nil {
+				devi := device.GetDevice(uin)
+				sfs, err := os.ReadDir("./sig/")
+				if err == nil {
+					for _, sv := range sfs {
+						sf := strings.Split(sv.Name(), ".")
+						if df[0] == sf[0] {
+							sigpath := fmt.Sprintf("./sig/%s", sv.Name())
+							data, err := os.ReadFile(sigpath)
+							if err == nil {
+								sig, err := auth.UnmarshalSigInfo(data, true)
+								if err == nil {
+									go func() {
+										queryQRCodeMutex.Lock()
+										defer queryQRCodeMutex.Unlock()
+										appInfo := auth.AppList["linux"]
+										qrCodeBot = client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+										qrCodeBot.UseDevice(devi)
+										qrCodeBot.UseSig(sig)
+										qrCodeBot.SessionLogin()
+										go AfterLogin(qrCodeBot)
+									}()
+								}
+							}
+						}
+					}
+				}
+			} else {
+				fmt.Printf("转换账号%s失败", df[0])
+			}
+		}
+	}
+}
 
 func init() {
 	log.Infof("加载日志插件 Log")
@@ -62,10 +106,27 @@ func init() {
 }
 
 func DeleteBot(c *gin.Context) {
-	first = true
-	success = false
+	sigpath := fmt.Sprintf("./sig/%v.bin", qrCodeBot.Uin)
+	sigDir := path.Dir(sigpath)
+	if !util.PathExists(sigDir) {
+		log.Infof("%+v 目录不存在，自动创建", sigDir)
+		if err := os.MkdirAll(sigDir, 0777); err != nil {
+			log.Warnf("failed to mkdir deviceDir, err: %+v", err)
+		}
+	}
+	data, err := qrCodeBot.Sig().Marshal()
+	if err != nil {
+		log.Errorln("marshal sig.bin err:", err)
+		return
+	}
+	err = os.WriteFile(sigpath, data, 0644)
+	if err != nil {
+		log.Errorln("write sig.bin err:", err)
+		return
+	}
+	log.Infoln("sig saved into sig.bin")
 	req := &dto.DeleteBotReq{}
-	err := Bind(c, req)
+	err = Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
@@ -108,17 +169,15 @@ func FetchQrCode(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	devpath := fmt.Sprintf("./%v_device.json", req.DeviceSeed)
-	appInfo := info.AppList["linux"]
-	newDeviceInfo, err := info.LoadDevice(devpath)
+	newDeviceInfo := device.GetDevice(req.DeviceSeed)
+	appInfo := auth.AppList["linux"]
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		sig := info.NewSigInfo(8848)
-		qqclient := client.NewQQClient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, &sig)
-		qqclient.Loop()
+		qqclient := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+		qqclient.UseDevice(newDeviceInfo)
 		qrCodeBot = qqclient
-		b, s, err := qrCodeBot.FecthQrcode()
+		b, s, err := qrCodeBot.FecthQRCode()
 		if err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
 			return
@@ -136,7 +195,7 @@ func QueryQRCodeStatus(c *gin.Context) {
 	queryQRCodeMutex.Lock()
 	defer queryQRCodeMutex.Unlock()
 	respCode := 0
-	ok, err := qrCodeBot.GetQrcodeResult()
+	ok, err := qrCodeBot.GetQRCodeResult()
 	if err != nil {
 		resp := &dto.QRCodeLoginResp{
 			State: dto.QRCodeLoginResp_QRCodeLoginState(http.StatusExpectationFailed),
@@ -161,13 +220,12 @@ func QueryQRCodeStatus(c *gin.Context) {
 	}
 	if ok.Name() == "Confirmed" {
 		respCode = QRCodeConfirmed
-		err := qrCodeBot.QrcodeConfirmed()
+		err := qrCodeBot.QRCodeConfirmed()
 		if err == nil {
 			go func() {
 				queryQRCodeMutex.Lock()
 				defer queryQRCodeMutex.Unlock()
-				success = true
-				qrCodeBot.Register()
+				qrCodeBot.Init()
 				time.Sleep(time.Second * 5)
 				AfterLogin(qrCodeBot)
 			}()
@@ -312,4 +370,37 @@ func AfterLogin(cli *client.QQClient) {
 	}
 
 	bot.ConnectUniversal(cli)
+
+	defer cli.Release()
+	defer func() {
+		sigpath := fmt.Sprintf("./sig/%v.bin", cli.Uin)
+		sigDir := path.Dir(sigpath)
+		if !util.PathExists(sigDir) {
+			log.Infof("%+v 目录不存在，自动创建", sigDir)
+			if err := os.MkdirAll(sigDir, 0777); err != nil {
+				log.Warnf("failed to mkdir deviceDir, err: %+v", err)
+			}
+		}
+		data, err := qrCodeBot.Sig().Marshal()
+		if err != nil {
+			log.Errorln("marshal sig.bin err:", err)
+			return
+		}
+		err = os.WriteFile(sigpath, data, 0644)
+		if err != nil {
+			log.Errorln("write sig.bin err:", err)
+			return
+		}
+		log.Infoln("sig saved into sig.bin")
+	}()
+
+	// setup the main stop channel
+	mc := make(chan os.Signal, 2)
+	signal.Notify(mc, os.Interrupt, syscall.SIGTERM)
+	for {
+		switch <-mc {
+		case os.Interrupt, syscall.SIGTERM:
+			return
+		}
+	}
 }

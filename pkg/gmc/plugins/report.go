@@ -10,9 +10,9 @@ import (
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/event"
-	"github.com/LagrangeDev/LagrangeGo/message"
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/client/event"
+	"github.com/2mf8/LagrangeGo/message"
 )
 
 func ReportPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) int32 {

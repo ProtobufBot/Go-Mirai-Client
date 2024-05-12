@@ -13,7 +13,7 @@ import (
 	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
-	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/client"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"

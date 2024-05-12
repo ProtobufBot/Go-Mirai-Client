@@ -13,8 +13,8 @@ import (
 	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/message"
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/message"
 	log "github.com/sirupsen/logrus"
 )
 

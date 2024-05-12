@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"html"
 
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/message"
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/message"
 )
 
 func MiraiMsgToRawMsg(cli *client.QQClient, messageChain []message.IMessageElement) string {

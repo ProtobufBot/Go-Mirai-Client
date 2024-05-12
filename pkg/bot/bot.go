@@ -1,9 +1,6 @@
 package bot
 
 import (
-	"errors"
-	"os"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -67,11 +64,6 @@ type RequestSignResult struct {
 	Code int    `json:"code,omitempty"`
 	Msg  string `json:"msg,omitempty"`
 	Data *RequestSignData
-}
-
-func PathExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil || errors.Is(err, os.ErrExist)
 }
 
 func (l *Logger) Info(format string, args ...any) {

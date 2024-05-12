@@ -13,9 +13,9 @@ import (
 	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/entity"
-	"github.com/LagrangeDev/LagrangeGo/message"
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/client/entity"
+	"github.com/2mf8/LagrangeGo/message"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -188,7 +188,7 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 }
 
 func ReleaseClient(cli *client.QQClient) {
-	cli.DisConnect()
+	cli.Release()
 	if wsServers, ok := RemoteServers.Load(int64(cli.Uin)); ok {
 		for _, wsServer := range wsServers {
 			wsServer.Close()

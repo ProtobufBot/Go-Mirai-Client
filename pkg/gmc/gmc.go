@@ -15,8 +15,8 @@ import (
 	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/handler"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/static"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
-	"github.com/LagrangeDev/LagrangeGo/client"
-	"github.com/LagrangeDev/LagrangeGo/info"
+	"github.com/2mf8/LagrangeGo/client"
+	auth2 "github.com/2mf8/LagrangeGo/client/auth"
 
 	"github.com/gin-gonic/gin"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
@@ -24,6 +24,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 )
+
 
 var (
 	sms          = false // 参数优先使用短信验证
@@ -84,23 +85,35 @@ func InitLog() {
 }
 
 func Login() {
-	appInfo := info.AppList["linux"]
-	newDeviceInfo, err := info.LoadDevice("./device.json")
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		sig := info.NewSigInfo(8848)
-		qqclient := client.NewQQClient(0, "https://sign.lagrangecore.org/api/sign", appInfo, newDeviceInfo, &sig)
-		qqclient.Loop()
-
-		err = qqclient.Login("", "./qrcode.png")
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		handler.AfterLogin(qqclient)
+	appInfo := auth2.AppList["linux"]
+	deviceInfo := &auth2.DeviceInfo{
+		Guid:          "cfcd208495d565ef66e7dff9f98764da",
+		DeviceName:    "Lagrange-DCFCD07E",
+		SystemKernel:  "Windows 10.0.22631",
+		KernelVersion: "10.0.22631",
 	}
 
+	qqclient := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+	qqclient.UseDevice(deviceInfo)
+	data, err := os.ReadFile("sig.bin")
+	if err != nil {
+		log.Warnln("read sig error:", err)
+	} else {
+		sig, err := auth2.UnmarshalSigInfo(data, true)
+		if err != nil {
+			log.Warnln("load sig error:", err)
+		} else {
+			qqclient.UseSig(sig)
+		}
+	}
+	err = qqclient.Login("", "qrcode.png")
+	if err != nil {
+		log.Errorln("login err:", err)
+		return
+	}
+	handler.AfterLogin(qqclient)
+
+	defer qqclient.Release()
 	select {}
 }
 
@@ -120,6 +133,7 @@ func Start() {
 	})
 	InitGin()
 	//Login() // 初始化GIN HTTP管理
+	handler.TokenLogin()
 }
 
 func LoadParamConfig() {
