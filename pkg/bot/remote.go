@@ -1,7 +1,6 @@
 package bot
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -27,7 +26,7 @@ var (
 	// RemoteServers key是botId，value是map（key是serverName，value是server）
 	RemoteServers RemoteMap
 	jsonMarshaler = jsonpb.Marshaler{
-		OrigName:     true,
+		OrigName:     false,
 		EmitDefaults: false,
 	}
 	jsonUnmarshaler = jsonpb.Unmarshaler{
@@ -145,13 +144,21 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 		var apiReq onebot.Frame
 		switch messageType {
 		case websocket.BinaryMessage:
-			err := proto.Unmarshal(data, &apiReq)
-			if err != nil {
-				log.Errorf("收到API binary，解析错误 %v", err)
-				return
+			if plugin.Json {
+				err := json.Unmarshal(data, &apiReq)
+				if err != nil {
+					log.Errorf("收到API text，解析错误 %v", err)
+					return
+				}
+			} else {
+				err := proto.Unmarshal(data, &apiReq)
+				if err != nil {
+					log.Errorf("收到API binary，解析错误 %v", err)
+					return
+				}
 			}
 		case websocket.TextMessage:
-			err := jsonUnmarshaler.Unmarshal(bytes.NewReader(data), &apiReq)
+			err := json.Unmarshal(data, &apiReq)
 			if err != nil {
 				log.Errorf("收到API text，解析错误 %v", err)
 				return
@@ -161,26 +168,86 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 		log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
 
 		apiResp := handleApiFrame(cli, &apiReq, isApiAllow)
+		apiOneBotResp := handleOnebotApiFrame(cli, &apiReq, isApiAllow)
 		var (
 			respBytes []byte
 			err       error
 		)
 		switch messageType {
 		case websocket.BinaryMessage:
-			respBytes, err = proto.Marshal(apiResp)
-			if err != nil {
-				log.Errorf("failed to marshal api resp, %+v", err)
+			if plugin.Json {
+				respStr, err := json.Marshal(apiOneBotResp)
+				if err != nil {
+					log.Errorf("failed to marshal api resp, %+v", err)
+				}
+				respBytes = respStr
+			} else {
+				respBytes, err = proto.Marshal(apiResp)
+				if err != nil {
+					log.Errorf("failed to marshal api resp, %+v", err)
+				}
 			}
 		case websocket.TextMessage:
-			respStr, err := jsonMarshaler.MarshalToString(apiResp)
-			if err != nil {
-				log.Errorf("failed to marshal api resp, %+v", err)
+			if plugin.Json {
+				respStr, err := json.Marshal(apiOneBotResp)
+				if err != nil {
+					log.Errorf("failed to marshal api resp, %+v", err)
+				}
+				respBytes = respStr
+			} else {
+				respStr, err := jsonMarshaler.MarshalToString(apiResp)
+				if err != nil {
+					log.Errorf("failed to marshal api resp, %+v", err)
+				}
+				respBytes = []byte(respStr)
 			}
-			respBytes = []byte(respStr)
 		}
 		log.Debugf("发送 apiResp 信息, %+v", util.MustMarshal(apiResp))
 		_ = ws.Send(messageType, respBytes)
 	}
+}
+
+func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(onebot.Frame_FrameType) bool) (resp *onebot.Frame) {
+	resp = &onebot.Frame{
+		BotId: int64(cli.Uin),
+		Echo:  req.Echo,
+		Ok:    true,
+	}
+	data, _ := json.Marshal(req)
+	fmt.Println(string(data))
+	if req.Action == onebot.ActionType_name[int32(onebot.ActionType_send_group_msg)] {
+		reqData := &onebot.Frame_SendGroupMsgReq{
+			SendGroupMsgReq: &onebot.SendGroupMsgReq{
+				GroupId:    req.Params.GroupId,
+				Message:    req.Params.Message,
+				AutoEscape: req.Params.AutoEscape,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSendGroupMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupMsgReq); !resp.Ok {
+			return
+		}
+		resp.PbData = &onebot.Frame_SendGroupMsgResp{
+			SendGroupMsgResp: HandleSendGroupMsg(cli, reqData.SendGroupMsgReq),
+		}
+	}
+	if req.Action == onebot.ActionType_name[int32(onebot.ActionType_send_private_msg)] {
+		reqData := &onebot.Frame_SendPrivateMsgReq{
+			SendPrivateMsgReq: &onebot.SendPrivateMsgReq{
+				UserId:     req.Params.UserId,
+				Message:    req.Params.Message,
+				AutoEscape: req.Params.AutoEscape,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSendPrivateMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendPrivateMsgReq); !resp.Ok {
+			return
+		}
+		resp.PbData = &onebot.Frame_SendPrivateMsgResp{
+			SendPrivateMsgResp: HandleSendPrivateMsg(cli, reqData.SendPrivateMsgReq),
+		}
+	}
+	return resp
 }
 
 func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(onebot.Frame_FrameType) bool) (resp *onebot.Frame) {
@@ -395,8 +462,104 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 					}
 					_ = ws.Send(websocket.TextMessage, sendingString)
 				}
-				if gme, ok := eventFrame.PbData.(*onebot.Frame_GroupMessageEvent); ok{
+				if gme, ok := eventFrame.PbData.(*onebot.Frame_GroupMessageEvent); ok {
 					sendingString, err := json.Marshal(gme.GroupMessageEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if fan, ok := eventFrame.PbData.(*onebot.Frame_FriendAddNoticeEvent); ok {
+					sendingString, err := json.Marshal(fan.FriendAddNoticeEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if frn, ok := eventFrame.PbData.(*onebot.Frame_FriendRecallNoticeEvent); ok {
+					sendingString, err := json.Marshal(frn.FriendRecallNoticeEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if fr, ok := eventFrame.PbData.(*onebot.Frame_FriendRequestEvent); ok {
+					sendingString, err := json.Marshal(fr.FriendRequestEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gan, ok := eventFrame.PbData.(*onebot.Frame_GroupAdminNoticeEvent); ok {
+					sendingString, err := json.Marshal(gan.GroupAdminNoticeEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gbn, ok := eventFrame.PbData.(*onebot.Frame_GroupBanNoticeEvent); ok {
+					sendingString, err := json.Marshal(gbn.GroupBanNoticeEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gdn, ok := eventFrame.PbData.(*onebot.Frame_GroupDecreaseNoticeEvent); ok {
+					sendingString, err := json.Marshal(gdn.GroupDecreaseNoticeEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gin, ok := eventFrame.PbData.(*onebot.Frame_GroupIncreaseNoticeEvent); ok {
+					sendingString, err := json.Marshal(gin.GroupIncreaseNoticeEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gn, ok := eventFrame.PbData.(*onebot.Frame_GroupNotifyEvent); ok {
+					sendingString, err := json.Marshal(gn.GroupNotifyEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if grn, ok := eventFrame.PbData.(*onebot.Frame_GroupRecallNoticeEvent); ok {
+					sendingString, err := json.Marshal(grn.GroupRecallNoticeEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gr, ok := eventFrame.PbData.(*onebot.Frame_GroupRequestEvent); ok {
+					sendingString, err := json.Marshal(gr.GroupRequestEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gtm, ok := eventFrame.PbData.(*onebot.Frame_GroupTempMessageEvent); ok {
+					sendingString, err := json.Marshal(gtm.GroupTempMessageEvent)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, sendingString)
+				}
+				if gun, ok := eventFrame.PbData.(*onebot.Frame_GroupUploadNoticeEvent); ok {
+					sendingString, err := json.Marshal(gun.GroupUploadNoticeEvent)
 					if err != nil {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
