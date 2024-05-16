@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -33,6 +34,15 @@ var (
 		AllowUnknownFields: true,
 	}
 )
+
+type actionResp struct {
+	BotId  int64  `json:"bot_id,omitempty"`
+	Ok     bool   `json:"ok,omitempty"`
+	Status any    `json:"status,omitempty"`
+	Code   int32  `json:"code,omitempty"`
+	Data   any    `json:"data,omitempty"`
+	Echo   string `json:"echo,omitempty"`
+}
 
 type WsServer struct {
 	*safe_ws.SafeWebSocket        // 线程安全的ws
@@ -144,7 +154,7 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 		var apiReq onebot.Frame
 		switch messageType {
 		case websocket.BinaryMessage:
-			if plugin.Json {
+			if plugin.Protocol == 1 {
 				err := json.Unmarshal(data, &apiReq)
 				if err != nil {
 					log.Errorf("收到API text，解析错误 %v", err)
@@ -158,43 +168,44 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 				}
 			}
 		case websocket.TextMessage:
-			err := json.Unmarshal(data, &apiReq)
-			if err != nil {
-				log.Errorf("收到API text，解析错误 %v", err)
-				return
+			if plugin.Protocol == 1 {
+				err := json.Unmarshal(data, &apiReq)
+				if err != nil {
+					log.Errorf("收到API text，解析错误 %v", err)
+					return
+				}
+			} else {
+				err := jsonUnmarshaler.Unmarshal(bytes.NewReader(data), &apiReq)
+				if err != nil {
+					log.Errorf("收到API text，解析错误 %v", err)
+					return
+				}
 			}
 		}
 
 		log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
-
-		apiResp := handleApiFrame(cli, &apiReq, isApiAllow)
-		apiOneBotResp := handleOnebotApiFrame(cli, &apiReq, isApiAllow)
+		var apiResp *onebot.Frame
+		if plugin.Protocol == 1 {
+			handleOnebotApiFrame(cli, &apiReq, isApiAllow, plugin, ws)
+		} else {
+			apiResp = handleApiFrame(cli, &apiReq, isApiAllow)
+			s, _ := jsonMarshaler.MarshalToString(apiResp)
+			fmt.Println(s)
+		}
 		var (
 			respBytes []byte
 			err       error
 		)
 		switch messageType {
 		case websocket.BinaryMessage:
-			if plugin.Json {
-				respStr, err := json.Marshal(apiOneBotResp)
-				if err != nil {
-					log.Errorf("failed to marshal api resp, %+v", err)
-				}
-				respBytes = respStr
-			} else {
+			if plugin.Protocol == 0 {
 				respBytes, err = proto.Marshal(apiResp)
 				if err != nil {
 					log.Errorf("failed to marshal api resp, %+v", err)
 				}
 			}
 		case websocket.TextMessage:
-			if plugin.Json {
-				respStr, err := json.Marshal(apiOneBotResp)
-				if err != nil {
-					log.Errorf("failed to marshal api resp, %+v", err)
-				}
-				respBytes = respStr
-			} else {
+			if plugin.Protocol == 0 {
 				respStr, err := jsonMarshaler.MarshalToString(apiResp)
 				if err != nil {
 					log.Errorf("failed to marshal api resp, %+v", err)
@@ -207,11 +218,9 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 	}
 }
 
-func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(onebot.Frame_FrameType) bool) (resp *onebot.Frame) {
-	resp = &onebot.Frame{
-		BotId: int64(cli.Uin),
-		Echo:  req.Echo,
-		Ok:    true,
+func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(onebot.Frame_FrameType) bool, plugin *config.Plugin, ws *safe_ws.SafeWebSocket) {
+	resp := &onebot.Frame{
+		Echo: req.Echo,
 	}
 	data, _ := json.Marshal(req)
 	fmt.Println(string(data))
@@ -227,11 +236,17 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupMsgReq); !resp.Ok {
 			return
 		}
-		resp.PbData = &onebot.Frame_SendGroupMsgResp{
-			SendGroupMsgResp: HandleSendGroupMsg(cli, reqData.SendGroupMsgReq),
+		r := HandleSendGroupMsg(cli, reqData.SendGroupMsgReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
 		}
-	}
-	if req.Action == onebot.ActionType_name[int32(onebot.ActionType_send_private_msg)] {
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_send_private_msg)] {
 		reqData := &onebot.Frame_SendPrivateMsgReq{
 			SendPrivateMsgReq: &onebot.SendPrivateMsgReq{
 				UserId:     req.Params.UserId,
@@ -243,11 +258,265 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 		if resp.Ok = isApiAllow(onebot.Frame_TSendPrivateMsgReq); !resp.Ok {
 			return
 		}
-		resp.PbData = &onebot.Frame_SendPrivateMsgResp{
+		ra := &onebot.Frame_SendPrivateMsgResp{
 			SendPrivateMsgResp: HandleSendPrivateMsg(cli, reqData.SendPrivateMsgReq),
 		}
+		rd, _ := json.Marshal(ra)
+		fmt.Println(string(rd))
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   ra.SendPrivateMsgResp,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_get_msg)] {
+		reqData := &onebot.Frame_GetMsgReq{
+			GetMsgReq: &onebot.GetMsgReq{
+				MessageId: int32(req.Params.MessageId),
+			},
+		}
+		resp.FrameType = onebot.Frame_TGetMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetMsgReq); !resp.Ok{
+			return
+		}
+		r := HandleGetMsg(cli, reqData.GetMsgReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_kick)] {
+		reqData := &onebot.Frame_SetGroupKickReq{
+			SetGroupKickReq: &onebot.SetGroupKickReq{
+				GroupId: req.Params.GroupId,
+				UserId: req.Params.UserId,
+				RejectAddRequest: req.Params.RejectAddRequest,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSetGroupKickResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupKickReq); !resp.Ok{
+			return
+		}
+		r := HandleSetGroupKick(cli, reqData.SetGroupKickReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_ban)] {
+		reqData := &onebot.Frame_SetGroupBanReq{
+			SetGroupBanReq: &onebot.SetGroupBanReq{
+				GroupId: req.Params.GroupId,
+				UserId: req.Params.UserId,
+				Duration: int32(req.Params.Duration),
+			},
+		}
+		resp.FrameType = onebot.Frame_TSetGroupBanResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupBanReq); !resp.Ok{
+			return
+		}
+		r := HandleSetGroupBan(cli, reqData.SetGroupBanReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_whole_ban)] {
+		reqData := &onebot.Frame_SetGroupWholeBanReq{
+			SetGroupWholeBanReq: &onebot.SetGroupWholeBanReq{
+				GroupId: req.Params.GroupId,
+				Enable: req.Params.Enable,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSetGroupWholeBanResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupWholeBanReq); !resp.Ok{
+			return
+		}
+		r := HandleSetGroupWholeBan(cli, reqData.SetGroupWholeBanReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_card)] {
+		reqData := &onebot.Frame_SetGroupCardReq{
+			SetGroupCardReq: &onebot.SetGroupCardReq{
+				GroupId: req.Params.GroupId,
+				UserId: req.Params.UserId,
+				Card: req.Params.Card,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSetGroupCardResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupCardReq); !resp.Ok{
+			return
+		}
+		r := HandleSetGroupCard(cli, reqData.SetGroupCardReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_name)] {
+		reqData := &onebot.Frame_SetGroupNameReq{
+			SetGroupNameReq: &onebot.SetGroupNameReq{
+				GroupId: req.Params.GroupId,
+				GroupName: req.Params.GroupName,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSetGroupNameResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupNameReq); !resp.Ok{
+			return
+		}
+		r := HandleSetGroupName(cli, reqData.SetGroupNameReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_leave)] {
+		reqData := &onebot.Frame_SetGroupLeaveReq{
+			SetGroupLeaveReq: &onebot.SetGroupLeaveReq{
+				GroupId: req.Params.GroupId,
+				IsDismiss: req.Params.IsDismiss,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSetGroupLeaveResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupLeaveReq); !resp.Ok{
+			return
+		}
+		r := HandleSetGroupLeave(cli, reqData.SetGroupLeaveReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_get_group_info)] {
+		reqData := &onebot.Frame_GetGroupInfoReq{
+			GetGroupInfoReq: &onebot.GetGroupInfoReq{
+				GroupId: req.Params.GroupId,
+				NoCache: req.Params.NoCache,
+			},
+		}
+		resp.FrameType = onebot.Frame_TGetGroupInfoResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupInfoReq); !resp.Ok{
+			return
+		}
+		r := HandleGetGroupInfo(cli, reqData.GetGroupInfoReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_get_group_member_info)] {
+		reqData := &onebot.Frame_GetGroupMemberInfoReq{
+			GetGroupMemberInfoReq: &onebot.GetGroupMemberInfoReq{
+				GroupId: req.Params.GroupId,
+				UserId: req.Params.UserId,
+				NoCache: req.Params.NoCache,
+			},
+		}
+		resp.FrameType = onebot.Frame_TGetGroupMemberInfoResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupMemberInfoReq); !resp.Ok{
+			return
+		}
+		r := HandleGetGroupMemberInfo(cli, reqData.GetGroupMemberInfoReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_group_poke)] {
+		reqData := &onebot.Frame_SendGroupPokeReq{
+			SendGroupPokeReq: &onebot.SendGroupPokeReq{
+				GroupId: req.Params.GroupId,
+				ToUin: req.Params.ToUin,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSendGroupPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok{
+			return
+		}
+		r := HandleSendGroupPoke(cli, reqData.SendGroupPokeReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_friend_poke)] {
+		reqData := &onebot.Frame_SendFriendPokeReq{
+			SendFriendPokeReq: &onebot.SendFriendPokeReq{
+				ToUin: req.Params.ToUin,
+				AioUin: req.Params.AioUin,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSendFriendPokeResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendFriendPokeReq); !resp.Ok{
+			return
+		}
+		r := HandleSendFriendPoke(cli, reqData.SendFriendPokeReq)
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "ok",
+			Code:   0,
+			Data:   &r,
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else {
+		data := &actionResp{
+			BotId:  int64(cli.Uin),
+			Ok:     resp.Ok,
+			Status: "failure",
+			Code:   -1,
+			Data:   fmt.Sprintf("请求 %s 失败，%s 不存在或未实现", req.Action, req.Action),
+			Echo:   req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
 	}
-	return resp
 }
 
 func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(onebot.Frame_FrameType) bool) (resp *onebot.Frame) {
@@ -452,7 +721,7 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 		}
 
 		if report {
-			if ws.Json {
+			if ws.Protocol == 1 {
 				// 使用json上报
 				if pme, ok := eventFrame.PbData.(*onebot.Frame_PrivateMessageEvent); ok {
 					sendingString, err := json.Marshal(pme.PrivateMessageEvent)
@@ -460,7 +729,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gme, ok := eventFrame.PbData.(*onebot.Frame_GroupMessageEvent); ok {
 					sendingString, err := json.Marshal(gme.GroupMessageEvent)
@@ -468,7 +741,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if fan, ok := eventFrame.PbData.(*onebot.Frame_FriendAddNoticeEvent); ok {
 					sendingString, err := json.Marshal(fan.FriendAddNoticeEvent)
@@ -476,7 +753,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if frn, ok := eventFrame.PbData.(*onebot.Frame_FriendRecallNoticeEvent); ok {
 					sendingString, err := json.Marshal(frn.FriendRecallNoticeEvent)
@@ -484,7 +765,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if fr, ok := eventFrame.PbData.(*onebot.Frame_FriendRequestEvent); ok {
 					sendingString, err := json.Marshal(fr.FriendRequestEvent)
@@ -492,7 +777,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gan, ok := eventFrame.PbData.(*onebot.Frame_GroupAdminNoticeEvent); ok {
 					sendingString, err := json.Marshal(gan.GroupAdminNoticeEvent)
@@ -500,7 +789,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gbn, ok := eventFrame.PbData.(*onebot.Frame_GroupBanNoticeEvent); ok {
 					sendingString, err := json.Marshal(gbn.GroupBanNoticeEvent)
@@ -508,7 +801,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gdn, ok := eventFrame.PbData.(*onebot.Frame_GroupDecreaseNoticeEvent); ok {
 					sendingString, err := json.Marshal(gdn.GroupDecreaseNoticeEvent)
@@ -516,7 +813,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gin, ok := eventFrame.PbData.(*onebot.Frame_GroupIncreaseNoticeEvent); ok {
 					sendingString, err := json.Marshal(gin.GroupIncreaseNoticeEvent)
@@ -524,7 +825,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gn, ok := eventFrame.PbData.(*onebot.Frame_GroupNotifyEvent); ok {
 					sendingString, err := json.Marshal(gn.GroupNotifyEvent)
@@ -532,7 +837,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if grn, ok := eventFrame.PbData.(*onebot.Frame_GroupRecallNoticeEvent); ok {
 					sendingString, err := json.Marshal(grn.GroupRecallNoticeEvent)
@@ -540,7 +849,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gr, ok := eventFrame.PbData.(*onebot.Frame_GroupRequestEvent); ok {
 					sendingString, err := json.Marshal(gr.GroupRequestEvent)
@@ -548,7 +861,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gtm, ok := eventFrame.PbData.(*onebot.Frame_GroupTempMessageEvent); ok {
 					sendingString, err := json.Marshal(gtm.GroupTempMessageEvent)
@@ -556,7 +873,11 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 				if gun, ok := eventFrame.PbData.(*onebot.Frame_GroupUploadNoticeEvent); ok {
 					sendingString, err := json.Marshal(gun.GroupUploadNoticeEvent)
@@ -564,17 +885,31 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 						log.Errorf("event 序列化错误 %v", err)
 						continue
 					}
-					_ = ws.Send(websocket.TextMessage, sendingString)
+					if ws.Json {
+						_ = ws.Send(websocket.TextMessage, sendingString)
+					} else {
+						_ = ws.Send(websocket.BinaryMessage, sendingString)
+					}
 				}
 			} else {
-				// 使用protobuf上报
-				sendingBytes, err := proto.Marshal(eventFrame) // 使用正则修改后的eventFrame
-				if err != nil {
-					log.Errorf("event 序列化错误 %v", err)
-					continue
+				if ws.Json {
+					// 使用json上报
+					sendingString, err := jsonMarshaler.MarshalToString(eventFrame)
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					_ = ws.Send(websocket.TextMessage, []byte(sendingString))
+				} else {
+					// 使用protobuf上报
+					sendingBytes, err := proto.Marshal(eventFrame) // 使用正则修改后的eventFrame
+					if err != nil {
+						log.Errorf("event 序列化错误 %v", err)
+						continue
+					}
+					log.Debugf("上报 event 给 [%s](%s)", ws.Name, ws.wsUrl)
+					_ = ws.Send(websocket.BinaryMessage, sendingBytes)
 				}
-				log.Debugf("上报 event 给 [%s](%s)", ws.Name, ws.wsUrl)
-				_ = ws.Send(websocket.BinaryMessage, sendingBytes)
 			}
 		}
 	}
@@ -587,4 +922,16 @@ func int32SliceContains(numbers []int32, num int32) bool {
 		}
 	}
 	return false
+}
+
+func sendActionRespData(ar *actionResp, plugin *config.Plugin, ws *safe_ws.SafeWebSocket) {
+	data, err := json.Marshal(ar)
+	fmt.Println(string(data))
+	if err == nil {
+		if plugin.Json {
+			_ = ws.Send(websocket.TextMessage, data)
+		} else {
+			_ = ws.Send(websocket.BinaryMessage, data)
+		}
+	}
 }

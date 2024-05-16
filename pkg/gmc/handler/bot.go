@@ -301,6 +301,7 @@ func SavePlugin(c *gin.Context) {
 		Name:         p.Name,
 		Disabled:     p.Disabled,
 		Json:         p.Json,
+		Protocol:     p.Protocol,
 		Urls:         p.Urls,
 		EventFilter:  p.EventFilter,
 		ApiFilter:    p.ApiFilter,

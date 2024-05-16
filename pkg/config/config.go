@@ -29,6 +29,7 @@ func init() {
 		Name:         "default",
 		Disabled:     false,
 		Json:         false,
+		Protocol:     0,
 		Urls:         []string{"ws://localhost:8081/ws/cq/"},
 		EventFilter:  []int32{},
 		ApiFilter:    []int32{},
@@ -51,6 +52,7 @@ type Plugin struct {
 	Name         string              `json:"-"`             // 功能名称
 	Disabled     bool                `json:"disabled"`      // 不填false默认启用
 	Json         bool                `json:"json"`          // json上报
+	Protocol     int32               `json:"protocol"`      // 通信协议
 	Urls         []string            `json:"urls"`          // 服务器列表
 	EventFilter  []int32             `json:"event_filter"`  // 事件过滤
 	ApiFilter    []int32             `json:"api_filter"`    // API过滤
