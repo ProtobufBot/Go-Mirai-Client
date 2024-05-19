@@ -173,7 +173,7 @@ type GroupMessageEvent struct {
 	RawMessage  string                       `protobuf:"bytes,11,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message"`
 	Font        int32                        `protobuf:"varint,12,opt,name=font,proto3" json:"font"`
 	Sender      *GroupMessageEvent_Sender    `protobuf:"bytes,13,opt,name=sender,proto3" json:"sender"`
-	Extra       map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Extra       map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupMessageEvent) Reset() {

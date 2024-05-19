@@ -79,13 +79,13 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 	miraiMsg := ProtoMsgToMiraiMsg(cli, req.Message, req.AutoEscape)
 	sendingMessage := &message.SendingMessage{Elements: miraiMsg}
 
-	if req.GroupId != 0 && req.UserId != 0 { // 临时
+	/*if req.GroupId != 0 && req.UserId != 0 { // 临时
 		ret, _ := cli.SendTempMessage(uint32(req.GroupId), uint32(req.UserId), sendingMessage.Elements)
 		cache.PrivateMessageLru.Add(ret.PrivateSequence, ret)
 		return &onebot.SendMsgResp{
 			MessageId: int32(ret.PrivateSequence),
 		}
-	}
+	}*/
 
 	if req.GroupId != 0 { // 群
 		if g, err := cli.GetCachedGroupInfo(uint32(req.GroupId)); err != nil || g == nil {

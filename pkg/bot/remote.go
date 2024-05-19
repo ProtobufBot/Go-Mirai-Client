@@ -311,7 +311,7 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 		r := HandleGetMsg(cli, reqData.GetMsgReq)
 		data := &actionResp{
 			Status:  "ok",
-			RetCode: 0,
+			RetCode: 0,			
 			Data:    &r,
 			Echo:    req.Echo,
 		}

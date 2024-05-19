@@ -1051,7 +1051,7 @@ type GetMsgResp struct {
 
 	Time        int32              `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
 	MessageType string             `protobuf:"bytes,2,opt,name=message_type,json=messageType,proto3" json:"message_type"`
-	MessageId   int32              `protobuf:"varint,3,opt,name=message_id,json=messageId,proto3" json:"message_id"`
+	MessageId   int32              `protobuf:"varint,3,opt,name=message_id,json=messageId,proto3" json:"id"`
 	RealId      int32              `protobuf:"varint,4,opt,name=real_id,json=realId,proto3" json:"real_id"`
 	Sender      *GetMsgResp_Sender `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender"`
 	Message     []*Message         `protobuf:"bytes,6,rep,name=message,proto3" json:"message"`

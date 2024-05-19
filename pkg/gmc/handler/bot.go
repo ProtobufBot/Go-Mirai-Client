@@ -85,6 +85,45 @@ func TokenLogin() {
 	}
 }
 
+func TokenReLogin(userId int64, retryInterval int, retryCount int) {
+	var times = 0
+	log.Warnf("Bot已离线 (%v)，将在 %v 秒后尝试重连. 重连次数：%v",
+		qrCodeBot.Uin, retryInterval, times)
+	if qrCodeBot.Online.Load() {
+		log.Warn("Bot已登录")
+		return
+	}
+	if times < retryCount {
+		times++
+		qrCodeBot.Disconnect()
+		bot.Clients.Delete(int64(qrCodeBot.Uin))
+		bot.ReleaseClient(qrCodeBot)
+		time.Sleep(time.Second * time.Duration(retryInterval))
+		devi := device.GetDevice(userId)
+		sigpath := fmt.Sprintf("./sig/%v.bin", userId)
+		fmt.Println(sigpath)
+		data, err := os.ReadFile(sigpath)
+		if err == nil {
+			sig, err := auth.UnmarshalSigInfo(data, true)
+			if err == nil {
+				log.Warnf("%v 第 %v 次登录尝试", userId, times)
+				appInfo := auth.AppList["linux"]
+				qrCodeBot = client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+				qrCodeBot.UseDevice(devi)
+				qrCodeBot.UseSig(sig)
+				qrCodeBot.SessionLogin()
+				go AfterLogin(qrCodeBot)
+			} else {
+				log.Warnf("%v 第 %v 次登录失败, 120秒后重试", userId, times)
+			}
+		} else {
+			log.Warnf("%v 第 %v 次登录失败, 120秒后重试", userId, times)
+		}
+	} else {
+		log.Errorf("failed to reconnect: 重连次数达到设置的上限值, %+v", qrCodeBot.Uin)
+	}
+}
+
 func init() {
 	log.Infof("加载日志插件 Log")
 	plugin.AddPrivateMessagePlugin(plugins.LogPrivateMessage)
@@ -153,6 +192,13 @@ func ListBot(c *gin.Context) {
 		BotList: []*dto.Bot{},
 	}
 	bot.Clients.Range(func(_ int64, cli *client.QQClient) bool {
+		if !cli.Online.Load() {
+			go func() {
+				queryQRCodeMutex.Lock()
+				defer queryQRCodeMutex.Unlock()
+				TokenReLogin(int64(cli.Uin), 5, 20)
+			}()
+		}
 		resp.BotList = append(resp.BotList, &dto.Bot{
 			BotId:    int64(cli.Uin),
 			IsOnline: cli.Online.Load(),
@@ -300,7 +346,12 @@ func SavePlugin(c *gin.Context) {
 		p.EventFilter = []int32{}
 	}
 	if p.Urls != nil {
-		urls = strings.Split(req.Plugin.Urls[0], ",")
+		_urls := strings.Split(req.Plugin.Urls[0], ",")
+		for _, v := range _urls {
+			if v != "" {
+				urls = append(urls, strings.TrimSpace(v))
+			}
+		}
 	}
 	config.Plugins.Store(p.Name, &config.Plugin{
 		Name:         p.Name,

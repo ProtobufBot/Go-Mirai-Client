@@ -29,5 +29,9 @@ TypeScript / JavaScript 推荐使用 [ToneBot](https://github.com/2mf8/ToneBot)
     - 每次登录**必须**使用相同随机种子（数字），方便后续 `session` 登录。（建议使用账号作为随机种子）
 
 3. 配置消息处理器
-    - 在首次启动自动生成的`gmc_config.json`中配置服务器URL，修改后重启生效。
-    - 如果使用其他人编写的程序，建议把`gmc_config.json`打包在一起发送给用户。
+    - 在首次启动自动生成的`default.json`中配置服务器URL，修改后重启生效。
+    - 如果使用其他人编写的程序，建议把`default.json`打包在一起发送给用户。
+
+## 多插件支持
+
+支持多插件，且每个插件URL可以配置多个作为候选项

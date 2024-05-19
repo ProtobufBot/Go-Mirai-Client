@@ -59,6 +59,8 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Elements),
 		Sender: &onebot.GroupMessageEvent_Sender{
 			UserId: int64(event.Sender.Uin),
+			Nickname: event.Sender.Nickname,
+			Card: event.Sender.CardName,
 		},
 	}
 

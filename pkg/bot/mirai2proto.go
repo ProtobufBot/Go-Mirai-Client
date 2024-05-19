@@ -124,7 +124,7 @@ func MiraiReplyToProtoReply(cli *client.QQClient, elem *message.ReplyElement) *o
 	return &onebot.Message{
 		Type: "reply",
 		Data: map[string]string{
-			"reply_seq":   strconv.FormatInt(int64(elem.ReplySeq), 10),
+			"message_id":   strconv.FormatInt(int64(elem.ReplySeq), 10),
 			"sender":      strconv.FormatInt(int64(elem.Sender), 10),
 			"time":        strconv.FormatInt(int64(elem.Time), 10),
 			"raw_message": MiraiMsgToRawMsg(cli, elem.Elements),
