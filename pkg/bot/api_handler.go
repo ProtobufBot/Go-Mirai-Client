@@ -160,6 +160,17 @@ func HandleGetMsg(cli *client.QQClient, req *onebot.GetMsgReq) *onebot.GetMsgRes
 	return nil
 }
 
+func HandleDeletMsg(cli *client.QQClient, req *onebot.DeleteMsgReq) *onebot.DeleteMsgResp {
+	if eventInterface, ok := cache.GroupMessageLru.Get(req.MessageId); ok {
+		if event, ok := eventInterface.(*message.GroupMessage); ok {
+			if err := cli.RecallGroupMessage(event.GroupCode, uint32(event.Id)); err != nil {
+				return &onebot.DeleteMsgResp{}
+			}
+		}
+	}
+	return nil
+}
+
 func ReleaseClient(cli *client.QQClient) {
 	cli.Release()
 	if wsServers, ok := RemoteServers.Load(int64(cli.Uin)); ok {

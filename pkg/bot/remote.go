@@ -316,6 +316,24 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_delete_msg)] {
+		reqData := &onebot.Frame_DeleteMsgReq{
+			DeleteMsgReq: &onebot.DeleteMsgReq{
+				MessageId: int32(req.Params.MessageId),
+			},
+		}
+		resp.FrameType = onebot.Frame_TDeleteMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TDeleteMsgReq); !resp.Ok {
+			return
+		}
+		r := HandleDeletMsg(cli, reqData.DeleteMsgReq)
+		data := &actionResp{
+			Status:  "ok",
+			RetCode: 0,			
+			Data:    &r,
+			Echo:    req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_kick)] {
 		reqData := &onebot.Frame_SetGroupKickReq{
 			SetGroupKickReq: &onebot.SetGroupKickReq{

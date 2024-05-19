@@ -58,9 +58,9 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
 		RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Elements),
 		Sender: &onebot.GroupMessageEvent_Sender{
-			UserId: int64(event.Sender.Uin),
+			UserId:   int64(event.Sender.Uin),
 			Nickname: event.Sender.Nickname,
-			Card: event.Sender.CardName,
+			Card:     event.Sender.CardName,
 		},
 	}
 
@@ -239,10 +239,12 @@ func ReportGroupInvitedRequest(cli *client.QQClient, event *event.GroupInvite) i
 }
 
 func ReportGroupMessageRecalled(cli *client.QQClient, event *event.GroupRecall) int32 {
+	opuin := cli.GetUin(event.OperatorUid, event.GroupUin)
+	auuin := cli.GetUin(event.AuthorUid, event.GroupUin)
 	if event.AuthorUid == event.OperatorUid {
-		log.Infof("群 %v 内 %s 撤回了一条消息, 消息Id为 %v", event.GroupUin, event.AuthorUid, event.Sequence)
+		log.Infof("群 %v 内 %v(%s) 撤回了一条消息, 消息Id为 %v", event.GroupUin, auuin, event.AuthorUid, event.Sequence)
 	} else {
-		log.Infof("群 %v 内 %s 撤回了 %s 的一条消息, 消息Id为 %v", event.GroupUin, event.OperatorUid, event.AuthorUid, event.Sequence)
+		log.Infof("群 %v 内 %v(%s) 撤回了 %v(%s) 的一条消息, 消息Id为 %v", event.GroupUin, opuin, event.OperatorUid, auuin, event.AuthorUid, event.Sequence)
 	}
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TGroupRecallNoticeEvent,
