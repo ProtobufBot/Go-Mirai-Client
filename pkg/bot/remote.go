@@ -33,15 +33,16 @@ var (
 	jsonUnmarshaler = jsonpb.Unmarshaler{
 		AllowUnknownFields: true,
 	}
+	wsprotocol = 0
 )
 
 type actionResp struct {
-	BotId  int64  `json:"bot_id,omitempty"`
-	Ok     bool   `json:"ok,omitempty"`
-	Status any    `json:"status,omitempty"`
-	Code   int32  `json:"code,omitempty"`
-	Data   any    `json:"data,omitempty"`
-	Echo   string `json:"echo,omitempty"`
+	BotId   int64  `json:"bot_id,omitempty"`
+	Ok      bool   `json:"ok,omitempty"`
+	Status  any    `json:"status"`
+	RetCode int32  `json:"retcode"`
+	Data    any    `json:"data"`
+	Echo    string `json:"echo"`
 }
 
 type WsServer struct {
@@ -128,6 +129,8 @@ func ConnectUniversal(cli *client.QQClient) {
 }
 
 func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+	fmt.Println("接收")
+	wsprotocol = int(plugin.Protocol)
 	apiFilter := map[onebot.Frame_FrameType]bool{}
 	for _, apiType := range plugin.ApiFilter {
 		apiFilter[onebot.Frame_FrameType(apiType)] = true
@@ -214,7 +217,9 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 			}
 		}
 		log.Debugf("发送 apiResp 信息, %+v", util.MustMarshal(apiResp))
-		_ = ws.Send(messageType, respBytes)
+		if wsprotocol == 0 {
+			_ = ws.Send(messageType, respBytes)
+		}
 	}
 }
 
@@ -238,12 +243,10 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 		}
 		r := HandleSendGroupMsg(cli, reqData.SendGroupMsgReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_send_private_msg)] {
@@ -264,12 +267,36 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 		rd, _ := json.Marshal(ra)
 		fmt.Println(string(rd))
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   ra.SendPrivateMsgResp,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    ra.SendPrivateMsgResp,
+			Echo:    req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_send_msg)] {
+		reqData := &onebot.Frame_SendMsgReq{
+			SendMsgReq: &onebot.SendMsgReq{
+				MessageType: req.Params.MessageType,
+				GroupId:     req.Params.GroupId,
+				UserId:      req.Params.UserId,
+				Message:     req.Params.Message,
+				AutoEscape:  req.Params.AutoEscape,
+			},
+		}
+		resp.FrameType = onebot.Frame_TSendPrivateMsgResp
+		if resp.Ok = isApiAllow(onebot.Frame_TSendPrivateMsgReq); !resp.Ok {
+			return
+		}
+		ra := &onebot.Frame_SendMsgResp{
+			SendMsgResp: HandleSendMsg(cli, reqData.SendMsgReq),
+		}
+		rd, _ := json.Marshal(ra)
+		fmt.Println(string(rd))
+		data := &actionResp{
+			Status:  "ok",
+			RetCode: 0,
+			Data:    ra.SendMsgResp,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_get_msg)] {
@@ -279,146 +306,132 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 			},
 		}
 		resp.FrameType = onebot.Frame_TGetMsgResp
-		if resp.Ok = isApiAllow(onebot.Frame_TGetMsgReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TGetMsgReq); !resp.Ok {
 			return
 		}
 		r := HandleGetMsg(cli, reqData.GetMsgReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_kick)] {
 		reqData := &onebot.Frame_SetGroupKickReq{
 			SetGroupKickReq: &onebot.SetGroupKickReq{
-				GroupId: req.Params.GroupId,
-				UserId: req.Params.UserId,
+				GroupId:          req.Params.GroupId,
+				UserId:           req.Params.UserId,
 				RejectAddRequest: req.Params.RejectAddRequest,
 			},
 		}
 		resp.FrameType = onebot.Frame_TSetGroupKickResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupKickReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupKickReq); !resp.Ok {
 			return
 		}
 		r := HandleSetGroupKick(cli, reqData.SetGroupKickReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_ban)] {
 		reqData := &onebot.Frame_SetGroupBanReq{
 			SetGroupBanReq: &onebot.SetGroupBanReq{
-				GroupId: req.Params.GroupId,
-				UserId: req.Params.UserId,
+				GroupId:  req.Params.GroupId,
+				UserId:   req.Params.UserId,
 				Duration: int32(req.Params.Duration),
 			},
 		}
 		resp.FrameType = onebot.Frame_TSetGroupBanResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupBanReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupBanReq); !resp.Ok {
 			return
 		}
 		r := HandleSetGroupBan(cli, reqData.SetGroupBanReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_whole_ban)] {
 		reqData := &onebot.Frame_SetGroupWholeBanReq{
 			SetGroupWholeBanReq: &onebot.SetGroupWholeBanReq{
 				GroupId: req.Params.GroupId,
-				Enable: req.Params.Enable,
+				Enable:  req.Params.Enable,
 			},
 		}
 		resp.FrameType = onebot.Frame_TSetGroupWholeBanResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupWholeBanReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupWholeBanReq); !resp.Ok {
 			return
 		}
 		r := HandleSetGroupWholeBan(cli, reqData.SetGroupWholeBanReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_card)] {
 		reqData := &onebot.Frame_SetGroupCardReq{
 			SetGroupCardReq: &onebot.SetGroupCardReq{
 				GroupId: req.Params.GroupId,
-				UserId: req.Params.UserId,
-				Card: req.Params.Card,
+				UserId:  req.Params.UserId,
+				Card:    req.Params.Card,
 			},
 		}
 		resp.FrameType = onebot.Frame_TSetGroupCardResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupCardReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupCardReq); !resp.Ok {
 			return
 		}
 		r := HandleSetGroupCard(cli, reqData.SetGroupCardReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_name)] {
 		reqData := &onebot.Frame_SetGroupNameReq{
 			SetGroupNameReq: &onebot.SetGroupNameReq{
-				GroupId: req.Params.GroupId,
+				GroupId:   req.Params.GroupId,
 				GroupName: req.Params.GroupName,
 			},
 		}
 		resp.FrameType = onebot.Frame_TSetGroupNameResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupNameReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupNameReq); !resp.Ok {
 			return
 		}
 		r := HandleSetGroupName(cli, reqData.SetGroupNameReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_set_group_leave)] {
 		reqData := &onebot.Frame_SetGroupLeaveReq{
 			SetGroupLeaveReq: &onebot.SetGroupLeaveReq{
-				GroupId: req.Params.GroupId,
+				GroupId:   req.Params.GroupId,
 				IsDismiss: req.Params.IsDismiss,
 			},
 		}
 		resp.FrameType = onebot.Frame_TSetGroupLeaveResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupLeaveReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSetGroupLeaveReq); !resp.Ok {
 			return
 		}
 		r := HandleSetGroupLeave(cli, reqData.SetGroupLeaveReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_get_group_info)] {
@@ -429,91 +442,81 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 			},
 		}
 		resp.FrameType = onebot.Frame_TGetGroupInfoResp
-		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupInfoReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupInfoReq); !resp.Ok {
 			return
 		}
 		r := HandleGetGroupInfo(cli, reqData.GetGroupInfoReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_get_group_member_info)] {
 		reqData := &onebot.Frame_GetGroupMemberInfoReq{
 			GetGroupMemberInfoReq: &onebot.GetGroupMemberInfoReq{
 				GroupId: req.Params.GroupId,
-				UserId: req.Params.UserId,
+				UserId:  req.Params.UserId,
 				NoCache: req.Params.NoCache,
 			},
 		}
 		resp.FrameType = onebot.Frame_TGetGroupMemberInfoResp
-		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupMemberInfoReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TGetGroupMemberInfoReq); !resp.Ok {
 			return
 		}
 		r := HandleGetGroupMemberInfo(cli, reqData.GetGroupMemberInfoReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_group_poke)] {
 		reqData := &onebot.Frame_SendGroupPokeReq{
 			SendGroupPokeReq: &onebot.SendGroupPokeReq{
 				GroupId: req.Params.GroupId,
-				ToUin: req.Params.ToUin,
+				ToUin:   req.Params.ToUin,
 			},
 		}
 		resp.FrameType = onebot.Frame_TSendGroupPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSendGroupPokeReq); !resp.Ok {
 			return
 		}
 		r := HandleSendGroupPoke(cli, reqData.SendGroupPokeReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_friend_poke)] {
 		reqData := &onebot.Frame_SendFriendPokeReq{
 			SendFriendPokeReq: &onebot.SendFriendPokeReq{
-				ToUin: req.Params.ToUin,
+				ToUin:  req.Params.ToUin,
 				AioUin: req.Params.AioUin,
 			},
 		}
 		resp.FrameType = onebot.Frame_TSendFriendPokeResp
-		if resp.Ok = isApiAllow(onebot.Frame_TSendFriendPokeReq); !resp.Ok{
+		if resp.Ok = isApiAllow(onebot.Frame_TSendFriendPokeReq); !resp.Ok {
 			return
 		}
 		r := HandleSendFriendPoke(cli, reqData.SendFriendPokeReq)
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "ok",
-			Code:   0,
-			Data:   &r,
-			Echo:   req.Echo,
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	} else {
 		data := &actionResp{
-			BotId:  int64(cli.Uin),
-			Ok:     resp.Ok,
-			Status: "failure",
-			Code:   -1,
-			Data:   fmt.Sprintf("请求 %s 失败，%s 不存在或未实现", req.Action, req.Action),
-			Echo:   req.Echo,
+			Status:  "failure",
+			RetCode: -1,
+			Data:    fmt.Sprintf("请求 %s 失败，%s 不存在或未实现", req.Action, req.Action),
+			Echo:    req.Echo,
 		}
 		sendActionRespData(data, plugin, ws)
 	}
@@ -679,10 +682,21 @@ func handleApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow func(one
 func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 	eventFrame.Ok = true
 	eventFrame.BotId = int64(cli.Uin)
-	eventBytes, err := proto.Marshal(eventFrame)
-	if err != nil {
-		log.Errorf("event 序列化错误 %v", err)
-		return
+	var eventBytes []byte
+	if wsprotocol == 1 {
+		var err error
+		eventBytes, err = json.Marshal(eventFrame)
+		if err != nil {
+			log.Errorf("event 序列化错误 %v", err)
+			return
+		}
+	} else {
+		var err error
+		eventBytes, err = proto.Marshal(eventFrame)
+		if err != nil {
+			log.Errorf("event 序列化错误 %v", err)
+			return
+		}
 	}
 
 	wsServers, ok := RemoteServers.Load(int64(cli.Uin))
@@ -698,11 +712,18 @@ func HandleEventFrame(cli *client.QQClient, eventFrame *onebot.Frame) {
 				continue
 			}
 		}
-
-		err := proto.Unmarshal(eventBytes, eventFrame) // 每个serverGroup, eventFrame 恢复原消息，防止因正则匹配互相影响
-		if err != nil {
-			log.Errorf("failed to unmarshal raw event frame, %+v", err)
-			return
+		if wsprotocol == 1 {
+			err := json.Unmarshal(eventBytes, eventFrame) // 每个serverGroup, eventFrame 恢复原消息，防止因正则匹配互相影响
+			if err != nil {
+				log.Errorf("failed to unmarshal raw event frame, %+v", err)
+				return
+			}
+		} else {
+			err := proto.Unmarshal(eventBytes, eventFrame) // 每个serverGroup, eventFrame 恢复原消息，防止因正则匹配互相影响
+			if err != nil {
+				log.Errorf("failed to unmarshal raw event frame, %+v", err)
+				return
+			}
 		}
 
 		report := true // 是否上报event
@@ -926,7 +947,6 @@ func int32SliceContains(numbers []int32, num int32) bool {
 
 func sendActionRespData(ar *actionResp, plugin *config.Plugin, ws *safe_ws.SafeWebSocket) {
 	data, err := json.Marshal(ar)
-	fmt.Println(string(data))
 	if err == nil {
 		if plugin.Json {
 			_ = ws.Send(websocket.TextMessage, data)

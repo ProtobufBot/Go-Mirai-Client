@@ -25,18 +25,18 @@ type PrivateMessageEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time        int64                       `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId      int64                       `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType    string                      `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	MessageType string                      `protobuf:"bytes,4,opt,name=message_type,json=messageType,proto3" json:"message_type,omitempty"`
-	SubType     string                      `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	MessageId   int32                       `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	UserId      int64                       `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Message     []*Message                  `protobuf:"bytes,8,rep,name=message,proto3" json:"message,omitempty"`
-	RawMessage  string                      `protobuf:"bytes,9,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message,omitempty"`
-	Font        int32                       `protobuf:"varint,10,opt,name=font,proto3" json:"font,omitempty"`
-	Sender      *PrivateMessageEvent_Sender `protobuf:"bytes,11,opt,name=sender,proto3" json:"sender,omitempty"`
-	Extra       map[string]string           `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time        int64                       `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId      int64                       `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType    string                      `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	MessageType string                      `protobuf:"bytes,4,opt,name=message_type,json=messageType,proto3" json:"message_type"`
+	SubType     string                      `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type"`
+	MessageId   int32                       `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id"`
+	UserId      int64                       `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Message     []*Message                  `protobuf:"bytes,8,rep,name=message,proto3" json:"message"`
+	RawMessage  string                      `protobuf:"bytes,9,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message"`
+	Font        int32                       `protobuf:"varint,10,opt,name=font,proto3" json:"font"`
+	Sender      *PrivateMessageEvent_Sender `protobuf:"bytes,11,opt,name=sender,proto3" json:"sender"`
+	Extra       map[string]string           `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *PrivateMessageEvent) Reset() {
@@ -160,20 +160,20 @@ type GroupMessageEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time        int64                        `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId      int64                        `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType    string                       `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	MessageType string                       `protobuf:"bytes,4,opt,name=message_type,json=messageType,proto3" json:"message_type,omitempty"`
-	SubType     string                       `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	MessageId   int32                        `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	GroupId     int64                        `protobuf:"varint,7,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId      int64                        `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Anonymous   *GroupMessageEvent_Anonymous `protobuf:"bytes,9,opt,name=anonymous,proto3" json:"anonymous,omitempty"`
-	Message     []*Message                   `protobuf:"bytes,10,rep,name=message,proto3" json:"message,omitempty"`
-	RawMessage  string                       `protobuf:"bytes,11,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message,omitempty"`
-	Font        int32                        `protobuf:"varint,12,opt,name=font,proto3" json:"font,omitempty"`
-	Sender      *GroupMessageEvent_Sender    `protobuf:"bytes,13,opt,name=sender,proto3" json:"sender,omitempty"`
-	Extra       map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time        int64                        `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId      int64                        `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType    string                       `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	MessageType string                       `protobuf:"bytes,4,opt,name=message_type,json=messageType,proto3" json:"message_type"`
+	SubType     string                       `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type"`
+	MessageId   int32                        `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id"`
+	GroupId     int64                        `protobuf:"varint,7,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	UserId      int64                        `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Anonymous   *GroupMessageEvent_Anonymous `protobuf:"bytes,9,opt,name=anonymous,proto3" json:"anonymous"`
+	Message     []*Message                   `protobuf:"bytes,10,rep,name=message,proto3" json:"message"`
+	RawMessage  string                       `protobuf:"bytes,11,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message"`
+	Font        int32                        `protobuf:"varint,12,opt,name=font,proto3" json:"font"`
+	Sender      *GroupMessageEvent_Sender    `protobuf:"bytes,13,opt,name=sender,proto3" json:"sender"`
+	Extra       map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupMessageEvent) Reset() {
@@ -311,16 +311,16 @@ type GroupTempMessageEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	MessageType string            `protobuf:"bytes,4,opt,name=message_type,json=messageType,proto3" json:"message_type,omitempty"`
-	GroupId     int64             `protobuf:"varint,7,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId      int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Message     []*Message        `protobuf:"bytes,10,rep,name=message,proto3" json:"message,omitempty"`
-	RawMessage  string            `protobuf:"bytes,11,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message,omitempty"`
-	MessageId   int32             `protobuf:"varint,15,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	MessageType string            `protobuf:"bytes,4,opt,name=message_type,json=messageType,proto3" json:"message_type"`
+	GroupId     int64             `protobuf:"varint,7,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	UserId      int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Message     []*Message        `protobuf:"bytes,10,rep,name=message,proto3" json:"message"`
+	RawMessage  string            `protobuf:"bytes,11,opt,name=raw_message,json=rawMessage,proto3" json:"raw_message"`
+	MessageId   int32             `protobuf:"varint,15,opt,name=message_id,json=messageId,proto3" json:"message_id"`
+	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupTempMessageEvent) Reset() {
@@ -430,14 +430,14 @@ type GroupUploadNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time       int64                        `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId     int64                        `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType   string                       `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType string                       `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	GroupId    int64                        `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId     int64                        `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	File       *GroupUploadNoticeEvent_File `protobuf:"bytes,7,opt,name=file,proto3" json:"file,omitempty"`
-	Extra      map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time       int64                        `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId     int64                        `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType   string                       `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType string                       `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	GroupId    int64                        `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	UserId     int64                        `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	File       *GroupUploadNoticeEvent_File `protobuf:"bytes,7,opt,name=file,proto3" json:"file"`
+	Extra      map[string]string            `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupUploadNoticeEvent) Reset() {
@@ -533,17 +533,17 @@ type GroupNotifyEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time       int64  `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId     int64  `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType   string `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType string `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	GroupId    int64  `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	GroupName  string `protobuf:"bytes,6,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	Sender     int64  `protobuf:"varint,7,opt,name=sender,proto3" json:"sender,omitempty"`
-	SenderCard string `protobuf:"bytes,8,opt,name=sender_card,json=senderCard,proto3" json:"sender_card,omitempty"`
-	TargetId   int64  `protobuf:"varint,9,opt,name=target_id,json=targetId,proto3" json:"target_id,omitempty"`
-	TargetCard string `protobuf:"bytes,10,opt,name=target_card,json=targetCard,proto3" json:"target_card,omitempty"`
-	Honor      string `protobuf:"bytes,11,opt,name=honor,proto3" json:"honor,omitempty"`
+	Time       int64  `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId     int64  `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType   string `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType string `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	GroupId    int64  `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	GroupName  string `protobuf:"bytes,6,opt,name=group_name,json=groupName,proto3" json:"group_name"`
+	Sender     int64  `protobuf:"varint,7,opt,name=sender,proto3" json:"sender"`
+	SenderCard string `protobuf:"bytes,8,opt,name=sender_card,json=senderCard,proto3" json:"sender_card"`
+	TargetId   int64  `protobuf:"varint,9,opt,name=target_id,json=targetId,proto3" json:"target_id"`
+	TargetCard string `protobuf:"bytes,10,opt,name=target_card,json=targetCard,proto3" json:"target_card"`
+	Honor      string `protobuf:"bytes,11,opt,name=honor,proto3" json:"honor"`
 }
 
 func (x *GroupNotifyEvent) Reset() {
@@ -660,14 +660,14 @@ type GroupAdminNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType    string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId    int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId     int64             `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	SubType    string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type"`
+	GroupId    int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	UserId     int64             `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupAdminNoticeEvent) Reset() {
@@ -763,18 +763,18 @@ type GroupDecreaseNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType  string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType     string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId     int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	OperatorId  int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	UserId      int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	MemberUid   string            `protobuf:"bytes,9,opt,name=member_uid,json=memberUid,proto3" json:"member_uid,omitempty"`
-	OperatorUid string            `protobuf:"bytes,10,opt,name=operator_uid,json=operatorUid,proto3" json:"operator_uid,omitempty"`
-	ExitType    uint32            `protobuf:"varint,11,opt,name=exit_type,json=exitType,proto3" json:"exit_type,omitempty"`
-	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType  string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	SubType     string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type"`
+	GroupId     int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	OperatorId  int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id"`
+	UserId      int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	MemberUid   string            `protobuf:"bytes,9,opt,name=member_uid,json=memberUid,proto3" json:"member_uid"`
+	OperatorUid string            `protobuf:"bytes,10,opt,name=operator_uid,json=operatorUid,proto3" json:"operator_uid"`
+	ExitType    uint32            `protobuf:"varint,11,opt,name=exit_type,json=exitType,proto3" json:"exit_type"`
+	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupDecreaseNoticeEvent) Reset() {
@@ -898,18 +898,18 @@ type GroupIncreaseNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType    string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId    int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	OperatorId int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	UserId     int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	MemberUid  string            `protobuf:"bytes,9,opt,name=member_uid,json=memberUid,proto3" json:"member_uid,omitempty"`
-	InvitorUid string            `protobuf:"bytes,10,opt,name=invitor_uid,json=invitorUid,proto3" json:"invitor_uid,omitempty"`
-	JoinType   uint32            `protobuf:"varint,11,opt,name=join_type,json=joinType,proto3" json:"join_type,omitempty"`
-	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	SubType    string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type"`
+	GroupId    int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	OperatorId int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id"`
+	UserId     int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	MemberUid  string            `protobuf:"bytes,9,opt,name=member_uid,json=memberUid,proto3" json:"member_uid"`
+	InvitorUid string            `protobuf:"bytes,10,opt,name=invitor_uid,json=invitorUid,proto3" json:"invitor_uid"`
+	JoinType   uint32            `protobuf:"varint,11,opt,name=join_type,json=joinType,proto3" json:"join_type"`
+	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupIncreaseNoticeEvent) Reset() {
@@ -1033,18 +1033,18 @@ type GroupBanNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType  string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	SubType     string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId     int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	OperatorId  int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	UserId      int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Duration    int64             `protobuf:"varint,9,opt,name=duration,proto3" json:"duration,omitempty"`
-	OperatorUid string            `protobuf:"bytes,10,opt,name=operator_uid,json=operatorUid,proto3" json:"operator_uid,omitempty"`
-	TargetUid   string            `protobuf:"bytes,11,opt,name=target_uid,json=targetUid,proto3" json:"target_uid,omitempty"`
-	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType  string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	SubType     string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type"`
+	GroupId     int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	OperatorId  int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id"`
+	UserId      int64             `protobuf:"varint,8,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Duration    int64             `protobuf:"varint,9,opt,name=duration,proto3" json:"duration"`
+	OperatorUid string            `protobuf:"bytes,10,opt,name=operator_uid,json=operatorUid,proto3" json:"operator_uid"`
+	TargetUid   string            `protobuf:"bytes,11,opt,name=target_uid,json=targetUid,proto3" json:"target_uid"`
+	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupBanNoticeEvent) Reset() {
@@ -1168,16 +1168,16 @@ type FriendAddNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	UserId     int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	SourceUin  uint32            `protobuf:"varint,8,opt,name=source_uin,json=sourceUin,proto3" json:"source_uin,omitempty"`
-	SourceUid  string            `protobuf:"bytes,9,opt,name=source_uid,json=sourceUid,proto3" json:"source_uid,omitempty"`
-	Msg        string            `protobuf:"bytes,10,opt,name=msg,proto3" json:"msg,omitempty"`
-	Source     string            `protobuf:"bytes,11,opt,name=source,proto3" json:"source,omitempty"`
-	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	UserId     int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	SourceUin  uint32            `protobuf:"varint,8,opt,name=source_uin,json=sourceUin,proto3" json:"source_uin"`
+	SourceUid  string            `protobuf:"bytes,9,opt,name=source_uid,json=sourceUid,proto3" json:"source_uid"`
+	Msg        string            `protobuf:"bytes,10,opt,name=msg,proto3" json:"msg"`
+	Source     string            `protobuf:"bytes,11,opt,name=source,proto3" json:"source"`
+	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *FriendAddNoticeEvent) Reset() {
@@ -1287,19 +1287,19 @@ type GroupRecallNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType  string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	GroupId     int64             `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId      int64             `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	OperatorId  int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	MessageId   int32             `protobuf:"varint,8,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	AuthorUid   string            `protobuf:"bytes,10,opt,name=author_uid,json=authorUid,proto3" json:"author_uid,omitempty"`
-	OperatorUid string            `protobuf:"bytes,11,opt,name=operator_uid,json=operatorUid,proto3" json:"operator_uid,omitempty"`
-	Sequence    uint64            `protobuf:"varint,12,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	Random      uint32            `protobuf:"varint,13,opt,name=random,proto3" json:"random,omitempty"`
-	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType  string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	GroupId     int64             `protobuf:"varint,5,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	UserId      int64             `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	OperatorId  int64             `protobuf:"varint,7,opt,name=operator_id,json=operatorId,proto3" json:"operator_id"`
+	MessageId   int32             `protobuf:"varint,8,opt,name=message_id,json=messageId,proto3" json:"message_id"`
+	AuthorUid   string            `protobuf:"bytes,10,opt,name=author_uid,json=authorUid,proto3" json:"author_uid"`
+	OperatorUid string            `protobuf:"bytes,11,opt,name=operator_uid,json=operatorUid,proto3" json:"operator_uid"`
+	Sequence    uint64            `protobuf:"varint,12,opt,name=sequence,proto3" json:"sequence"`
+	Random      uint32            `protobuf:"varint,13,opt,name=random,proto3" json:"random"`
+	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupRecallNoticeEvent) Reset() {
@@ -1430,16 +1430,16 @@ type FriendRecallNoticeEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type,omitempty"`
-	UserId     int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	MessageId  int32             `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	FromUid    string            `protobuf:"bytes,8,opt,name=from_uid,json=fromUid,proto3" json:"from_uid,omitempty"`
-	Sequence   uint64            `protobuf:"varint,9,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	Random     uint32            `protobuf:"varint,10,opt,name=random,proto3" json:"random,omitempty"`
-	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time       int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId     int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType   string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	NoticeType string            `protobuf:"bytes,4,opt,name=notice_type,json=noticeType,proto3" json:"notice_type"`
+	UserId     int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	MessageId  int32             `protobuf:"varint,6,opt,name=message_id,json=messageId,proto3" json:"message_id"`
+	FromUid    string            `protobuf:"bytes,8,opt,name=from_uid,json=fromUid,proto3" json:"from_uid"`
+	Sequence   uint64            `protobuf:"varint,9,opt,name=sequence,proto3" json:"sequence"`
+	Random     uint32            `protobuf:"varint,10,opt,name=random,proto3" json:"random"`
+	Extra      map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *FriendRecallNoticeEvent) Reset() {
@@ -1549,18 +1549,18 @@ type FriendRequestEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	RequestType string            `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`
-	UserId      int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Comment     string            `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment,omitempty"`
-	Flag        string            `protobuf:"bytes,7,opt,name=flag,proto3" json:"flag,omitempty"`
-	SourceUin   uint32            `protobuf:"varint,8,opt,name=source_uin,json=sourceUin,proto3" json:"source_uin,omitempty"`
-	SourceUid   string            `protobuf:"bytes,9,opt,name=source_uid,json=sourceUid,proto3" json:"source_uid,omitempty"`
-	Msg         string            `protobuf:"bytes,10,opt,name=msg,proto3" json:"msg,omitempty"`
-	Source      string            `protobuf:"bytes,11,opt,name=source,proto3" json:"source,omitempty"`
-	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time        int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId      int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType    string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	RequestType string            `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type"`
+	UserId      int64             `protobuf:"varint,5,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Comment     string            `protobuf:"bytes,6,opt,name=comment,proto3" json:"comment"`
+	Flag        string            `protobuf:"bytes,7,opt,name=flag,proto3" json:"flag"`
+	SourceUin   uint32            `protobuf:"varint,8,opt,name=source_uin,json=sourceUin,proto3" json:"source_uin"`
+	SourceUid   string            `protobuf:"bytes,9,opt,name=source_uid,json=sourceUid,proto3" json:"source_uid"`
+	Msg         string            `protobuf:"bytes,10,opt,name=msg,proto3" json:"msg"`
+	Source      string            `protobuf:"bytes,11,opt,name=source,proto3" json:"source"`
+	Extra       map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *FriendRequestEvent) Reset() {
@@ -1684,26 +1684,26 @@ type GroupRequestEvent struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Time          int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	SelfId        int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id,omitempty"`
-	PostType      string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type,omitempty"`
-	RequestType   string            `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`
-	SubType       string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type,omitempty"`
-	GroupId       int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	UserId        int64             `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Comment       string            `protobuf:"bytes,8,opt,name=comment,proto3" json:"comment,omitempty"`
-	Flag          string            `protobuf:"bytes,9,opt,name=flag,proto3" json:"flag,omitempty"`
-	RequestId     int64             `protobuf:"varint,10,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
-	UserNick      string            `protobuf:"bytes,11,opt,name=user_nick,json=userNick,proto3" json:"user_nick,omitempty"`
-	GroupName     string            `protobuf:"bytes,12,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	ActionUinNick string            `protobuf:"bytes,13,opt,name=action_uin_nick,json=actionUinNick,proto3" json:"action_uin_nick,omitempty"`
-	ActionUin     int64             `protobuf:"varint,14,opt,name=action_uin,json=actionUin,proto3" json:"action_uin,omitempty"`
-	Check         bool              `protobuf:"varint,15,opt,name=check,proto3" json:"check,omitempty"`
-	Suspicious    bool              `protobuf:"varint,16,opt,name=suspicious,proto3" json:"suspicious,omitempty"`
-	TargetUid     string            `protobuf:"bytes,17,opt,name=target_uid,json=targetUid,proto3" json:"target_uid,omitempty"`
-	InvitorUid    string            `protobuf:"bytes,18,opt,name=invitor_uid,json=invitorUid,proto3" json:"invitor_uid,omitempty"`
-	Answer        string            `protobuf:"bytes,19,opt,name=answer,proto3" json:"answer,omitempty"`
-	Extra         map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Time          int64             `protobuf:"varint,1,opt,name=time,proto3" json:"time"`
+	SelfId        int64             `protobuf:"varint,2,opt,name=self_id,json=selfId,proto3" json:"self_id"`
+	PostType      string            `protobuf:"bytes,3,opt,name=post_type,json=postType,proto3" json:"post_type"`
+	RequestType   string            `protobuf:"bytes,4,opt,name=request_type,json=requestType,proto3" json:"request_type"`
+	SubType       string            `protobuf:"bytes,5,opt,name=sub_type,json=subType,proto3" json:"sub_type"`
+	GroupId       int64             `protobuf:"varint,6,opt,name=group_id,json=groupId,proto3" json:"group_id"`
+	UserId        int64             `protobuf:"varint,7,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Comment       string            `protobuf:"bytes,8,opt,name=comment,proto3" json:"comment"`
+	Flag          string            `protobuf:"bytes,9,opt,name=flag,proto3" json:"flag"`
+	RequestId     int64             `protobuf:"varint,10,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	UserNick      string            `protobuf:"bytes,11,opt,name=user_nick,json=userNick,proto3" json:"user_nick"`
+	GroupName     string            `protobuf:"bytes,12,opt,name=group_name,json=groupName,proto3" json:"group_name"`
+	ActionUinNick string            `protobuf:"bytes,13,opt,name=action_uin_nick,json=actionUinNick,proto3" json:"action_uin_nick"`
+	ActionUin     int64             `protobuf:"varint,14,opt,name=action_uin,json=actionUin,proto3" json:"action_uin"`
+	Check         bool              `protobuf:"varint,15,opt,name=check,proto3" json:"check"`
+	Suspicious    bool              `protobuf:"varint,16,opt,name=suspicious,proto3" json:"suspicious"`
+	TargetUid     string            `protobuf:"bytes,17,opt,name=target_uid,json=targetUid,proto3" json:"target_uid"`
+	InvitorUid    string            `protobuf:"bytes,18,opt,name=invitor_uid,json=invitorUid,proto3" json:"invitor_uid"`
+	Answer        string            `protobuf:"bytes,19,opt,name=answer,proto3" json:"answer"`
+	Extra         map[string]string `protobuf:"bytes,255,rep,name=extra,proto3" json:"extra" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GroupRequestEvent) Reset() {
@@ -1883,10 +1883,10 @@ type PrivateMessageEvent_Sender struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId   int64  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Nickname string `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
-	Sex      string `protobuf:"bytes,3,opt,name=sex,proto3" json:"sex,omitempty"`
-	Age      int32  `protobuf:"varint,4,opt,name=age,proto3" json:"age,omitempty"`
+	UserId   int64  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Nickname string `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname"`
+	Sex      string `protobuf:"bytes,3,opt,name=sex,proto3" json:"sex"`
+	Age      int32  `protobuf:"varint,4,opt,name=age,proto3" json:"age"`
 }
 
 func (x *PrivateMessageEvent_Sender) Reset() {
@@ -1954,9 +1954,9 @@ type GroupMessageEvent_Anonymous struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id   int64  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Flag string `protobuf:"bytes,3,opt,name=flag,proto3" json:"flag,omitempty"`
+	Id   int64  `protobuf:"varint,1,opt,name=id,proto3" json:"id"`
+	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name"`
+	Flag string `protobuf:"bytes,3,opt,name=flag,proto3" json:"flag"`
 }
 
 func (x *GroupMessageEvent_Anonymous) Reset() {
@@ -2017,15 +2017,15 @@ type GroupMessageEvent_Sender struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId   int64  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Nickname string `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname,omitempty"`
-	Card     string `protobuf:"bytes,3,opt,name=card,proto3" json:"card,omitempty"`
-	Sex      string `protobuf:"bytes,4,opt,name=sex,proto3" json:"sex,omitempty"`
-	Age      int32  `protobuf:"varint,5,opt,name=age,proto3" json:"age,omitempty"`
-	Area     string `protobuf:"bytes,6,opt,name=area,proto3" json:"area,omitempty"`
-	Level    string `protobuf:"bytes,7,opt,name=level,proto3" json:"level,omitempty"`
-	Role     string `protobuf:"bytes,8,opt,name=role,proto3" json:"role,omitempty"`
-	Title    string `protobuf:"bytes,9,opt,name=title,proto3" json:"title,omitempty"`
+	UserId   int64  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id"`
+	Nickname string `protobuf:"bytes,2,opt,name=nickname,proto3" json:"nickname"`
+	Card     string `protobuf:"bytes,3,opt,name=card,proto3" json:"card"`
+	Sex      string `protobuf:"bytes,4,opt,name=sex,proto3" json:"sex"`
+	Age      int32  `protobuf:"varint,5,opt,name=age,proto3" json:"age"`
+	Area     string `protobuf:"bytes,6,opt,name=area,proto3" json:"area"`
+	Level    string `protobuf:"bytes,7,opt,name=level,proto3" json:"level"`
+	Role     string `protobuf:"bytes,8,opt,name=role,proto3" json:"role"`
+	Title    string `protobuf:"bytes,9,opt,name=title,proto3" json:"title"`
 }
 
 func (x *GroupMessageEvent_Sender) Reset() {
@@ -2128,11 +2128,11 @@ type GroupUploadNoticeEvent_File struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id    string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name  string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Size  int64  `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
-	Busid int64  `protobuf:"varint,4,opt,name=busid,proto3" json:"busid,omitempty"`
-	Url   string `protobuf:"bytes,5,opt,name=url,proto3" json:"url,omitempty"`
+	Id    string `protobuf:"bytes,1,opt,name=id,proto3" json:"id"`
+	Name  string `protobuf:"bytes,2,opt,name=name,proto3" json:"name"`
+	Size  int64  `protobuf:"varint,3,opt,name=size,proto3" json:"size"`
+	Busid int64  `protobuf:"varint,4,opt,name=busid,proto3" json:"busid"`
+	Url   string `protobuf:"bytes,5,opt,name=url,proto3" json:"url"`
 }
 
 func (x *GroupUploadNoticeEvent_File) Reset() {

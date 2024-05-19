@@ -688,7 +688,7 @@ type Frame struct {
 	//	*Frame_OSendMusicResp
 	//	*Frame_OSendGroupPokeResp
 	//	*Frame_OSendFriendPokeResp
-	PbData isFrame_PbData `protobuf_oneof:"pb_data"`
+	PbData isFrame_PbData `protobuf_oneof:"pb_data" json:"pb_data,omitempty""`
 }
 
 func (x *Frame) Reset() {

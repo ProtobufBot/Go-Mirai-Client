@@ -81,9 +81,9 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 
 	if req.GroupId != 0 && req.UserId != 0 { // 临时
 		ret, _ := cli.SendTempMessage(uint32(req.GroupId), uint32(req.UserId), sendingMessage.Elements)
-		cache.PrivateMessageLru.Add(ret.Result, ret)
+		cache.PrivateMessageLru.Add(ret.PrivateSequence, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Result,
+			MessageId: int32(ret.PrivateSequence),
 		}
 	}
 
@@ -93,14 +93,14 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 			return nil
 		}
 		ret, _ := cli.SendGroupMessage(uint32(req.GroupId), sendingMessage.Elements)
-		if ret == nil || ret.Result == -1 {
+		if ret.GroupSequence.IsNone() {
 			config.Fragment = !config.Fragment
 			log.Warnf("发送群消息失败，可能被风控，下次发送将改变分片策略，Fragment: %+v", config.Fragment)
 			return nil
 		}
-		cache.GroupMessageLru.Add(ret.Result, ret)
+		cache.GroupMessageLru.Add(int32(ret.GroupSequence.Unwrap()), ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Result,
+			MessageId: int32(ret.GroupSequence.Unwrap()),
 		}
 	}
 
@@ -108,7 +108,7 @@ func HandleSendMsg(cli *client.QQClient, req *onebot.SendMsgReq) *onebot.SendMsg
 		ret, _ := cli.SendPrivateMessage(uint32(req.UserId), sendingMessage.Elements)
 		cache.PrivateMessageLru.Add(ret.Result, ret)
 		return &onebot.SendMsgResp{
-			MessageId: ret.Result,
+			MessageId: int32(ret.PrivateSequence),
 		}
 	}
 	log.Warnf("failed to send msg")
