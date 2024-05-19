@@ -251,12 +251,15 @@ func ListPlugin(c *gin.Context) {
 		Plugins: []*dto.Plugin{},
 	}
 	config.Plugins.Range(func(key string, p *config.Plugin) bool {
+		urls := []string{}
+		url := strings.Join(p.Urls, ",")
+		urls = append(urls, url)
 		resp.Plugins = append(resp.Plugins, &dto.Plugin{
 			Name:         p.Name,
 			Disabled:     p.Disabled,
 			Json:         p.Json,
-			Protocol: 	  p.Protocol,
-			Urls:         p.Urls,
+			Protocol:     p.Protocol,
+			Urls:         urls,
 			EventFilter:  p.EventFilter,
 			ApiFilter:    p.ApiFilter,
 			RegexFilter:  p.RegexFilter,
@@ -279,6 +282,7 @@ func ListPlugin(c *gin.Context) {
 
 func SavePlugin(c *gin.Context) {
 	req := &dto.SavePluginReq{}
+	urls := []string{}
 	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request")
@@ -295,15 +299,15 @@ func SavePlugin(c *gin.Context) {
 	if p.EventFilter == nil {
 		p.EventFilter = []int32{}
 	}
-	if p.Urls == nil {
-		p.Urls = []string{}
+	if p.Urls != nil {
+		urls = strings.Split(req.Plugin.Urls[0], ",")
 	}
 	config.Plugins.Store(p.Name, &config.Plugin{
 		Name:         p.Name,
 		Disabled:     p.Disabled,
 		Json:         p.Json,
 		Protocol:     p.Protocol,
-		Urls:         p.Urls,
+		Urls:         urls,
 		EventFilter:  p.EventFilter,
 		ApiFilter:    p.ApiFilter,
 		RegexFilter:  p.RegexFilter,

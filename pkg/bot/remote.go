@@ -129,7 +129,6 @@ func ConnectUniversal(cli *client.QQClient) {
 }
 
 func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
-	fmt.Println("接收")
 	wsprotocol = int(plugin.Protocol)
 	apiFilter := map[onebot.Frame_FrameType]bool{}
 	for _, apiType := range plugin.ApiFilter {
