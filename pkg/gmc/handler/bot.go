@@ -145,27 +145,31 @@ func init() {
 }
 
 func DeleteBot(c *gin.Context) {
-	sigpath := fmt.Sprintf("./sig/%v.bin", qrCodeBot.Uin)
-	sigDir := path.Dir(sigpath)
-	if !util.PathExists(sigDir) {
-		log.Infof("%+v 目录不存在，自动创建", sigDir)
-		if err := os.MkdirAll(sigDir, 0777); err != nil {
-			log.Warnf("failed to mkdir deviceDir, err: %+v", err)
+	go func() {
+		queryQRCodeMutex.Lock()
+		defer queryQRCodeMutex.Unlock()
+		sigpath := fmt.Sprintf("./sig/%v.bin", qrCodeBot.Uin)
+		sigDir := path.Dir(sigpath)
+		if !util.PathExists(sigDir) {
+			log.Infof("%+v 目录不存在，自动创建", sigDir)
+			if err := os.MkdirAll(sigDir, 0777); err != nil {
+				log.Warnf("failed to mkdir deviceDir, err: %+v", err)
+			}
 		}
-	}
-	data, err := qrCodeBot.Sig().Marshal()
-	if err != nil {
-		log.Errorln("marshal sig.bin err:", err)
-		return
-	}
-	err = os.WriteFile(sigpath, data, 0644)
-	if err != nil {
-		log.Errorln("write sig.bin err:", err)
-		return
-	}
-	log.Infoln("sig saved into sig.bin")
+		data, err := qrCodeBot.Sig().Marshal()
+		if err != nil {
+			log.Errorln("marshal sig.bin err:", err)
+			return
+		}
+		err = os.WriteFile(sigpath, data, 0644)
+		if err != nil {
+			log.Errorln("write sig.bin err:", err)
+			return
+		}
+		log.Infoln("sig saved into sig.bin")
+	}()
 	req := &dto.DeleteBotReq{}
-	err = Bind(c, req)
+	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
@@ -259,16 +263,28 @@ func QueryQRCodeStatus(c *gin.Context) {
 	}
 	if ok.Name() == "Confirmed" {
 		respCode = QRCodeConfirmed
-		err := qrCodeBot.QRCodeConfirmed()
-		if err == nil {
-			go func() {
-				queryQRCodeMutex.Lock()
-				defer queryQRCodeMutex.Unlock()
-				qrCodeBot.Init()
-				time.Sleep(time.Second * 5)
-				AfterLogin(qrCodeBot)
-			}()
-		}
+		go func() {
+			queryQRCodeMutex.Lock()
+			defer queryQRCodeMutex.Unlock()
+			err := qrCodeBot.QRCodeConfirmed()
+			if err == nil {
+				go func() {
+					queryQRCodeMutex.Lock()
+					defer queryQRCodeMutex.Unlock()
+					qrCodeBot.Init()
+					time.Sleep(time.Second * 5)
+					log.Infof("登录成功")
+					originCli, ok := bot.Clients.Load(int64(qrCodeBot.Uin))
+
+					// 重复登录，旧的断开
+					if ok {
+						originCli.Release()
+					}
+					bot.Clients.Store(int64(qrCodeBot.Uin), qrCodeBot)
+					go AfterLogin(qrCodeBot)
+				}()
+			}
+		}()
 	}
 	if ok.Name() == "Expired" {
 		respCode = QRCodeTimeout
@@ -408,7 +424,6 @@ func AfterLogin(cli *client.QQClient) {
 		}
 		log.Warnf("机器人不在线，可能在等待输入验证码，或出错了。如果出错请重启。")
 	}
-	bot.Clients.Store(int64(cli.Uin), cli)
 	plugin.Serve(cli)
 	log.Infof("插件加载完成")
 
