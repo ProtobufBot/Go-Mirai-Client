@@ -192,13 +192,6 @@ func ListBot(c *gin.Context) {
 		BotList: []*dto.Bot{},
 	}
 	bot.Clients.Range(func(_ int64, cli *client.QQClient) bool {
-		if !cli.Online.Load() {
-			go func() {
-				queryQRCodeMutex.Lock()
-				defer queryQRCodeMutex.Unlock()
-				TokenReLogin(int64(cli.Uin), 5, 20)
-			}()
-		}
 		resp.BotList = append(resp.BotList, &dto.Bot{
 			BotId:    int64(cli.Uin),
 			IsOnline: cli.Online.Load(),
