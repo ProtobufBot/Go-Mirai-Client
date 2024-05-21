@@ -8,12 +8,14 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/safe_ws"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
+	"github.com/fanliao/go-promise"
 
 	"github.com/2mf8/LagrangeGo/client"
 	"github.com/golang/protobuf/jsonpb"
@@ -34,7 +36,17 @@ var (
 		AllowUnknownFields: true,
 	}
 	wsprotocol = 0
+
+	ForwardBot []*client.QQClient
 )
+
+type BotClient struct {
+	BotId         int64
+	Client        *client.QQClient
+	Session       *safe_ws.SafeWebSocket
+	mux           sync.RWMutex
+	WaitingFrames map[string]*promise.Promise
+}
 
 type actionResp struct {
 	BotId   int64  `json:"bot_id,omitempty"`
@@ -50,6 +62,38 @@ type WsServer struct {
 	*config.Plugin                // 服务器组配置
 	wsUrl                  string // 随机抽中的url
 	regexp                 *regexp.Regexp
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func UpgradeWebsocket(w http.ResponseWriter, r *http.Request) error {
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return err
+	}
+	ConnectForward(c)
+	return nil
+}
+
+func ConnectForward(conn *websocket.Conn) {
+	for _, cli := range ForwardBot {
+		util.SafeGo(func() {
+			plugin := config.Plugin{
+				Disabled: true,
+				Json:     true,
+				Protocol: 1,
+			}
+			safe_ws.NewSafeWebSocket(conn, onWsRecvMessage(cli, &plugin), func() {
+				defer func() {
+					_ = recover() // 可能多次触发
+				}()
+			})
+		})
+	}
 }
 
 func ConnectUniversal(cli *client.QQClient) {
@@ -142,10 +186,102 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 	}
 
 	return func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+		fmt.Println(string(data))
 		if !IsClientExist(int64(cli.Uin)) {
 			ws.Close()
 			return
 		}
+		if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
+			return
+		}
+		if !cli.Online.Load() {
+			log.Warnf("bot is not online, ignore API, %+v", fmt.Sprintf("%v", cli.Uin))
+			return
+		}
+		var apiReq onebot.Frame
+		switch messageType {
+		case websocket.BinaryMessage:
+			if plugin.Protocol == 1 {
+				err := json.Unmarshal(data, &apiReq)
+				if err != nil {
+					log.Errorf("收到API text，解析错误 %v", err)
+					return
+				}
+			} else {
+				err := proto.Unmarshal(data, &apiReq)
+				if err != nil {
+					log.Errorf("收到API binary，解析错误 %v", err)
+					return
+				}
+			}
+		case websocket.TextMessage:
+			if plugin.Protocol == 1 {
+				err := json.Unmarshal(data, &apiReq)
+				if err != nil {
+					log.Errorf("收到API text，解析错误 %v", err)
+					return
+				}
+			} else {
+				err := jsonUnmarshaler.Unmarshal(bytes.NewReader(data), &apiReq)
+				if err != nil {
+					log.Errorf("收到API text，解析错误 %v", err)
+					return
+				}
+			}
+		}
+
+		log.Debugf("收到 apiReq 信息, %+v", util.MustMarshal(apiReq))
+		var apiResp *onebot.Frame
+		if plugin.Protocol == 1 {
+			handleOnebotApiFrame(cli, &apiReq, isApiAllow, plugin, ws)
+		} else {
+			apiResp = handleApiFrame(cli, &apiReq, isApiAllow)
+			s, _ := jsonMarshaler.MarshalToString(apiResp)
+			fmt.Println(s)
+		}
+		var (
+			respBytes []byte
+			err       error
+		)
+		switch messageType {
+		case websocket.BinaryMessage:
+			if plugin.Protocol == 0 {
+				respBytes, err = proto.Marshal(apiResp)
+				if err != nil {
+					log.Errorf("failed to marshal api resp, %+v", err)
+				}
+			}
+		case websocket.TextMessage:
+			if plugin.Protocol == 0 {
+				respStr, err := jsonMarshaler.MarshalToString(apiResp)
+				if err != nil {
+					log.Errorf("failed to marshal api resp, %+v", err)
+				}
+				respBytes = []byte(respStr)
+			}
+		}
+		log.Debugf("发送 apiResp 信息, %+v", util.MustMarshal(apiResp))
+		if wsprotocol == 0 {
+			_ = ws.Send(messageType, respBytes)
+		}
+	}
+}
+
+func onWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+	wsprotocol = int(plugin.Protocol)
+	apiFilter := map[onebot.Frame_FrameType]bool{}
+	for _, apiType := range plugin.ApiFilter {
+		apiFilter[onebot.Frame_FrameType(apiType)] = true
+	}
+	isApiAllow := func(frameType onebot.Frame_FrameType) bool {
+		if len(apiFilter) == 0 {
+			return true
+		}
+		return apiFilter[frameType]
+	}
+
+	return func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
+		fmt.Println(string(data))
 		if messageType == websocket.PingMessage || messageType == websocket.PongMessage {
 			return
 		}
@@ -311,7 +447,7 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 		r := HandleGetMsg(cli, reqData.GetMsgReq)
 		data := &actionResp{
 			Status:  "ok",
-			RetCode: 0,			
+			RetCode: 0,
 			Data:    &r,
 			Echo:    req.Echo,
 		}
@@ -329,7 +465,7 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 		r := HandleDeletMsg(cli, reqData.DeleteMsgReq)
 		data := &actionResp{
 			Status:  "ok",
-			RetCode: 0,			
+			RetCode: 0,
 			Data:    &r,
 			Echo:    req.Echo,
 		}
@@ -521,6 +657,19 @@ func handleOnebotApiFrame(cli *client.QQClient, req *onebot.Frame, isApiAllow fu
 			return
 		}
 		r := HandleSendFriendPoke(cli, reqData.SendFriendPokeReq)
+		data := &actionResp{
+			Status:  "ok",
+			RetCode: 0,
+			Data:    &r,
+			Echo:    req.Echo,
+		}
+		sendActionRespData(data, plugin, ws)
+	} else if req.Action == onebot.ActionType_name[int32(onebot.ActionType_get_version_info)] {
+		resp.FrameType = onebot.Frame_TGetVersionInfoResp
+		if resp.Ok = isApiAllow(onebot.Frame_TGetVersionInfoReq); !resp.Ok {
+			return
+		}
+		r := &onebot.GetVersionInfoResp{}
 		data := &actionResp{
 			Status:  "ok",
 			RetCode: 0,

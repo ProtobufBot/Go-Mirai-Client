@@ -67,11 +67,12 @@ func TokenLogin() {
 										queryQRCodeMutex.Lock()
 										defer queryQRCodeMutex.Unlock()
 										appInfo := auth.AppList["linux"]
-										qrCodeBot = client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
-										qrCodeBot.UseDevice(devi)
-										qrCodeBot.UseSig(sig)
-										qrCodeBot.SessionLogin()
-										go AfterLogin(qrCodeBot)
+										cli := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+										cli.UseDevice(devi)
+										cli.UseSig(sig)
+										cli.SessionLogin()
+										bot.Clients.Store(int64(cli.Uin), cli)
+										go AfterLogin(cli)
 									}()
 								}
 							}
@@ -86,41 +87,47 @@ func TokenLogin() {
 }
 
 func TokenReLogin(userId int64, retryInterval int, retryCount int) {
-	var times = 0
-	log.Warnf("Bot已离线 (%v)，将在 %v 秒后尝试重连. 重连次数：%v",
-		qrCodeBot.Uin, retryInterval, times)
-	if qrCodeBot.Online.Load() {
-		log.Warn("Bot已登录")
-		return
-	}
-	if times < retryCount {
-		times++
-		qrCodeBot.Disconnect()
-		bot.Clients.Delete(int64(qrCodeBot.Uin))
-		bot.ReleaseClient(qrCodeBot)
-		time.Sleep(time.Second * time.Duration(retryInterval))
-		devi := device.GetDevice(userId)
-		sigpath := fmt.Sprintf("./sig/%v.bin", userId)
-		fmt.Println(sigpath)
-		data, err := os.ReadFile(sigpath)
-		if err == nil {
-			sig, err := auth.UnmarshalSigInfo(data, true)
+	cli, ok := bot.Clients.Load(userId)
+	if !ok {
+		log.Warnf("%v 不存在，登录失败", userId)
+	} else {
+		var times = 0
+		log.Warnf("Bot已离线 (%v)，将在 %v 秒后尝试重连. 重连次数：%v",
+			cli.Uin, retryInterval, times)
+		if cli.Online.Load() {
+			log.Warn("Bot已登录")
+			return
+		}
+		if times < retryCount {
+			times++
+			cli.Disconnect()
+			bot.Clients.Delete(int64(cli.Uin))
+			bot.ReleaseClient(cli)
+			time.Sleep(time.Second * time.Duration(retryInterval))
+			devi := device.GetDevice(userId)
+			sigpath := fmt.Sprintf("./sig/%v.bin", userId)
+			fmt.Println(sigpath)
+			data, err := os.ReadFile(sigpath)
 			if err == nil {
-				log.Warnf("%v 第 %v 次登录尝试", userId, times)
-				appInfo := auth.AppList["linux"]
-				qrCodeBot = client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
-				qrCodeBot.UseDevice(devi)
-				qrCodeBot.UseSig(sig)
-				qrCodeBot.SessionLogin()
-				go AfterLogin(qrCodeBot)
+				sig, err := auth.UnmarshalSigInfo(data, true)
+				if err == nil {
+					log.Warnf("%v 第 %v 次登录尝试", userId, times)
+					appInfo := auth.AppList["linux"]
+					cli := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+					cli.UseDevice(devi)
+					cli.UseSig(sig)
+					cli.SessionLogin()
+					bot.Clients.Store(userId, cli)
+					go AfterLogin(cli)
+				} else {
+					log.Warnf("%v 第 %v 次登录失败, 120秒后重试", userId, times)
+				}
 			} else {
 				log.Warnf("%v 第 %v 次登录失败, 120秒后重试", userId, times)
 			}
 		} else {
-			log.Warnf("%v 第 %v 次登录失败, 120秒后重试", userId, times)
+			log.Errorf("failed to reconnect: 重连次数达到设置的上限值, %+v", cli.Uin)
 		}
-	} else {
-		log.Errorf("failed to reconnect: 重连次数达到设置的上限值, %+v", qrCodeBot.Uin)
 	}
 }
 
@@ -145,29 +152,6 @@ func init() {
 }
 
 func DeleteBot(c *gin.Context) {
-	go func() {
-		queryQRCodeMutex.Lock()
-		defer queryQRCodeMutex.Unlock()
-		sigpath := fmt.Sprintf("./sig/%v.bin", qrCodeBot.Uin)
-		sigDir := path.Dir(sigpath)
-		if !util.PathExists(sigDir) {
-			log.Infof("%+v 目录不存在，自动创建", sigDir)
-			if err := os.MkdirAll(sigDir, 0777); err != nil {
-				log.Warnf("failed to mkdir deviceDir, err: %+v", err)
-			}
-		}
-		data, err := qrCodeBot.Sig().Marshal()
-		if err != nil {
-			log.Errorln("marshal sig.bin err:", err)
-			return
-		}
-		err = os.WriteFile(sigpath, data, 0644)
-		if err != nil {
-			log.Errorln("write sig.bin err:", err)
-			return
-		}
-		log.Infoln("sig saved into sig.bin")
-	}()
 	req := &dto.DeleteBotReq{}
 	err := Bind(c, req)
 	if err != nil {
@@ -179,6 +163,29 @@ func DeleteBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bot not exists")
 		return
 	}
+	go func() {
+		queryQRCodeMutex.Lock()
+		defer queryQRCodeMutex.Unlock()
+		sigpath := fmt.Sprintf("./sig/%v.bin", cli.Uin)
+		sigDir := path.Dir(sigpath)
+		if !util.PathExists(sigDir) {
+			log.Infof("%+v 目录不存在，自动创建", sigDir)
+			if err := os.MkdirAll(sigDir, 0777); err != nil {
+				log.Warnf("failed to mkdir deviceDir, err: %+v", err)
+			}
+		}
+		data, err := cli.Sig().Marshal()
+		if err != nil {
+			log.Errorln("marshal sig.bin err:", err)
+			return
+		}
+		err = os.WriteFile(sigpath, data, 0644)
+		if err != nil {
+			log.Errorln("write sig.bin err:", err)
+			return
+		}
+		log.Infoln("sig saved into sig.bin")
+	}()
 	bot.Clients.Delete(int64(cli.Uin))
 	bot.ReleaseClient(cli)
 	resp := &dto.DeleteBotResp{}
@@ -282,6 +289,7 @@ func QueryQRCodeStatus(c *gin.Context) {
 					}
 					bot.Clients.Store(int64(qrCodeBot.Uin), qrCodeBot)
 					go AfterLogin(qrCodeBot)
+					qrCodeBot = nil
 				}()
 			}
 		}()
@@ -434,6 +442,7 @@ func AfterLogin(cli *client.QQClient) {
 		log.Infof("共加载 %v 个好友.", len(fs))
 	}
 
+	bot.ForwardBot = append(bot.ForwardBot, cli)
 	bot.ConnectUniversal(cli)
 
 	defer cli.Release()
@@ -446,7 +455,7 @@ func AfterLogin(cli *client.QQClient) {
 				log.Warnf("failed to mkdir deviceDir, err: %+v", err)
 			}
 		}
-		data, err := qrCodeBot.Sig().Marshal()
+		data, err := cli.Sig().Marshal()
 		if err != nil {
 			log.Errorln("marshal sig.bin err:", err)
 			return

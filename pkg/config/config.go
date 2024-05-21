@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
-
 	log "github.com/sirupsen/logrus"
 )
 

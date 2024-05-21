@@ -35,3 +35,5 @@ TypeScript / JavaScript 推荐使用 [ToneBot](https://github.com/2mf8/ToneBot)
 ## 多插件支持
 
 支持多插件，且每个插件URL可以配置多个作为候选项
+
+cd service/glc && go run *.go

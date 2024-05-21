@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/2mf8/Go-Lagrange-Client/pkg/bot"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/handler"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/static"
@@ -24,7 +25,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	easy "github.com/t-tomalak/logrus-easy-formatter"
 )
-
 
 var (
 	sms          = false // 参数优先使用短信验证
@@ -178,14 +178,19 @@ func InitGin() {
 	}
 
 	router.Use(handler.CORSMiddleware())
-	router.StaticFS("/", http.FS(static.MustGetStatic()))
-	router.POST("/bot/delete/v1", handler.DeleteBot)
-	router.POST("/bot/list/v1", handler.ListBot)
-	router.POST("/qrcode/fetch/v1", handler.FetchQrCode)
-	router.POST("/qrcode/query/v1", handler.QueryQRCodeStatus)
-	router.POST("/plugin/list/v1", handler.ListPlugin)
-	router.POST("/plugin/save/v1", handler.SavePlugin)
-	router.POST("/plugin/delete/v1", handler.DeletePlugin)
+	router.StaticFS("/dashcard", http.FS(static.MustGetStatic()))
+	router.POST("/dashcard/bot/delete/v1", handler.DeleteBot)
+	router.POST("/dashcard/bot/list/v1", handler.ListBot)
+	router.POST("/dashcard/qrcode/fetch/v1", handler.FetchQrCode)
+	router.POST("/dashcard/qrcode/query/v1", handler.QueryQRCodeStatus)
+	router.POST("/dashcard/plugin/list/v1", handler.ListPlugin)
+	router.POST("/dashcard/plugin/save/v1", handler.SavePlugin)
+	router.POST("/dashcard/plugin/delete/v1", handler.DeletePlugin)
+	router.GET("/ui/ws", func(c *gin.Context) {
+		if err := bot.UpgradeWebsocket(c.Writer, c.Request); err != nil {
+			fmt.Println("创建机器人失败", err)
+		}
+	})
 	realPort, err := RunGin(router, ":"+config.Port)
 	if err != nil {
 		for i := 9001; i <= 9020; i++ {
@@ -197,13 +202,13 @@ func InitGin() {
 			}
 			config.Port = realPort
 			log.Infof("端口号 %s", realPort)
-			log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
+			log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/dashcard 设置机器人", realPort))
 			break
 		}
 	} else {
 		config.Port = realPort
 		log.Infof("端口号 %s", realPort)
-		log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
+		log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/dashcard 设置机器人", realPort))
 	}
 }
 
