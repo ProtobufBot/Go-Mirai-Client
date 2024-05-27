@@ -1,6 +1,6 @@
 # Go-Mirai-Client
 
-# Go-Mirai-Client 已经停更，新项目已已迁移至 [Go-Lagrange-Client](https://github.com/2mf8/Go-Lagrange-Client)
+# Go-Mirai-Client 已经停更，新项目已迁移至 [Go-Lagrange-Client](https://github.com/2mf8/Go-Lagrange-Client)
 
 ## 默认端口9000，若启动失败，将依次在9001-9020端口中选择可用的端口启动。
 
