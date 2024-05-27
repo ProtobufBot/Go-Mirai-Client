@@ -1,4 +1,4 @@
-# Go-Mirai-Client
+# Go-Lagrange-Client
 
 ## 默认端口9000，若启动失败，将依次在9001-9020端口中选择可用的端口启动。
 
