@@ -62,6 +62,8 @@ Files
       的版本，启动时会自动打开UI界面（需要Edge/Chrome浏览器，安装在默认位置）。
     - 专业用户可以下载不带有`lorca`的版本，手动打开浏览器地址`http://localhost:9000/`，端口号可以通过`-port 9000`
       参数修改，Linux服务器可以远程访问`http://<服务器地址>:9000`。
+    - 静态界面下载: [staic](https://github.com/ProtobufBot/pbbot-react-ui/releases/latest/download/static.zip)
+      将staic解压缩到项目pkg/static目录下。
 
 2. 创建机器人
     - 建议选择扫码创建，使用**机器人账号**直接扫码，点击确认后登录。
