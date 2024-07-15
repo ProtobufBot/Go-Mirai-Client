@@ -2,10 +2,6 @@
 
 ## 默认端口9000，若启动失败，将依次在9001-9020端口中选择可用的端口启动。
 
-[![QQ群](https://img.shields.io/static/v1?label=QQ%E7%BE%A4&message=335783090&color=blue)](https://jq.qq.com/?_wv=1027&k=B7Of3GMZ)
-
-[![QQ群](https://img.shields.io/static/v1?label=QQ%E7%BE%A4&message=901125207&color=blue)](https://qm.qq.com/q/u7GcfnJcaY)
-
 用于收发QQ消息，并通过 websocket + protobuf 或 websocket + json 上报给 server 进行处理。
 
 已支持与 `OneBot V11` 协议的服务端通信, 使用前需要选用 OneBot V11 协议
