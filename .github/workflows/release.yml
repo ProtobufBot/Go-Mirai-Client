@@ -5,22 +5,25 @@ on:
     tags:
       - '*'
 
+permissions:
+  contents: write
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.4
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - run: wget https://github.com/2mf8/pbbot-react-ui/releases/latest/download/static.zip && unzip -o static.zip -d pkg/static/
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
           go-version: '1.22'
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
           args: release --clean
