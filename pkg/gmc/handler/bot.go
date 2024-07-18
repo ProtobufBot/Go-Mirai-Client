@@ -46,6 +46,7 @@ const (
 )
 
 func TokenLogin() {
+	set := config.ReadSetting()
 	dfs, err := os.ReadDir("./device/")
 	if err == nil {
 		for _, v := range dfs {
@@ -66,8 +67,8 @@ func TokenLogin() {
 									go func() {
 										queryQRCodeMutex.Lock()
 										defer queryQRCodeMutex.Unlock()
-										appInfo := auth.AppList["linux"]
-										cli := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+										appInfo := auth.AppList[set.Platform][set.AppVersion]
+										cli := client.NewClient(0, set.SignServer, appInfo)
 										cli.UseDevice(devi)
 										cli.UseSig(sig)
 										cli.SessionLogin()
@@ -87,6 +88,7 @@ func TokenLogin() {
 }
 
 func TokenReLogin(userId int64, retryInterval int, retryCount int) {
+	set := config.ReadSetting()
 	cli, ok := bot.Clients.Load(userId)
 	if !ok {
 		log.Warnf("%v 不存在，登录失败", userId)
@@ -112,8 +114,8 @@ func TokenReLogin(userId int64, retryInterval int, retryCount int) {
 				sig, err := auth.UnmarshalSigInfo(data, true)
 				if err == nil {
 					log.Warnf("%v 第 %v 次登录尝试", userId, times)
-					appInfo := auth.AppList["linux"]
-					cli := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+					appInfo := auth.AppList[set.Platform][set.AppVersion]
+					cli := client.NewClient(0, set.SignServer, appInfo)
 					cli.UseDevice(devi)
 					cli.UseSig(sig)
 					cli.SessionLogin()
@@ -213,6 +215,7 @@ func ListBot(c *gin.Context) {
 }
 
 func FetchQrCode(c *gin.Context) {
+	set := config.ReadSetting()
 	req := &dto.FetchQRCodeReq{}
 	err := Bind(c, req)
 	if err != nil {
@@ -220,14 +223,14 @@ func FetchQrCode(c *gin.Context) {
 		return
 	}
 	newDeviceInfo := device.GetDevice(req.DeviceSeed)
-	appInfo := auth.AppList["linux"]
+	appInfo := auth.AppList[set.Platform][set.AppVersion]
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		qqclient := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+		qqclient := client.NewClient(0, set.SignServer, appInfo)
 		qqclient.UseDevice(newDeviceInfo)
 		qrCodeBot = qqclient
-		b, s, err := qrCodeBot.FecthQRCode()
+		b, s, err := qrCodeBot.FetchQRCode(3, 4, 2)
 		if err != nil {
 			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
 			return
@@ -242,10 +245,9 @@ func FetchQrCode(c *gin.Context) {
 }
 
 func QueryQRCodeStatus(c *gin.Context) {
-	queryQRCodeMutex.Lock()
-	defer queryQRCodeMutex.Unlock()
 	respCode := 0
 	ok, err := qrCodeBot.GetQRCodeResult()
+	//fmt.Println(ok.Name(), ok.Waitable(), ok.Success(), err)
 	if err != nil {
 		resp := &dto.QRCodeLoginResp{
 			State: dto.QRCodeLoginResp_QRCodeLoginState(http.StatusExpectationFailed),
@@ -274,11 +276,15 @@ func QueryQRCodeStatus(c *gin.Context) {
 			queryQRCodeMutex.Lock()
 			defer queryQRCodeMutex.Unlock()
 			err := qrCodeBot.QRCodeConfirmed()
+			fmt.Println(err)
 			if err == nil {
 				go func() {
 					queryQRCodeMutex.Lock()
 					defer queryQRCodeMutex.Unlock()
-					qrCodeBot.Init()
+					err := qrCodeBot.Register()
+					if err != nil {
+						fmt.Println(err)
+					}
 					time.Sleep(time.Second * 5)
 					log.Infof("登录成功")
 					originCli, ok := bot.Clients.Load(int64(qrCodeBot.Uin))

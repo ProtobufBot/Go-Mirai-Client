@@ -14,16 +14,14 @@ func MiraiMsgToRawMsg(cli *client.QQClient, messageChain []message.IMessageEleme
 		switch elem := element.(type) {
 		case *message.TextElement:
 			result += elem.Content
-		case *message.FriendImageElement:
-			result += fmt.Sprintf(`<image image_id="%s" url="%s"/>`, html.EscapeString(elem.ImageId), html.EscapeString(elem.Url))
-		case *message.GroupImageElement:
+		case *message.ImageElement:
 			result += fmt.Sprintf(`<image image_id="%s" url="%s"/>`, html.EscapeString(elem.ImageId), html.EscapeString(elem.Url))
 		case *message.FaceElement:
 			result += fmt.Sprintf(`<face id="%d"/>`, elem.FaceID)
 		case *message.VoiceElement:
 			result += fmt.Sprintf(`<voice url="%s"/>`, html.EscapeString(elem.Url))
 		case *message.ReplyElement:
-			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.Sender, html.EscapeString(MiraiMsgToRawMsg(cli, elem.Elements)), elem.ReplySeq)
+			result += fmt.Sprintf(`<reply time="%d" sender="%d" raw_message="%s" reply_seq="%d"/>`, elem.Time, elem.SenderUin, html.EscapeString(MiraiMsgToRawMsg(cli, elem.Elements)), elem.ReplySeq)
 		}
 	}
 	return result

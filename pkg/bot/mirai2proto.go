@@ -17,10 +17,8 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 			msgList = append(msgList, MiraiTextToProtoText(elem))
 		case *message.AtElement:
 			msgList = append(msgList, MiraiAtToProtoAt(elem))
-		case *message.FriendImageElement:
-			msgList = append(msgList, MiraiFriendImageToProtoImage(elem))
-		case *message.GroupImageElement:
-			msgList = append(msgList, MiraiGroupImageToProtoImage(elem))
+		case *message.ImageElement:
+			msgList = append(msgList, MiraiImageToProtoImage(elem))
 		case *message.FaceElement:
 			msgList = append(msgList, MiraiFaceToProtoFace(elem))
 		case *message.VoiceElement:
@@ -43,22 +41,7 @@ func MiraiTextToProtoText(elem *message.TextElement) *onebot.Message {
 	}
 }
 
-func MiraiFriendImageToProtoImage(elem *message.FriendImageElement) *onebot.Message {
-	msg := &onebot.Message{
-		Type: "image",
-		Data: map[string]string{
-			"image_id": elem.ImageId,
-			"file":     elem.Url,
-			"url":      elem.Url,
-		},
-	}
-	if elem.Flash {
-		msg.Data["type"] = "flash"
-	}
-	return msg
-}
-
-func MiraiGroupImageToProtoImage(elem *message.GroupImageElement) *onebot.Message {
+func MiraiImageToProtoImage(elem *message.ImageElement) *onebot.Message {
 	msg := &onebot.Message{
 		Type: "image",
 		Data: map[string]string{
@@ -82,10 +65,10 @@ func MiraiAtToProtoAt(elem *message.AtElement) *onebot.Message {
 		Type: "at",
 		Data: map[string]string{
 			"qq": func() string {
-				if elem.Target == 0 {
+				if elem.TargetUin == 0 {
 					return "all"
 				}
-				return strconv.FormatInt(int64(elem.Target), 10)
+				return strconv.FormatInt(int64(elem.TargetUin), 10)
 			}(),
 		},
 	}
@@ -124,8 +107,8 @@ func MiraiReplyToProtoReply(cli *client.QQClient, elem *message.ReplyElement) *o
 	return &onebot.Message{
 		Type: "reply",
 		Data: map[string]string{
-			"message_id":   strconv.FormatInt(int64(elem.ReplySeq), 10),
-			"sender":      strconv.FormatInt(int64(elem.Sender), 10),
+			"message_id":  strconv.FormatInt(int64(elem.ReplySeq), 10),
+			"sender":      strconv.FormatInt(int64(elem.SenderUin), 10),
 			"time":        strconv.FormatInt(int64(elem.Time), 10),
 			"raw_message": MiraiMsgToRawMsg(cli, elem.Elements),
 		},

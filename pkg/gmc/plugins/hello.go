@@ -1,9 +1,11 @@
 package plugins
 
 import (
-	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/2mf8/Go-Lagrange-Client/pkg/bot"
 	"github.com/2mf8/Go-Lagrange-Client/pkg/plugin"
@@ -13,8 +15,6 @@ import (
 )
 
 func HelloPrivateMessage(cli *client.QQClient, event *message.PrivateMessage) int32 {
-	b, _ := json.Marshal(event)
-	log.Warn(string(b))
 	if bot.MiraiMsgToRawMsg(cli, event.Elements) != "hi" {
 		return plugin.MessageIgnore
 	}
@@ -31,18 +31,30 @@ func HelloGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32 
 	if bot.MiraiMsgToRawMsg(cli, event.Elements) != "hi" {
 		return plugin.MessageIgnore
 	}
-	resp, err := http.Get("https://2mf8.cn/logo.png")
+	resp, err := http.Get("https://www.2mf8.cn/static/image/cube3/b1.png")
 	defer resp.Body.Close()
+	fmt.Println(err)
 	if err != nil {
 		return plugin.MessageIgnore
 	}
 	imo, err := io.ReadAll(resp.Body)
+	fmt.Println(err)
 	if err != nil {
 		return plugin.MessageIgnore
 	}
-	ir, err := cli.ImageUploadGroup(event.GroupCode, &message.GroupImageElement{
-		Stream: imo,
-	})
+	filename := fmt.Sprintf("%v.png", time.Now().UnixMicro())
+	err = os.WriteFile(filename, imo, 0666)
+	fmt.Println(err)
+	if err != nil {
+		return plugin.MessageIgnore
+	}
+	f, err := os.Open(filename)
+	fmt.Println(err)
+	if err != nil {
+		return plugin.MessageIgnore
+	}
+	ir, err := cli.ImageUploadGroup(event.GroupUin, message.NewStreamImage(f))
+	fmt.Println(err)
 	if err != nil {
 		return plugin.MessageIgnore
 	}
@@ -51,7 +63,7 @@ func HelloGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32 
 	elem.Elements = append(elem.Elements, &message.TextElement{
 		Content: "测试成功",
 	})
-	r, e := cli.SendGroupMessage(event.GroupCode, elem.Elements)
+	r, e := cli.SendGroupMessage(event.GroupUin, elem.Elements)
 	log.Warn(r, e)
 	return plugin.MessageIgnore
 }

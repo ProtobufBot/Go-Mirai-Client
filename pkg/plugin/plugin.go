@@ -14,12 +14,12 @@ type (
 	MemberLeaveGroupPlugin      = func(*client.QQClient, *event.GroupMemberDecrease) int32
 	JoinGroupPlugin             = func(*client.QQClient, *event.GroupMemberJoinRequest) int32
 	LeaveGroupPlugin            = func(*client.QQClient, *event.GroupMemberDecrease) int32
-	NewFriendRequestPlugin      = func(*client.QQClient, *event.FriendRequest) int32
+	NewFriendRequestPlugin      = func(*client.QQClient, *event.NewFriendRequest) int32
 	UserJoinGroupRequestPlugin  = func(*client.QQClient, *event.GroupMemberIncrease) int32
 	GroupInvitedRequestPlugin   = func(*client.QQClient, *event.GroupInvite) int32
 	GroupMessageRecalledPlugin  = func(*client.QQClient, *event.GroupRecall) int32
 	FriendMessageRecalledPlugin = func(*client.QQClient, *event.FriendRecall) int32
-	NewFriendAddedPlugin        = func(*client.QQClient, *event.FriendRequest) int32
+	NewFriendAddedPlugin        = func(*client.QQClient, *event.NewFriendRequest) int32
 	GroupMutePlugin             = func(*client.QQClient, *event.GroupMute) int32
 )
 
@@ -50,7 +50,7 @@ func Serve(cli *client.QQClient) {
 	cli.GroupMemberJoinEvent.Subscribe(handleMemberJoinGroup)
 	cli.GroupMemberLeaveEvent.Subscribe(handleMemberLeaveGroup)
 	cli.GroupMemberLeaveEvent.Subscribe(handleLeaveGroup)
-	cli.FriendRequestEvent.Subscribe(handleNewFriendRequest)
+	cli.NewFriendRequestEvent.Subscribe(handleNewFriendRequest)
 	cli.GroupInvitedEvent.Subscribe(handleGroupInvitedRequest)
 	cli.GroupRecallEvent.Subscribe(handleGroupMessageRecalled)
 	cli.FriendRecallEvent.Subscribe(handleFriendMessageRecalled)
@@ -172,7 +172,7 @@ func handleLeaveGroup(cli *client.QQClient, event *event.GroupMemberDecrease) {
 	})
 }
 
-func handleNewFriendRequest(cli *client.QQClient, event *event.FriendRequest) {
+func handleNewFriendRequest(cli *client.QQClient, event *event.NewFriendRequest) {
 	util.SafeGo(func() {
 		for _, plugin := range NewFriendRequestPluginList {
 			if result := plugin(cli, event); result == MessageBlock {

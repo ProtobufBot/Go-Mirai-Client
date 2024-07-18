@@ -186,7 +186,6 @@ func OnWsRecvMessage(cli *client.QQClient, plugin *config.Plugin) func(ws *safe_
 	}
 
 	return func(ws *safe_ws.SafeWebSocket, messageType int, data []byte) {
-		fmt.Println(string(data))
 		if !IsClientExist(int64(cli.Uin)) {
 			ws.Close()
 			return

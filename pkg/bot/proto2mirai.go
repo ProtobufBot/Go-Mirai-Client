@@ -1,12 +1,9 @@
 package bot
 
 import (
-	"io"
-	"net/http"
+	"bytes"
 
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/2mf8/Go-Lagrange-Client/pkg/cache"
@@ -45,10 +42,6 @@ func ProtoMsgToMiraiMsg(cli *client.QQClient, msgList []*onebot.Message, notConv
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
 		case "img":
 			messageChain = append(messageChain, ProtoImageToMiraiImage(protoMsg.Data))
-		case "friend_image":
-			messageChain = append(messageChain, ProtoPrivateImageToMiraiPrivateImage(protoMsg.Data))
-		case "friend_img":
-			messageChain = append(messageChain, ProtoPrivateImageToMiraiPrivateImage(protoMsg.Data))
 		case "record":
 			messageChain = append(messageChain, ProtoVoiceToMiraiVoice(protoMsg.Data))
 		case "face":
@@ -77,7 +70,6 @@ func ProtoTextToMiraiText(data map[string]string) message.IMessageElement {
 }
 
 func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
-	elem := &message.GroupImageElement{}
 	url, ok := data["url"]
 	if !ok {
 		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
@@ -89,31 +81,7 @@ func ProtoImageToMiraiImage(data map[string]string) message.IMessageElement {
 		log.Warnf("imageUrl不存在")
 		return EmptyText()
 	}
-	b, err := preprocessImageMessage(url)
-	if err == nil {
-		elem.Stream = b
-	}
-	return elem
-}
-
-func ProtoPrivateImageToMiraiPrivateImage(data map[string]string) message.IMessageElement {
-	elem := &message.FriendImageElement{}
-	url, ok := data["url"]
-	if !ok {
-		url, ok = data["src"] // TODO 为了兼容我的旧代码偷偷加的
-		if !ok {
-			url, ok = data["file"]
-		}
-	}
-	if !ok {
-		log.Warnf("imageUrl不存在")
-		return EmptyText()
-	}
-	b, err := preprocessImageMessage(url)
-	if err == nil {
-		elem.Stream = b
-	}
-	return elem
+	return &message.ImageElement{Url: url}
 }
 
 func ProtoVoiceToMiraiVoice(data map[string]string) message.IMessageElement {
@@ -134,7 +102,7 @@ func ProtoVoiceToMiraiVoice(data map[string]string) message.IMessageElement {
 		log.Errorf("不是amr或silk格式")
 		return EmptyText()
 	}
-	return &message.VoiceElement{Data: b}
+	return &message.VoiceElement{Stream: bytes.NewReader(b)}
 }
 
 func ProtoAtToMiraiAt(data map[string]string) message.IMessageElement {
@@ -187,9 +155,9 @@ func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
 		groupMessage, ok := eventInterface.(*message.GroupMessage)
 		if ok {
 			return &message.ReplyElement{
-				ReplySeq: groupMessage.Id,
-				Sender:   uint64(groupMessage.Sender.Uin),
-				Time:     int32(groupMessage.Time),
+				ReplySeq:  uint32(groupMessage.Id),
+				SenderUin: groupMessage.Sender.Uin,
+				Time:      uint32(groupMessage.Time),
 				Elements: func() []message.IMessageElement {
 					if hasRawMessage {
 						return []message.IMessageElement{message.NewText(rawMessage)}
@@ -205,9 +173,9 @@ func ProtoReplyToMiraiReply(data map[string]string) *message.ReplyElement {
 		privateMessage, ok := eventInterface.(*message.PrivateMessage)
 		if ok {
 			return &message.ReplyElement{
-				ReplySeq: privateMessage.Id,
-				Sender:   uint64(privateMessage.Sender.Uin),
-				Time:     privateMessage.Time,
+				ReplySeq:  uint32(privateMessage.Id),
+				SenderUin: privateMessage.Sender.Uin,
+				Time:      uint32(privateMessage.Time),
 				Elements: func() []message.IMessageElement {
 					if hasRawMessage {
 						return []message.IMessageElement{message.NewText(rawMessage)}
@@ -237,30 +205,6 @@ func ProtoSleep(data map[string]string) {
 		ms = 24 * 3600 * 1000
 	}
 	time.Sleep(time.Duration(ms) * time.Millisecond)
-}
-func preprocessImageMessage(path string) ([]byte, error) {
-	if strings.Contains(path, "http") {
-		resp, err := http.Get(path)
-		defer resp.Body.Close()
-		if err != nil {
-			return nil, err
-		}
-		imo, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return nil, err
-		}
-		return imo, nil
-	} else {
-		f, err := os.Open(path)
-		if err != nil {
-			return nil, err
-		}
-		reader, err := io.ReadAll(f)
-		if err != nil {
-			return nil, err
-		}
-		return reader, nil
-	}
 }
 
 /*func ProtoMusicToMiraiMusic(_ *client.QQClient, data map[string]string) (m message.IMessageElement) {

@@ -85,7 +85,8 @@ func InitLog() {
 }
 
 func Login() {
-	appInfo := auth2.AppList["linux"]
+	set := config.ReadSetting()
+	appInfo := auth2.AppList[set.Platform][set.AppVersion]
 	deviceInfo := &auth2.DeviceInfo{
 		Guid:          "cfcd208495d565ef66e7dff9f98764da",
 		DeviceName:    "Lagrange-DCFCD07E",
@@ -93,7 +94,7 @@ func Login() {
 		KernelVersion: "10.0.22631",
 	}
 
-	qqclient := client.NewClient(0, "https://sign.lagrangecore.org/api/sign", appInfo)
+	qqclient := client.NewClient(0, set.SignServer, appInfo)
 	qqclient.UseDevice(deviceInfo)
 	data, err := os.ReadFile("sig.bin")
 	if err != nil {

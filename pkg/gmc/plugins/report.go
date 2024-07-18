@@ -53,7 +53,7 @@ func ReportGroupMessage(cli *client.QQClient, event *message.GroupMessage) int32
 		MessageType: "group",
 		SubType:     "normal",
 		MessageId:   event.Id,
-		GroupId:     int64(event.GroupCode),
+		GroupId:     int64(event.GroupUin),
 		UserId:      int64(event.Sender.Uin),
 		Message:     bot.MiraiMsgToProtoMsg(cli, event.Elements),
 		RawMessage:  bot.MiraiMsgToRawMsg(cli, event.Elements),
@@ -170,7 +170,7 @@ func ReportGroupMute(cli *client.QQClient, event *event.GroupMute) int32 {
 	return plugin.MessageIgnore
 }
 
-func ReportNewFriendRequest(cli *client.QQClient, event *event.FriendRequest) int32 {
+func ReportNewFriendRequest(cli *client.QQClient, event *event.NewFriendRequest) int32 {
 	flag := strconv.FormatInt(int64(event.SourceUin), 10)
 	cache.FriendRequestLru.Add(flag, event)
 	eventProto := &onebot.Frame{
@@ -285,7 +285,7 @@ func ReportFriendMessageRecalled(cli *client.QQClient, event *event.FriendRecall
 	return plugin.MessageIgnore
 }
 
-func ReportNewFriendAdded(cli *client.QQClient, event *event.FriendRequest) int32 {
+func ReportNewFriendAdded(cli *client.QQClient, event *event.NewFriendRequest) int32 {
 	eventProto := &onebot.Frame{
 		FrameType: onebot.Frame_TFriendAddNoticeEvent,
 	}

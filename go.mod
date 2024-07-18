@@ -3,7 +3,7 @@ module github.com/2mf8/Go-Lagrange-Client
 go 1.22
 
 require (
-	github.com/2mf8/LagrangeGo v0.0.9
+	github.com/2mf8/LagrangeGo v0.1.0
 	github.com/BurntSushi/toml v1.3.2
 	github.com/fanliao/go-promise v0.0.0-20141029170127-1890db352a72
 	github.com/gin-gonic/gin v1.9.1
@@ -22,7 +22,6 @@ require (
 )
 
 require (
-	github.com/FloatTech/ttl v0.0.0-20230307105452-d6f7b2b647d1 // indirect
 	github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d // indirect
 	github.com/RomiChan/syncx v0.0.0-20240418144900-b7402ffdebc7 // indirect
 	github.com/bytedance/sonic v1.11.5 // indirect
@@ -31,7 +30,6 @@ require (
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/fumiama/gofastTEA v0.0.10 // indirect
 	github.com/fumiama/imgsz v0.0.4 // indirect
-	github.com/fumiama/terasu v0.0.0-20240507144117-547a591149c0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

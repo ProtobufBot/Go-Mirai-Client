@@ -1,9 +1,7 @@
-github.com/2mf8/LagrangeGo v0.0.9 h1:wJH2a4z+2EzqYVwcSEejh7D/gC7KbmAG7MhaoAayeB0=
-github.com/2mf8/LagrangeGo v0.0.9/go.mod h1:a53Vht7k5ATo9x83X4l0CPTtvhjqmTphzdkCKEJVRHQ=
+github.com/2mf8/LagrangeGo v0.1.0 h1:N/42LiFF59EcmKcTHS4uc7gyXZ7URcnKvYrOYFwM6/0=
+github.com/2mf8/LagrangeGo v0.1.0/go.mod h1:jNEJMrnBI8ENQTFSbE+dLoEUak/N6SMoIWbOr7fORZo=
 github.com/BurntSushi/toml v1.3.2 h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8=
 github.com/BurntSushi/toml v1.3.2/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
-github.com/FloatTech/ttl v0.0.0-20230307105452-d6f7b2b647d1 h1:g4pTnDJUW4VbJ9NvoRfUvdjDrHz/6QhfN/LoIIpICbo=
-github.com/FloatTech/ttl v0.0.0-20230307105452-d6f7b2b647d1/go.mod h1:fHZFWGquNXuHttu9dUYoKuNbm3dzLETnIOnm1muSfDs=
 github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d h1:/Xuj3fIiMY2ls1TwvPKmaqQrtJsPY+c9s+0lOScVHd8=
 github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d/go.mod h1:2Ie+hdBFQpQFDHfeklgxoFmQRCE7O+KwFpISeXq7OwA=
 github.com/RomiChan/syncx v0.0.0-20240418144900-b7402ffdebc7 h1:S/ferNiehVjNaBMNNBxUjLtVmP/YWD6Yh79RfPv4ehU=
@@ -26,8 +24,6 @@ github.com/fumiama/gofastTEA v0.0.10 h1:JJJ+brWD4kie+mmK2TkspDXKzqq0IjXm89aGYfoG
 github.com/fumiama/gofastTEA v0.0.10/go.mod h1:RIdbYZyB4MbH6ZBlPymRaXn3cD6SedlCu5W/HHfMPBk=
 github.com/fumiama/imgsz v0.0.4 h1:Lsasu2hdSSFS+vnD+nvR1UkiRMK7hcpyYCC0FzgSMFI=
 github.com/fumiama/imgsz v0.0.4/go.mod h1:bISOQVTlw9sRytPwe8ir7tAaEmyz9hSNj9n8mXMBG0E=
-github.com/fumiama/terasu v0.0.0-20240507144117-547a591149c0 h1:So/3Bg/m2ZcUvqCzzEjjkjHBjcvnV3AN5tCxwsdMwYU=
-github.com/fumiama/terasu v0.0.0-20240507144117-547a591149c0/go.mod h1:UVx8YP1jKKL1Cj+uy+OnQRM2Ih6U36Mqy9GSf7jabsI=
 github.com/gabriel-vasile/mimetype v1.4.3 h1:in2uUcidCuFcDKtdcBxlR0rJ1+fsokWf+uqxgUFjbI0=
 github.com/gabriel-vasile/mimetype v1.4.3/go.mod h1:d8uq/6HKRL6CGdk+aubisF/M5GcPfT7nKyLpA0lbSSk=
 github.com/gin-contrib/sse v0.1.0 h1:Y/yl/+YNO8GZSjAhjMsSuLt29uWRFHdHYUb5lYOV9qE=
