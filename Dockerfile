@@ -9,8 +9,7 @@ WORKDIR /build
 
 COPY ./ .
 
-RUN wget https://github.com/2mf8/pbbot-react-ui/releases/latest/download/static.zip && unzip -o static.zip -d ./pkg/static/ \
-  && cd /build \
+RUN cd /build \
   && go build -ldflags "-s -w -extldflags '-static'" -o glc ./service/glc
 
 FROM alpine:latest
