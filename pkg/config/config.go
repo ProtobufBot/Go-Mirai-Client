@@ -4,17 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
 	log "github.com/sirupsen/logrus"
 )
 
-//go:generate go run github.com/a8m/syncmap -o "gen_plugin_map.go" -pkg config -name PluginMap "map[string]*Plugin"
+//go:generate go run github.com/2mf8/syncmap -o "gen_plugin_map.go" -pkg config -name PluginMap "map[string]*Plugin"
+//go:generate go run github.com/2mf8/syncmap -o "gen_device_info_map.go" -pkg config -name PluginMap "map[string]*DeviceInfo"
 var (
 	Fragment = false // 是否分片
 	Port     = "9000"
@@ -29,6 +28,7 @@ func init() {
 		Name:         "default",
 		Disabled:     false,
 		Json:         false,
+		Protocol:     0,
 		Urls:         []string{"ws://localhost:8081/ws/cq/"},
 		EventFilter:  []int32{},
 		ApiFilter:    []int32{},
@@ -51,6 +51,7 @@ type Plugin struct {
 	Name         string              `json:"-"`             // 功能名称
 	Disabled     bool                `json:"disabled"`      // 不填false默认启用
 	Json         bool                `json:"json"`          // json上报
+	Protocol     int32               `json:"protocol"`      // 通信协议
 	Urls         []string            `json:"urls"`          // 服务器列表
 	EventFilter  []int32             `json:"event_filter"`  // 事件过滤
 	ApiFilter    []int32             `json:"api_filter"`    // API过滤
@@ -60,13 +61,20 @@ type Plugin struct {
 	// TODO event filter, msg filter, regex filter, prefix filter, suffix filter
 }
 
+type DeviceInfo struct {
+	Guid          string `json:"guid"`
+	DeviceName    string `json:"device_name"`
+	SystemKernel  string `json:"system_kernel"`
+	KernelVersion string `json:"kernel_version"`
+}
+
 var PluginPath = "plugins"
 
 func LoadPlugins() {
 	if !util.PathExists(PluginPath) {
 		return
 	}
-	files, err := ioutil.ReadDir(PluginPath)
+	files, err := os.ReadDir(PluginPath)
 	if err != nil {
 		log.Warnf("failed to read plugin dir: %s", err)
 		return
@@ -124,7 +132,7 @@ func WritePlugins() {
 }
 
 func DeletePluginFiles() {
-	files, err := ioutil.ReadDir(PluginPath)
+	files, err := os.ReadDir(PluginPath)
 	if err != nil {
 		log.Warnf("failed to read plugin dir: %s", err)
 	}

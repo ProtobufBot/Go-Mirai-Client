@@ -3,11 +3,10 @@ package bot
 import (
 	"strconv"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/clz"
-	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/onebot"
+	"github.com/2mf8/Go-Lagrange-Client/proto_gen/onebot"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/message"
 )
 
 func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageElement) []*onebot.Message {
@@ -18,32 +17,16 @@ func MiraiMsgToProtoMsg(cli *client.QQClient, messageChain []message.IMessageEle
 			msgList = append(msgList, MiraiTextToProtoText(elem))
 		case *message.AtElement:
 			msgList = append(msgList, MiraiAtToProtoAt(elem))
-		case *message.DiceElement:
-			msgList = append(msgList, MiraiDiceToProtoDice(elem))
-		case *message.FingerGuessingElement:
-			msgList = append(msgList, MiraiFingerGuessingToProtoFingerGuessing(elem))
-		case *message.GuildImageElement:
-			msgList = append(msgList, MiraiGuildImageToProtoImage(elem))
-		case *message.FriendImageElement:
-			msgList = append(msgList, MiraiFriendImageToProtoImage(elem))
-		case *message.GroupImageElement:
-			msgList = append(msgList, MiraiGroupImageToProtoImage(elem))
-		case *clz.LocalImageElement:
-			msgList = append(msgList, MiraiLocalImageToProtoImage(elem))
+		case *message.ImageElement:
+			msgList = append(msgList, MiraiImageToProtoImage(elem))
 		case *message.FaceElement:
 			msgList = append(msgList, MiraiFaceToProtoFace(elem))
 		case *message.VoiceElement:
 			msgList = append(msgList, MiraiVoiceToProtoVoice(elem))
-		case *message.ServiceElement:
-			msgList = append(msgList, MiraiServiceToProtoService(elem))
-		case *message.LightAppElement:
-			msgList = append(msgList, MiraiLightAppToProtoLightApp(elem))
 		case *message.ShortVideoElement:
 			msgList = append(msgList, MiraiVideoToProtoVideo(cli, elem))
 		case *message.ReplyElement:
 			msgList = append(msgList, MiraiReplyToProtoReply(cli, elem))
-		case *message.ForwardElement:
-			msgList = append(msgList, MiraiForwardToProtoForward(cli, elem))
 		}
 	}
 	return msgList
@@ -58,22 +41,7 @@ func MiraiTextToProtoText(elem *message.TextElement) *onebot.Message {
 	}
 }
 
-func MiraiFriendImageToProtoImage(elem *message.FriendImageElement) *onebot.Message {
-	msg := &onebot.Message{
-		Type: "image",
-		Data: map[string]string{
-			"image_id": elem.ImageId,
-			"file":     elem.Url,
-			"url":      elem.Url,
-		},
-	}
-	if elem.Flash {
-		msg.Data["type"] = "flash"
-	}
-	return msg
-}
-
-func MiraiGroupImageToProtoImage(elem *message.GroupImageElement) *onebot.Message {
+func MiraiImageToProtoImage(elem *message.ImageElement) *onebot.Message {
 	msg := &onebot.Message{
 		Type: "image",
 		Data: map[string]string{
@@ -92,58 +60,16 @@ func MiraiGroupImageToProtoImage(elem *message.GroupImageElement) *onebot.Messag
 	return msg
 }
 
-func MiraiGuildImageToProtoImage(elem *message.GuildImageElement) *onebot.Message {
-	msg := &onebot.Message{
-		Type: "guild_image",
-		Data: map[string]string{
-			"file_id":        strconv.FormatInt(elem.FileId, 10),
-			"file":           elem.FilePath,
-			"url":            elem.Url,
-			"download_index": elem.DownloadIndex,
-		},
-	}
-	return msg
-}
-
-func MiraiLocalImageToProtoImage(elem *clz.LocalImageElement) *onebot.Message {
-	return &onebot.Message{
-		Type: "image",
-		Data: map[string]string{
-			"file": elem.Url,
-			"url":  elem.Url,
-		},
-	}
-}
-
 func MiraiAtToProtoAt(elem *message.AtElement) *onebot.Message {
 	return &onebot.Message{
 		Type: "at",
 		Data: map[string]string{
 			"qq": func() string {
-				if elem.Target == 0 {
+				if elem.TargetUin == 0 {
 					return "all"
 				}
-				return strconv.FormatInt(elem.Target, 10)
+				return strconv.FormatInt(int64(elem.TargetUin), 10)
 			}(),
-		},
-	}
-}
-
-func MiraiDiceToProtoDice(elem *message.DiceElement) *onebot.Message {
-	return &onebot.Message{
-		Type: "dice",
-		Data: map[string]string{
-			"value": strconv.FormatInt(int64(elem.Value), 10),
-		},
-	}
-}
-
-func MiraiFingerGuessingToProtoFingerGuessing(elem *message.FingerGuessingElement) *onebot.Message {
-	return &onebot.Message{
-		Type: "finger_guessing",
-		Data: map[string]string{
-			"value": strconv.FormatInt(int64(elem.Value), 10),
-			"name":  elem.Name,
 		},
 	}
 }
@@ -152,7 +78,7 @@ func MiraiFaceToProtoFace(elem *message.FaceElement) *onebot.Message {
 	return &onebot.Message{
 		Type: "face",
 		Data: map[string]string{
-			"id": strconv.Itoa(int(elem.Index)),
+			"id": strconv.Itoa(int(elem.FaceID)),
 		},
 	}
 }
@@ -167,33 +93,12 @@ func MiraiVoiceToProtoVoice(elem *message.VoiceElement) *onebot.Message {
 	}
 }
 
-func MiraiServiceToProtoService(elem *message.ServiceElement) *onebot.Message {
-	return &onebot.Message{
-		Type: "service",
-		Data: map[string]string{
-			"id":       strconv.Itoa(int(elem.Id)),
-			"content":  elem.Content,
-			"res_id":   elem.ResId,
-			"sub_type": elem.SubType,
-		},
-	}
-}
-
-func MiraiLightAppToProtoLightApp(elem *message.LightAppElement) *onebot.Message {
-	return &onebot.Message{
-		Type: "light_app",
-		Data: map[string]string{
-			"content": elem.Content,
-		},
-	}
-}
-
 func MiraiVideoToProtoVideo(cli *client.QQClient, elem *message.ShortVideoElement) *onebot.Message {
 	return &onebot.Message{
 		Type: "video",
 		Data: map[string]string{
 			"name": elem.Name,
-			"url":  cli.GetShortVideoUrl(elem.Uuid, elem.Md5),
+			"url":  elem.Url,
 		},
 	}
 }
@@ -202,21 +107,10 @@ func MiraiReplyToProtoReply(cli *client.QQClient, elem *message.ReplyElement) *o
 	return &onebot.Message{
 		Type: "reply",
 		Data: map[string]string{
-			"reply_seq":   strconv.FormatInt(int64(elem.ReplySeq), 10),
-			"sender":      strconv.FormatInt(elem.Sender, 10),
+			"message_id":  strconv.FormatInt(int64(elem.ReplySeq), 10),
+			"sender":      strconv.FormatInt(int64(elem.SenderUin), 10),
 			"time":        strconv.FormatInt(int64(elem.Time), 10),
 			"raw_message": MiraiMsgToRawMsg(cli, elem.Elements),
-		},
-	}
-}
-
-func MiraiForwardToProtoForward(cli *client.QQClient, elem *message.ForwardElement) *onebot.Message {
-	return &onebot.Message{
-		Type: "forward",
-		Data: map[string]string{
-			"file_name": elem.FileName,
-			"content":   elem.Content,
-			"res_id":    elem.ResId,
 		},
 	}
 }

@@ -11,11 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/handler"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/static"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/bot"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/handler"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/static"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
+	"github.com/2mf8/LagrangeGo/client"
+	auth2 "github.com/2mf8/LagrangeGo/client/auth"
 
 	"github.com/gin-gonic/gin"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
@@ -82,6 +84,40 @@ func InitLog() {
 	))
 }
 
+func Login() {
+	set := config.ReadSetting()
+	appInfo := auth2.AppList[set.Platform][set.AppVersion]
+	deviceInfo := &auth2.DeviceInfo{
+		Guid:          "cfcd208495d565ef66e7dff9f98764da",
+		DeviceName:    "Lagrange-DCFCD07E",
+		SystemKernel:  "Windows 10.0.22631",
+		KernelVersion: "10.0.22631",
+	}
+
+	qqclient := client.NewClient(0, set.SignServer, appInfo)
+	qqclient.UseDevice(deviceInfo)
+	data, err := os.ReadFile("sig.bin")
+	if err != nil {
+		log.Warnln("read sig error:", err)
+	} else {
+		sig, err := auth2.UnmarshalSigInfo(data, true)
+		if err != nil {
+			log.Warnln("load sig error:", err)
+		} else {
+			qqclient.UseSig(sig)
+		}
+	}
+	err = qqclient.Login("", "qrcode.png")
+	if err != nil {
+		log.Errorln("login err:", err)
+		return
+	}
+	handler.AfterLogin(qqclient)
+
+	defer qqclient.Release()
+	select {}
+}
+
 func Start() {
 	if help {
 		flag.Usage()
@@ -96,13 +132,8 @@ func Start() {
 		log.Infof("Plugin(%s): %s", value.Name, util.MustMarshal(value))
 		return true
 	})
-
-	CreateBotIfParamExist() // 如果环境变量存在，使用环境变量创建机器人 UIN PASSWORD
-	InitGin()               // 初始化GIN HTTP管理
-	_, err := bot.SRI()
-	if err != nil {
-		log.Warn("signRegisterInfo.toml 不存在，应该是首次登录")
-	}
+	InitGin()
+	//Login() // 初始化GIN HTTP管理
 	handler.TokenLogin()
 }
 
@@ -139,15 +170,6 @@ func LoadParamConfig() {
 	}
 }
 
-func CreateBotIfParamExist() {
-	if uin != 0 && pass != "" {
-		log.Infof("使用参数创建机器人 %d", uin)
-		go func() {
-			handler.CreateBotImpl(uin, pass, 0, 0, "")
-		}()
-	}
-}
-
 func InitGin() {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -157,16 +179,19 @@ func InitGin() {
 	}
 
 	router.Use(handler.CORSMiddleware())
-	router.StaticFS("/", http.FS(static.MustGetStatic()))
-	router.POST("/bot/create/v1", handler.CreateBot)
-	router.POST("/bot/delete/v1", handler.DeleteBot)
-	router.POST("/bot/list/v1", handler.ListBot)
-	router.POST("/captcha/solve/v1", handler.SolveCaptcha)
-	router.POST("/qrcode/fetch/v1", handler.FetchQrCode)
-	router.POST("/qrcode/query/v1", handler.QueryQRCodeStatus)
-	router.POST("/plugin/list/v1", handler.ListPlugin)
-	router.POST("/plugin/save/v1", handler.SavePlugin)
-	router.POST("/plugin/delete/v1", handler.DeletePlugin)
+	router.StaticFS("/dashcard", http.FS(static.MustGetStatic()))
+	router.POST("/dashcard/bot/delete/v1", handler.DeleteBot)
+	router.POST("/dashcard/bot/list/v1", handler.ListBot)
+	router.POST("/dashcard/qrcode/fetch/v1", handler.FetchQrCode)
+	router.POST("/dashcard/qrcode/query/v1", handler.QueryQRCodeStatus)
+	router.POST("/dashcard/plugin/list/v1", handler.ListPlugin)
+	router.POST("/dashcard/plugin/save/v1", handler.SavePlugin)
+	router.POST("/dashcard/plugin/delete/v1", handler.DeletePlugin)
+	router.GET("/ui/ws", func(c *gin.Context) {
+		if err := bot.UpgradeWebsocket(c.Writer, c.Request); err != nil {
+			fmt.Println("创建机器人失败", err)
+		}
+	})
 	realPort, err := RunGin(router, ":"+config.Port)
 	if err != nil {
 		for i := 9001; i <= 9020; i++ {
@@ -178,13 +203,14 @@ func InitGin() {
 			}
 			config.Port = realPort
 			log.Infof("端口号 %s", realPort)
-			log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
+			log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/dashcard 设置机器人", realPort))
 			break
 		}
+	} else {
+		config.Port = realPort
+		log.Infof("端口号 %s", realPort)
+		log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/dashcard 设置机器人", realPort))
 	}
-	config.Port = realPort
-	log.Infof("端口号 %s", realPort)
-	log.Infof(fmt.Sprintf("浏览器打开 http://localhost:%s/ 设置机器人", realPort))
 }
 
 func RunGin(engine *gin.Engine, port string) (string, error) {

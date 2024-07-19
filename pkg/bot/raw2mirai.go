@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/message"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -47,32 +47,18 @@ func RawMsgToMiraiMsg(cli *client.QQClient, str string) []message.IMessageElemen
 			switch node.XMLName.Local {
 			case "at":
 				elemList = append(elemList, ProtoAtToMiraiAt(attrMap))
-			case "dice":
-				elemList = append(elemList, ProtoDiceToMiraiDice(attrMap))
-			case "finger_guessing":
-				elemList = append(elemList, ProtoFingerGuessingToMiraiFingerGuessing(attrMap))
-			case "poke":
-				elemList = append(elemList, ProtoPokeToMiraiPoke(attrMap))
-			case "guild_image":
-				elemList = append(elemList, ProtoGuildImageToMiraiGuildImage(attrMap))
 			case "img":
 				elemList = append(elemList, ProtoImageToMiraiImage(attrMap)) // TODO 为了兼容我的旧代码偷偷加的
 			case "image":
 				elemList = append(elemList, ProtoImageToMiraiImage(attrMap))
 			case "face":
 				elemList = append(elemList, ProtoFaceToMiraiFace(attrMap))
-			case "share":
-				elemList = append(elemList, ProtoShareToMiraiShare(attrMap))
 			case "voice":
 				elemList = append(elemList, ProtoVoiceToMiraiVoice(attrMap))
 			case "record":
 				elemList = append(elemList, ProtoVoiceToMiraiVoice(attrMap))
 			case "text":
 				elemList = append(elemList, ProtoTextToMiraiText(attrMap))
-			case "light_app":
-				elemList = append(elemList, ProtoLightAppToMiraiLightApp(attrMap))
-			case "service":
-				elemList = append(elemList, ProtoServiceToMiraiService(attrMap))
 			case "reply":
 				if replyElement := ProtoReplyToMiraiReply(attrMap); replyElement != nil && !containReply {
 					containReply = true
@@ -80,12 +66,6 @@ func RawMsgToMiraiMsg(cli *client.QQClient, str string) []message.IMessageElemen
 				}
 			case "sleep":
 				ProtoSleep(attrMap)
-			case "tts":
-				elemList = append(elemList, ProtoTtsToMiraiTts(cli, attrMap))
-			case "video":
-				elemList = append(elemList, ProtoVideoToMiraiVideo(cli, attrMap))
-			case "music":
-				elemList = append(elemList, ProtoMusicToMiraiMusic(cli, attrMap))
 			default:
 				log.Warnf("不支持的类型 %s", code)
 				elemList = append(elemList, message.NewText(code))

@@ -1,24 +1,29 @@
 package handler
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"path"
+	"strconv"
+	"strings"
 	"sync"
+	"syscall"
 	"time"
 
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/bot"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/config"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/device"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/gmc/plugins"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/plugin"
-	"github.com/ProtobufBot/Go-Mirai-Client/pkg/util"
-	"github.com/ProtobufBot/Go-Mirai-Client/proto_gen/dto"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/bot"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/config"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/device"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/gmc/plugins"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/plugin"
+	"github.com/2mf8/Go-Lagrange-Client/pkg/util"
+	"github.com/2mf8/Go-Lagrange-Client/proto_gen/dto"
 
+	"github.com/2mf8/LagrangeGo/client"
+	"github.com/2mf8/LagrangeGo/client/auth"
 	_ "github.com/BurntSushi/toml"
-	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/golang/protobuf/proto"
@@ -28,117 +33,124 @@ import (
 var queryQRCodeMutex = &sync.RWMutex{}
 var qrCodeBot *client.QQClient
 
+type QRCodeResp int
+
+const (
+	Unknown = iota
+	QRCodeImageFetch
+	QRCodeWaitingForScan
+	QRCodeWaitingForConfirm
+	QRCodeTimeout
+	QRCodeConfirmed
+	QRCodeCanceled
+)
+
 func TokenLogin() {
-	if bot.PathExists("deviceInfo.toml") {
-		log.Info("尝试 Token 登录")
-		g, _ := bot.GmcTokenLogin()
-		cli := client.NewClientEmpty()
-		deviceInfo := device.GetDevice(g.DeviceSeed, g.ClientProtocol)
-		cli.UseDevice(deviceInfo)
-		if bot.PathExists("session.token") {
-			token, err := os.ReadFile("session.token")
+	set := config.ReadSetting()
+	dfs, err := os.ReadDir("./device/")
+	if err == nil {
+		for _, v := range dfs {
+			df := strings.Split(v.Name(), ".")
+			uin, err := strconv.ParseInt(df[0], 10, 64)
 			if err == nil {
-				if err = cli.TokenLogin(token); err != nil {
-					_ = os.Remove("session.token")
-					log.Warnf("恢复会话失败: %v , 尝试使用正常流程登录.", err)
-					time.Sleep(time.Second)
-					cli.Disconnect()
-					cli.Release()
-				} else {
-					bot.Clients.LoadOrStore(cli.Uin, cli)
-					AfterLogin(cli)
+				devi := device.GetDevice(uin)
+				sfs, err := os.ReadDir("./sig/")
+				if err == nil {
+					for _, sv := range sfs {
+						sf := strings.Split(sv.Name(), ".")
+						if df[0] == sf[0] {
+							sigpath := fmt.Sprintf("./sig/%s", sv.Name())
+							data, err := os.ReadFile(sigpath)
+							if err == nil {
+								sig, err := auth.UnmarshalSigInfo(data, true)
+								if err == nil {
+									go func() {
+										queryQRCodeMutex.Lock()
+										defer queryQRCodeMutex.Unlock()
+										appInfo := auth.AppList[set.Platform][set.AppVersion]
+										cli := client.NewClient(0, set.SignServer, appInfo)
+										cli.UseDevice(devi)
+										cli.UseSig(sig)
+										cli.SessionLogin()
+										bot.Clients.Store(int64(cli.Uin), cli)
+										go AfterLogin(cli)
+									}()
+								}
+							}
+						}
+					}
 				}
+			} else {
+				fmt.Printf("转换账号%s失败", df[0])
+			}
+		}
+	}
+}
+
+func TokenReLogin(userId int64, retryInterval int, retryCount int) {
+	set := config.ReadSetting()
+	cli, ok := bot.Clients.Load(userId)
+	if !ok {
+		log.Warnf("%v 不存在，登录失败", userId)
+	} else {
+		var times = 0
+		log.Warnf("Bot已离线 (%v)，将在 %v 秒后尝试重连. 重连次数：%v",
+			cli.Uin, retryInterval, times)
+		if cli.Online.Load() {
+			log.Warn("Bot已登录")
+			return
+		}
+		if times < retryCount {
+			times++
+			cli.Disconnect()
+			bot.Clients.Delete(int64(cli.Uin))
+			bot.ReleaseClient(cli)
+			time.Sleep(time.Second * time.Duration(retryInterval))
+			devi := device.GetDevice(userId)
+			sigpath := fmt.Sprintf("./sig/%v.bin", userId)
+			fmt.Println(sigpath)
+			data, err := os.ReadFile(sigpath)
+			if err == nil {
+				sig, err := auth.UnmarshalSigInfo(data, true)
+				if err == nil {
+					log.Warnf("%v 第 %v 次登录尝试", userId, times)
+					appInfo := auth.AppList[set.Platform][set.AppVersion]
+					cli := client.NewClient(0, set.SignServer, appInfo)
+					cli.UseDevice(devi)
+					cli.UseSig(sig)
+					cli.SessionLogin()
+					bot.Clients.Store(userId, cli)
+					go AfterLogin(cli)
+				} else {
+					log.Warnf("%v 第 %v 次登录失败, 120秒后重试", userId, times)
+				}
+			} else {
+				log.Warnf("%v 第 %v 次登录失败, 120秒后重试", userId, times)
 			}
 		} else {
-			log.Warn("Token 不存在，请尝试使用正常流程登录")
+			log.Errorf("failed to reconnect: 重连次数达到设置的上限值, %+v", cli.Uin)
 		}
-	} else {
-		log.Warn("deviceInfo.toml 不存在，可能是 deviceInfo.toml 缺失或是首次登录")
 	}
 }
 
 func init() {
-	//log.Infof("加载日志插件 Log")
+	log.Infof("加载日志插件 Log")
 	plugin.AddPrivateMessagePlugin(plugins.LogPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.LogGroupMessage)
-	plugin.AddChannelMessagePlugin(plugins.LogChannelMessage)
-	//log.Infof("加载测试插件 Hello")
+	log.Infof("加载测试插件 Hello")
 	plugin.AddPrivateMessagePlugin(plugins.HelloPrivateMessage)
-	//log.Infof("加载上报插件 Report")
+	plugin.AddGroupMessagePlugin(plugins.HelloGroupMessage)
+	log.Infof("加载上报插件 Report")
 	plugin.AddPrivateMessagePlugin(plugins.ReportPrivateMessage)
 	plugin.AddGroupMessagePlugin(plugins.ReportGroupMessage)
-	plugin.AddGroupNotifyEventPlugin(plugins.ReportGroupNotify)
-	plugin.AddChannelMessagePlugin(plugins.ReportChannelMessage)
-	plugin.AddTempMessagePlugin(plugins.ReportTempMessage)
-	plugin.AddMemberPermissionChangedPlugin(plugins.ReportMemberPermissionChanged)
 	plugin.AddMemberJoinGroupPlugin(plugins.ReportMemberJoin)
 	plugin.AddMemberLeaveGroupPlugin(plugins.ReportMemberLeave)
-	plugin.AddJoinGroupPlugin(plugins.ReportJoinGroup)
-	plugin.AddLeaveGroupPlugin(plugins.ReportLeaveGroup)
 	plugin.AddNewFriendRequestPlugin(plugins.ReportNewFriendRequest)
-	plugin.AddUserJoinGroupRequestPlugin(plugins.ReportUserJoinGroupRequest)
 	plugin.AddGroupInvitedRequestPlugin(plugins.ReportGroupInvitedRequest)
 	plugin.AddGroupMessageRecalledPlugin(plugins.ReportGroupMessageRecalled)
 	plugin.AddFriendMessageRecalledPlugin(plugins.ReportFriendMessageRecalled)
 	plugin.AddNewFriendAddedPlugin(plugins.ReportNewFriendAdded)
-	plugin.AddOfflineFilePlugin(plugins.ReportOfflineFile)
 	plugin.AddGroupMutePlugin(plugins.ReportGroupMute)
-}
-
-func CreateBot(c *gin.Context) {
-	g, _ := bot.GmcTokenLogin()
-	req := &dto.CreateBotReq{}
-	err := Bind(c, req)
-	if err != nil {
-		c.String(http.StatusBadRequest, "bad request, not protobuf")
-		return
-	}
-	if req.BotId == 0 {
-		c.String(http.StatusBadRequest, "botId is 0")
-		return
-	}
-	_, ok := bot.Clients.Load(req.BotId)
-	if ok {
-		c.String(http.StatusInternalServerError, "botId already exists")
-		return
-	}
-	if req.ClientProtocol == 0 {
-		bot.GTL = &bot.GMCLogin{
-			DeviceSeed:     req.DeviceSeed,
-			ClientProtocol: 6,
-			SignServer:     g.SignServer,
-			SignServerKey:  g.SignServerKey,
-		}
-		if req.SignServer != "" {
-			bot.GTL.SignServer = req.SignServer
-		}
-		if req.SignServerAuth != "" {
-			bot.GTL.SignServerKey = req.SignServerAuth
-		}
-		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", bot.GTL.DeviceSeed, 6, bot.GTL.SignServer, bot.GTL.SignServerKey)), 0o644)
-		go func() {
-			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, 6, req.SignServerAuth)
-		}()
-	} else {
-		bot.GTL = &bot.GMCLogin{
-			DeviceSeed:     req.DeviceSeed,
-			ClientProtocol: req.ClientProtocol,
-			SignServer:     g.SignServer,
-			SignServerKey:  g.SignServerKey,
-		}
-		if req.SignServer != "" {
-			bot.GTL.SignServer = req.SignServer
-		}
-		if req.SignServerAuth != "" {
-			bot.GTL.SignServerKey = req.SignServerAuth
-		}
-		_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d \nClientProtocol= %d \nSignServer= \"%s\" \nSignServerkey= \"%s\"", bot.GTL.DeviceSeed, bot.GTL.ClientProtocol, bot.GTL.SignServer, bot.GTL.SignServerKey)), 0o644)
-		go func() {
-			CreateBotImpl(req.BotId, req.Password, req.DeviceSeed, req.ClientProtocol, req.SignServerAuth)
-		}()
-	}
-	resp := &dto.CreateBotResp{}
-	Return(c, resp)
 }
 
 func DeleteBot(c *gin.Context) {
@@ -153,6 +165,30 @@ func DeleteBot(c *gin.Context) {
 		c.String(http.StatusBadRequest, "bot not exists")
 		return
 	}
+	go func() {
+		queryQRCodeMutex.Lock()
+		defer queryQRCodeMutex.Unlock()
+		sigpath := fmt.Sprintf("./sig/%v.bin", cli.Uin)
+		sigDir := path.Dir(sigpath)
+		if !util.PathExists(sigDir) {
+			log.Infof("%+v 目录不存在，自动创建", sigDir)
+			if err := os.MkdirAll(sigDir, 0777); err != nil {
+				log.Warnf("failed to mkdir deviceDir, err: %+v", err)
+			}
+		}
+		data, err := cli.Sig().Marshal()
+		if err != nil {
+			log.Errorln("marshal sig.bin err:", err)
+			return
+		}
+		err = os.WriteFile(sigpath, data, 0644)
+		if err != nil {
+			log.Errorln("write sig.bin err:", err)
+			return
+		}
+		log.Infoln("sig saved into sig.bin")
+	}()
+	bot.Clients.Delete(int64(cli.Uin))
 	bot.ReleaseClient(cli)
 	resp := &dto.DeleteBotResp{}
 	Return(c, resp)
@@ -170,132 +206,105 @@ func ListBot(c *gin.Context) {
 	}
 	bot.Clients.Range(func(_ int64, cli *client.QQClient) bool {
 		resp.BotList = append(resp.BotList, &dto.Bot{
-			BotId:    cli.Uin,
+			BotId:    int64(cli.Uin),
 			IsOnline: cli.Online.Load(),
-			Captcha: func() *dto.Bot_Captcha {
-				if waitingCaptcha, ok := bot.WaitingCaptchas.Load(cli.Uin); ok {
-					return waitingCaptcha.Captcha
-				}
-				return nil
-			}(),
 		})
 		return true
 	})
 	Return(c, resp)
 }
 
-func SolveCaptcha(c *gin.Context) {
-	req := &dto.SolveCaptchaReq{}
-	err := Bind(c, req)
-	if err != nil {
-		c.String(http.StatusBadRequest, "bad request, not protobuf")
-		return
-	}
-	waitingCaptcha, ok := bot.WaitingCaptchas.Load(req.BotId)
-	if !ok {
-		c.String(http.StatusInternalServerError, "captcha not found")
-		return
-	}
-
-	err = waitingCaptcha.Prom.Resolve(req.Result)
-	if err != nil {
-		c.String(http.StatusInternalServerError, "solve captcha error")
-		return
-	}
-
-	resp := &dto.SolveCaptchaResp{}
-	Return(c, resp)
-}
-
 func FetchQrCode(c *gin.Context) {
+	set := config.ReadSetting()
 	req := &dto.FetchQRCodeReq{}
 	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request, not protobuf")
 		return
 	}
-	if qrCodeBot != nil {
-		qrCodeBot.Release()
-	}
-	qrCodeBot = client.NewClientEmpty()
-	//deviceInfo := device.GetDevice(req.DeviceSeed, req.ClientProtocol)
-	deviceInfo := device.GetDevice(req.DeviceSeed, 2)
-	_ = os.WriteFile("deviceInfo.toml", []byte(fmt.Sprintf("DeviceSeed = %d\nClientProtocol = %d", req.DeviceSeed, 2)), 0o644)
-	qrCodeBot.UseDevice(deviceInfo)
-
-	log.Infof("初始化日志")
-	bot.InitLog(qrCodeBot)
-	fetchQRCodeResp, err := qrCodeBot.FetchQRCode()
+	newDeviceInfo := device.GetDevice(req.DeviceSeed)
+	appInfo := auth.AppList[set.Platform][set.AppVersion]
 	if err != nil {
-		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
-		return
+		fmt.Println(err)
+	} else {
+		qqclient := client.NewClient(0, set.SignServer, appInfo)
+		qqclient.UseDevice(newDeviceInfo)
+		qrCodeBot = qqclient
+		b, s, err := qrCodeBot.FetchQRCode(3, 4, 2)
+		if err != nil {
+			c.String(http.StatusInternalServerError, fmt.Sprintf("failed to fetch qrcode, %+v", err))
+			return
+		}
+		resp := &dto.QRCodeLoginResp{
+			State:     dto.QRCodeLoginResp_QRCodeLoginState(http.StatusOK),
+			ImageData: b,
+			Sig:       []byte(s),
+		}
+		Return(c, resp)
 	}
-	resp := &dto.QRCodeLoginResp{
-		State:     dto.QRCodeLoginResp_QRCodeLoginState(fetchQRCodeResp.State),
-		ImageData: fetchQRCodeResp.ImageData,
-		Sig:       fetchQRCodeResp.Sig,
-	}
-	Return(c, resp)
 }
 
 func QueryQRCodeStatus(c *gin.Context) {
-	queryQRCodeMutex.Lock()
-	defer queryQRCodeMutex.Unlock()
-	req := &dto.QueryQRCodeStatusReq{}
-	err := Bind(c, req)
+	respCode := 0
+	ok, err := qrCodeBot.GetQRCodeResult()
+	//fmt.Println(ok.Name(), ok.Waitable(), ok.Success(), err)
 	if err != nil {
-		c.String(http.StatusBadRequest, fmt.Sprintf("failed to bind, %+v", err))
-		return
+		resp := &dto.QRCodeLoginResp{
+			State: dto.QRCodeLoginResp_QRCodeLoginState(http.StatusExpectationFailed),
+		}
+		Return(c, resp)
 	}
-
-	if qrCodeBot == nil {
-		c.String(http.StatusBadRequest, "please fetch qrcode first")
-		return
+	fmt.Println(ok.Name())
+	if !ok.Success() {
+		resp := &dto.QRCodeLoginResp{
+			State: dto.QRCodeLoginResp_QRCodeLoginState(http.StatusExpectationFailed),
+		}
+		Return(c, resp)
 	}
-
-	if qrCodeBot.Online.Load() {
-		c.String(http.StatusBadRequest, "already online")
-		return
+	if ok.Name() == "WaitingForConfirm" {
+		respCode = QRCodeWaitingForScan
 	}
-
-	queryQRCodeStatusResp, err := qrCodeBot.QueryQRCodeStatus(req.Sig)
-	if err != nil {
-		c.String(http.StatusInternalServerError, fmt.Sprintf("failed to query qrcode status, %+v", err))
-		return
+	if ok.Name() == "Canceled" {
+		respCode = QRCodeCanceled
 	}
-	if queryQRCodeStatusResp.State == client.QRCodeConfirmed {
+	if ok.Name() == "WaitingForConfirm" {
+		respCode = QRCodeWaitingForConfirm
+	}
+	if ok.Name() == "Confirmed" {
+		respCode = QRCodeConfirmed
 		go func() {
 			queryQRCodeMutex.Lock()
 			defer queryQRCodeMutex.Unlock()
+			err := qrCodeBot.QRCodeConfirmed()
+			fmt.Println(err)
+			if err == nil {
+				go func() {
+					queryQRCodeMutex.Lock()
+					defer queryQRCodeMutex.Unlock()
+					err := qrCodeBot.Register()
+					if err != nil {
+						fmt.Println(err)
+					}
+					time.Sleep(time.Second * 5)
+					log.Infof("登录成功")
+					originCli, ok := bot.Clients.Load(int64(qrCodeBot.Uin))
 
-			loginResp, err := qrCodeBot.QRCodeLogin(queryQRCodeStatusResp.LoginInfo)
-			if err != nil {
-				c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
-				return
+					// 重复登录，旧的断开
+					if ok {
+						originCli.Release()
+					}
+					bot.Clients.Store(int64(qrCodeBot.Uin), qrCodeBot)
+					go AfterLogin(qrCodeBot)
+					qrCodeBot = nil
+				}()
 			}
-			if !loginResp.Success {
-				c.String(http.StatusInternalServerError, fmt.Sprintf("failed to qrcode login, %+v", err))
-				return
-			}
-			log.Infof("登录成功")
-			originCli, ok := bot.Clients.Load(qrCodeBot.Uin)
-
-			// 重复登录，旧的断开
-			if ok {
-				originCli.Release()
-			}
-			bot.Clients.Store(qrCodeBot.Uin, qrCodeBot)
-			go AfterLogin(qrCodeBot)
-			accountToken := qrCodeBot.GenToken()
-			_ = os.WriteFile("session.token", accountToken, 0o644)
-			qrCodeBot = nil
 		}()
 	}
-
+	if ok.Name() == "Expired" {
+		respCode = QRCodeTimeout
+	}
 	resp := &dto.QRCodeLoginResp{
-		State:     dto.QRCodeLoginResp_QRCodeLoginState(queryQRCodeStatusResp.State),
-		ImageData: queryQRCodeStatusResp.ImageData,
-		Sig:       queryQRCodeStatusResp.Sig,
+		State: dto.QRCodeLoginResp_QRCodeLoginState(respCode),
 	}
 	Return(c, resp)
 }
@@ -311,11 +320,15 @@ func ListPlugin(c *gin.Context) {
 		Plugins: []*dto.Plugin{},
 	}
 	config.Plugins.Range(func(key string, p *config.Plugin) bool {
+		urls := []string{}
+		url := strings.Join(p.Urls, ",")
+		urls = append(urls, url)
 		resp.Plugins = append(resp.Plugins, &dto.Plugin{
 			Name:         p.Name,
 			Disabled:     p.Disabled,
 			Json:         p.Json,
-			Urls:         p.Urls,
+			Protocol:     p.Protocol,
+			Urls:         urls,
 			EventFilter:  p.EventFilter,
 			ApiFilter:    p.ApiFilter,
 			RegexFilter:  p.RegexFilter,
@@ -338,6 +351,7 @@ func ListPlugin(c *gin.Context) {
 
 func SavePlugin(c *gin.Context) {
 	req := &dto.SavePluginReq{}
+	urls := []string{}
 	err := Bind(c, req)
 	if err != nil {
 		c.String(http.StatusBadRequest, "bad request")
@@ -354,14 +368,20 @@ func SavePlugin(c *gin.Context) {
 	if p.EventFilter == nil {
 		p.EventFilter = []int32{}
 	}
-	if p.Urls == nil {
-		p.Urls = []string{}
+	if p.Urls != nil {
+		_urls := strings.Split(req.Plugin.Urls[0], ",")
+		for _, v := range _urls {
+			if v != "" {
+				urls = append(urls, strings.TrimSpace(v))
+			}
+		}
 	}
 	config.Plugins.Store(p.Name, &config.Plugin{
 		Name:         p.Name,
 		Disabled:     p.Disabled,
 		Json:         p.Json,
-		Urls:         p.Urls,
+		Protocol:     p.Protocol,
+		Urls:         urls,
 		EventFilter:  p.EventFilter,
 		ApiFilter:    p.ApiFilter,
 		RegexFilter:  p.RegexFilter,
@@ -410,62 +430,7 @@ func Return(c *gin.Context, resp proto.Message) {
 	c.Data(http.StatusOK, c.ContentType(), data)
 }
 
-func CreateBotImpl(uin int64, password string, deviceRandSeed int64, clientProtocol int32, signServerKey string) {
-	CreateBotImplMd5(uin, md5.Sum([]byte(password)), deviceRandSeed, clientProtocol, signServerKey)
-}
-
-func CreateBotImplMd5(uin int64, passwordMd5 [16]byte, deviceRandSeed int64, clientProtocol int32, signServerKey string) {
-	var deviceInfo *client.DeviceInfo
-	log.Infof("开始初始化设备信息")
-	if deviceRandSeed != 0 {
-		deviceInfo = device.GetDevice(deviceRandSeed, clientProtocol)
-	} else {
-		deviceInfo = device.GetDevice(uin, clientProtocol)
-	}
-
-	log.Infof("设备信息 %+v", string(deviceInfo.ToJson()))
-
-	log.Infof("创建机器人 %+v", uin)
-
-	cli := client.NewClientMd5(uin, passwordMd5)
-	cli.UseDevice(deviceInfo)
-	bot.Clients.Store(uin, cli)
-
-	log.Infof("初始化日志")
-	bot.InitLog(cli)
-
-	log.Infof("登录中...")
-	ok, err := bot.Login(cli)
-	if err != nil {
-		// TODO 登录失败，是否需要删除？
-		log.Errorf("failed to login, err: %+v", err)
-		return
-	}
-	if ok {
-		log.Infof("登录成功")
-		for _, data := range bot.RSR.Data.RequestCallback {
-			go bot.SubmitRequestCallback(uint64(uin), data.Cmd, data.CallBackId, []byte(data.Body))
-		}
-		time.Sleep(time.Second * 3)
-		if !bot.SubmitRequestCallbackStop {
-			log.Infof("登录成功")
-			AfterLogin(cli)
-			accountToken := cli.GenToken()
-			_ = os.WriteFile("session.token", accountToken, 0o644)
-		} else {
-			log.Warn("联网更新Token失败，请退出重登")
-		}
-	} else {
-		log.Infof("登录失败")
-	}
-}
-
 func AfterLogin(cli *client.QQClient) {
-	bot.RequestToken(uint64(cli.Uin))
-	if bot.IsRequestTokenAgain {
-		bot.RequestToken(uint64(cli.Uin))
-	}
-	go bot.TTIR(uint64(cli.Uin))
 	for {
 		time.Sleep(5 * time.Second)
 		if cli.Online.Load() {
@@ -477,18 +442,45 @@ func AfterLogin(cli *client.QQClient) {
 	log.Infof("插件加载完成")
 
 	log.Infof("刷新好友列表")
-	if err := cli.ReloadFriendList(); err != nil {
+	if fs, err := cli.GetFriendsData(); err != nil {
 		util.FatalError(fmt.Errorf("failed to load friend list, err: %+v", err))
+	} else {
+		log.Infof("共加载 %v 个好友.", len(fs))
 	}
-	log.Infof("共加载 %v 个好友.", len(cli.FriendList))
 
-	log.Infof("刷新群列表")
-	if err := cli.ReloadGroupList(); err != nil {
-		util.FatalError(fmt.Errorf("failed to load group list, err: %+v", err))
-	}
-	log.Infof("共加载 %v 个群.", len(cli.GroupList))
-
+	bot.ForwardBot = append(bot.ForwardBot, cli)
 	bot.ConnectUniversal(cli)
 
-	bot.SetRelogin(cli, 30, 20)
+	defer cli.Release()
+	defer func() {
+		sigpath := fmt.Sprintf("./sig/%v.bin", cli.Uin)
+		sigDir := path.Dir(sigpath)
+		if !util.PathExists(sigDir) {
+			log.Infof("%+v 目录不存在，自动创建", sigDir)
+			if err := os.MkdirAll(sigDir, 0777); err != nil {
+				log.Warnf("failed to mkdir deviceDir, err: %+v", err)
+			}
+		}
+		data, err := cli.Sig().Marshal()
+		if err != nil {
+			log.Errorln("marshal sig.bin err:", err)
+			return
+		}
+		err = os.WriteFile(sigpath, data, 0644)
+		if err != nil {
+			log.Errorln("write sig.bin err:", err)
+			return
+		}
+		log.Infoln("sig saved into sig.bin")
+	}()
+
+	// setup the main stop channel
+	mc := make(chan os.Signal, 2)
+	signal.Notify(mc, os.Interrupt, syscall.SIGTERM)
+	for {
+		switch <-mc {
+		case os.Interrupt, syscall.SIGTERM:
+			return
+		}
+	}
 }

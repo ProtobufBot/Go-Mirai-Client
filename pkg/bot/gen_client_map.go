@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/2mf8/LagrangeGo/client"
 )
 
 // Map is like a Go map[interface{}]interface{} but is safe for concurrent use

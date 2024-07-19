@@ -36,7 +36,6 @@ _testmain.go
 device.json
 Go-Mirai-Client
 device-*.json
-pkg/static/static
 gmc-*.zip
 captcha.jpg
 /video
@@ -56,3 +55,5 @@ gmc_android-sources.jar
 *.toml
 *.token
 login.json
+*.jpg
+glc
